@@ -217,32 +217,48 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .ntick.on .ntick-line{background:var(--purple);height:16px;width:3px}
 .ntick.on .ntick-lbl{color:var(--purple);font-size:.72rem;font-weight:900}
 /* 팬플룻 */
-.pf-scene{display:flex;flex-direction:column;gap:18px}
-.pf-top{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}
-.pf-instruments{display:flex;gap:5px;align-items:flex-end;padding:14px 14px 10px;background:linear-gradient(180deg,#FFF8E6,#FFEDB0);border-radius:14px;border:1.5px solid #E8D090;min-height:190px}
+.pf-instruments{display:flex;gap:5px;align-items:flex-end;justify-content:center;padding:14px 14px 0;background:linear-gradient(180deg,#FFF8E6,#FFEDB0);border-radius:14px 14px 0 0;border:1.5px solid #E8D090;border-bottom:none;min-height:180px}
+.pf-base{height:14px;background:linear-gradient(180deg,#7A5210,#A8751C,#7A5210);border-radius:0 0 8px 8px;margin-bottom:14px;border:1.5px solid #E8D090;border-top:none}
 .pf-tube-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:3px 5px;border-radius:8px;outline:2.5px solid transparent;outline-offset:3px;transition:background .15s}
 .pf-tube-wrap.sel{background:rgba(142,68,173,.1);outline-color:var(--purple)}
 .pf-tube-wrap.correct{outline-color:var(--teal)}
-.pf-tube-body{width:26px;border-radius:5px 5px 0 0;border:2px solid #8B6914;background:linear-gradient(90deg,#C8952A,#EFC053,#C8952A);position:relative;overflow:hidden;min-height:20px;transition:height .08s,border-color .3s,background .3s}
+.pf-tube-body{width:26px;border-radius:5px 5px 0 0;border:2px solid #8B6914;background:linear-gradient(90deg,#C8952A,#EFC053,#C8952A);position:relative;overflow:hidden;min-height:20px;transition:height .15s,border-color .3s,background .3s}
 .pf-tube-wrap.correct .pf-tube-body{border-color:var(--teal);background:linear-gradient(90deg,#009E6B,#00C987,#009E6B)}
 .pf-tube-body::after{content:'';position:absolute;top:0;left:3px;right:3px;height:36%;background:linear-gradient(180deg,rgba(255,255,255,.45),transparent);border-radius:3px 3px 0 0}
+.pf-tube-empty .pf-tube-body{background:#E0D8C8;border-color:#B0A090;border-style:dashed}
 .pf-tube-cur{font-size:.58rem;font-weight:700;min-height:1em;text-align:center;color:var(--text-sub)}
 .pf-tube-tgt{font-size:.65rem;font-weight:800;padding:2px 5px;border-radius:4px;background:#EDE8F4;color:var(--purple);text-align:center}
-.pf-ctrl{flex:1;min-width:200px;display:flex;flex-direction:column;gap:10px}
-.pf-note-disp{font-size:1.55rem;font-weight:900;color:var(--purple);text-align:center;min-height:1.7em;line-height:1.1;transition:color .2s}
-.pf-hz-disp{font-size:.7rem;color:var(--text-sub);text-align:center;margin-top:-8px}
+/* 팬플룻 작업실 */
+.pf-workshop{background:#FFF8E7;border:2px solid #DDB85C;border-radius:14px;padding:18px 20px;margin:4px 0 14px}
+.pf-workshop-hdr{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.pf-sel-note{font-size:1.05rem;font-weight:800;color:var(--purple)}
+.pf-hz-disp{font-size:.8rem;color:var(--text-sub)}
+.pf-cut-area{position:relative;user-select:none;touch-action:none;margin-bottom:8px}
+.pf-ruler-row{position:relative;height:28px;margin-bottom:2px}
+.pf-rtick{position:absolute;bottom:0;display:flex;flex-direction:column;align-items:center;gap:2px;transform:translateX(-50%)}
+.pf-rtick-line{width:1.5px;background:rgba(0,0,0,.35)}
+.pf-rtick-lbl{font-size:.55rem;color:rgba(0,0,0,.55);font-weight:600;white-space:nowrap}
+.pf-ntick{position:absolute;bottom:0;display:flex;flex-direction:column;align-items:center;gap:1px;transform:translateX(-50%);z-index:4}
+.pf-ntick-line{width:2.5px;background:var(--orange);border-radius:2px}
+.pf-ntick-lbl{font-size:.62rem;font-weight:900;color:var(--orange);white-space:nowrap;background:#fff8ee;border-radius:3px;padding:0 2px}
+.pf-bamboo-tube{position:relative;height:56px;border-radius:10px;overflow:visible}
+.pf-bamboo-fill{position:absolute;inset:0;border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#C8962A 0%,#F0C460 40%,#D4A832 60%,#9B7020 100%);border:2px solid #7A5518}
+.pf-bnode{position:absolute;top:0;bottom:0;width:4px;background:linear-gradient(180deg,#6B5010,#8B6820,#6B5010);border-radius:2px;z-index:2}
+.pf-cutter-line{position:absolute;top:-10px;bottom:-6px;width:3px;background:var(--red);z-index:6;pointer-events:none;border-radius:2px}
+.pf-cutter-handle{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:1.3rem;cursor:ew-resize;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.3))}
+.pf-cut-info{display:flex;align-items:center;gap:16px;margin-top:6px;font-size:.85rem;flex-wrap:wrap}
+.pf-cut-hint{font-weight:700;min-width:80px}
 .pf-play-btns{display:flex;gap:8px;flex-wrap:wrap}
-/* 현악기 */
-.str-scene{display:flex;flex-direction:column;gap:16px}
-.str-pair-block{padding:14px 18px;background:#FAF8FF;border-radius:14px;border:1.5px solid #E8DEFF;display:flex;flex-direction:column;gap:9px}
-.str-neck{width:100%;height:60px;background:linear-gradient(180deg,#5C2800,#9A5010,#5C2800);border-radius:8px;position:relative;box-shadow:0 4px 12px rgba(0,0,0,.18);overflow:hidden}
-.str-line{position:absolute;top:50%;left:3%;right:3%;height:2px;background:linear-gradient(90deg,#999,#DDD,#999);border-radius:1px;transform:translateY(-50%)}
-.str-nut{position:absolute;left:3%;top:10%;bottom:10%;width:4px;background:#BBB;border-radius:2px}
-.str-bridge{position:absolute;right:3%;top:10%;bottom:10%;width:4px;background:#BBB;border-radius:2px}
-.str-finger{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;background:var(--red);border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3);transform:translateY(-50%) translateX(-50%);z-index:2;pointer-events:none;transition:left .04s}
-.str-fret-line{position:absolute;top:8%;bottom:8%;width:1.5px;background:rgba(255,255,255,.28);pointer-events:none}
-.str-info-row{display:flex;align-items:center;gap:12px;font-size:.82rem;font-weight:700;flex-wrap:wrap}
+/* 현악기 (거문고) */
+.geomungo-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;margin:10px 0}
+#strCanvas{display:block;width:100%;max-width:640px;border-radius:12px;cursor:crosshair;touch-action:none;box-shadow:0 4px 16px rgba(0,0,0,.12)}
+.str-info-row{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.str-info-card{display:flex;flex-direction:column;align-items:center;gap:4px;background:#FAF8FF;border-radius:12px;padding:12px 20px;border:2px solid #E8DEFF;min-width:120px}
+.str-info-label{font-size:.75rem;font-weight:700;color:var(--text-sub)}
+.str-info-note{font-size:1.5rem;font-weight:900}
+.str-info-hz{font-size:.72rem;color:var(--text-sub)}
 .str-ratio-disp{font-size:.95rem;font-weight:800;color:var(--purple);text-align:center;padding:8px 14px;background:var(--purple-light);border-radius:10px}
+.str-inst-tip{font-size:.8rem;color:var(--text-sub);text-align:center;margin-top:6px}
 .task-bar{margin-top:20px;padding:14px 18px;border-radius:var(--radius-sm);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .task-bar-purple{border:2px solid var(--purple);background:linear-gradient(135deg,#FBF5FF,#F4ECF7)}
 .task-title{font-size:.9rem;font-weight:700}.task-desc{font-size:.82rem;color:var(--text-sub);margin-top:2px}
@@ -389,6 +405,22 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .shad-nav-btn{padding:7px 18px;border-radius:100px;border:2px solid #E0E0E0;background:#fff;font-family:var(--font);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s}
 .shad-nav-btn:hover{border-color:#E67E22;color:#E67E22}
 .shad-prog{font-size:.8rem;font-weight:700;color:var(--text-sub);min-width:40px;text-align:center}
+/* 그림자 에라토스테네스 + 2단계 */
+.erato-card{background:linear-gradient(135deg,#F0F8FF,#E8F4FD);border:2px solid #AED6F1;border-radius:14px;padding:16px;font-size:.85rem;line-height:1.8;margin-top:12px}
+.erato-card h4{font-size:.9rem;font-weight:800;color:var(--blue);margin-bottom:8px}
+.erato-diagram{display:flex;align-items:flex-end;justify-content:center;gap:60px;margin:12px 0;flex-wrap:wrap}
+.erato-city{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.78rem;font-weight:700}
+.erato-stick{width:6px;background:#5D4037;border-radius:3px 3px 0 0}
+.erato-shadow{height:4px;background:rgba(0,0,0,.3);border-radius:0 2px 2px 0;align-self:flex-end}
+.erato-ground{height:3px;background:#4CAF50;width:120px;border-radius:2px}
+.erato-angle-arc{font-size:.75rem;color:var(--orange);font-weight:800}
+.shad2-layout{display:flex;flex-direction:column;gap:16px}
+#shadCanvas2{border-radius:14px;border:2px solid #C8D8E8;display:block;width:100%;max-width:700px}
+.shad2-ctrl{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#F8F9FA;border-radius:12px;flex-wrap:wrap}
+.shad2-ctrl label{font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap}
+.shad2-info{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.shad2-info-card{background:#fff;border:2px solid #E0E0E0;border-radius:10px;padding:8px 18px;text-align:center;font-size:.82rem}
+.shad2-info-val{font-size:1.2rem;font-weight:900;color:#D35400}
 .gl-cups-row{display:flex;gap:20px;justify-content:center;align-items:flex-end;padding:24px 0;flex-wrap:wrap}
 .gl-cup-unit{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:90px}
 .gl-cup-vis{width:72px;height:180px;border:3px solid #BDC3C7;border-top:none;border-radius:0 0 16px 16px;position:relative;overflow:hidden;background:rgba(255,255,255,.6);cursor:pointer;transition:border-color .3s,box-shadow .3s}
@@ -697,113 +729,76 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     </div>
     <!-- 팬플룻 -->
     <div id="inst-panflute" style="display:none">
-      <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">팬플룻</span> 관의 길이를 바꿔 도레미파솔라시 7음을 만들어요</div>
-      <div class="pf-scene">
-        <div class="pf-top">
-          <div class="pf-note-disp" id="pfNoteDisp">관을 선택하세요</div>
-          <div class="pf-hz-disp" id="pfHzDisp"></div>
-        </div>
+      <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">팬플룻</span> 대나무 관을 잘라 도레미파솔라시를 만들어요</div>
+      <!-- 완성된 팬플룻 악기 디스플레이 -->
+      <div style="max-width:480px;margin:0 auto">
         <div class="pf-instruments" id="pfInst"></div>
-        <div class="pf-ctrl">
-          <div class="note-slider-area">
-            <label style="font-size:.8rem;font-weight:600;color:var(--text-sub)">관 길이 (cm)</label>
-            <input type="range" class="note-slider" id="pfSlider" min="25" max="72" step="0.1" value="43.4" oninput="pfSlide(+this.value)">
-            <div class="note-markers-row" id="pfMarkers"></div>
-          </div>
-          <span id="pfLenDisp" style="font-size:.85rem;font-weight:700;color:var(--purple);min-width:56px;text-align:right">43.4 cm</span>
+        <div class="pf-base" id="pfBase"></div>
+      </div>
+      <!-- 대나무 작업실 -->
+      <div class="pf-workshop">
+        <div class="pf-workshop-hdr">
+          <span class="pf-sel-note" id="pfSelNote">✂️ 도 관 만들기</span>
+          <span class="pf-hz-disp" id="pfHzDisp"></span>
         </div>
+        <div class="pf-cut-area" id="pfCutArea">
+          <div class="pf-ruler-row" id="pfRulerRow"></div>
+          <div class="pf-bamboo-tube" id="pfBambooTube">
+            <div class="pf-bamboo-fill" id="pfBambooFill"></div>
+            <div class="pf-cutter-line" id="pfCutterLine" style="left:60%">
+              <div class="pf-cutter-handle">✂️</div>
+            </div>
+          </div>
+          <div class="pf-cut-info">
+            <span>현재 자를 위치: <strong id="pfCutLenDisp">50.0 cm</strong></span>
+            <span class="pf-cut-hint" id="pfCutHint"></span>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px;justify-content:center;flex-wrap:wrap">
+          <button class="act-btn" style="background:var(--red);color:#fff;border:none;padding:11px 26px;font-size:.95rem;font-weight:800" onclick="pfCutTube()">✂️ 이 길이로 자르기</button>
+          <button class="act-btn" onclick="pfPlaySel()">&#x25B6; 미리 듣기</button>
+        </div>
+        <div class="inst-tip">💡 관이 <strong>길수록</strong> 소리가 낮아요. 주황색 눈금 위치에서 자르면 음이 딱 맞아요!</div>
       </div>
-      <div class="pf-play-btns">
-        <button class="act-btn" onclick="pfPlaySel()">&#x25B6; 선택한 관 듣기</button>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="act-btn" style="background:var(--purple);color:#fff;border:none" onclick="pfPlayAll()">&#x1F3B5; 전체 연주</button>
+        <button class="act-btn" onclick="pfReset()">↺ 처음부터</button>
       </div>
-      <div class="inst-tip">&#x1F3B5; 관이 <strong>길수록</strong> 소리가 낮아요. 주황색 눈금을 참고해 각 관을 해당 음에 맞춰 보세요!</div>
       <div id="pfFB"></div>
     </div>
-    <!-- 현악기 -->
+    <!-- 현악기 (거문고) -->
     <div id="inst-string" style="display:none">
-      <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">현악기</span> 현의 길이로 두 음의 비율을 만들어요</div>
-      <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap">
-        <div class="str-pair-block">
-          <div class="str-info-row">
-            <span style="font-weight:700;color:var(--red)">현 A</span>
-            <span style="font-weight:800;font-size:1.05rem;color:var(--purple)" id="strNameA">도</span>
-            <span style="font-size:.8rem;color:var(--text-sub)" id="strHzA">262 Hz</span>
-          </div>
-          <div class="str-neck" id="strNeckA">
-            <div class="str-nut"></div>
-            <div class="str-line"></div>
-            <div class="str-bridge"></div>
-            <div class="str-finger" id="strFingerA" style="left:80%"></div>
-          </div>
-          <div class="note-slider-area">
-            <input type="range" class="note-slider" id="strSliderA" min="28" max="68" step="0.1" value="60" oninput="strSlide('A',+this.value)">
-            <div class="note-markers-row" id="strMarkersA"></div>
-          </div>
-          <button class="act-btn" style="margin-top:8px;width:100%" onclick="strPlayOne('A')">&#x25B6; 현 A 듣기</button>
+      <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">거문고</span> 안족을 움직여 현의 울리는 길이를 바꿔요</div>
+      <div class="geomungo-wrap">
+        <canvas id="strCanvas" width="640" height="200"></canvas>
+      </div>
+      <div class="str-info-row">
+        <div class="str-info-card" style="border-color:var(--red)">
+          <div class="str-info-label" style="color:var(--red)">현 A</div>
+          <div class="str-info-note" style="color:var(--red)" id="strNameA">도</div>
+          <div class="str-info-hz" id="strHzA">262 Hz</div>
+          <button class="act-btn" style="margin-top:6px;font-size:.78rem;padding:6px 16px" onclick="strPlayOne('A')">▶ 듣기</button>
         </div>
-        <div class="str-pair-block">
-          <div class="str-info-row">
-            <span style="font-weight:700;color:var(--blue)">현 B</span>
-            <span style="font-weight:800;font-size:1.05rem;color:var(--purple)" id="strNameB">미</span>
-            <span style="font-size:.8rem;color:var(--text-sub)" id="strHzB">330 Hz</span>
-          </div>
-          <div class="str-neck" id="strNeckB">
-            <div class="str-nut"></div>
-            <div class="str-line"></div>
-            <div class="str-bridge"></div>
-            <div class="str-finger" id="strFingerB" style="left:30%"></div>
-          </div>
-          <div class="note-slider-area">
-            <input type="range" class="note-slider" id="strSliderB" min="28" max="68" step="0.1" value="40.1" oninput="strSlide('B',+this.value)">
-            <div class="note-markers-row" id="strMarkersB"></div>
-          </div>
-          <button class="act-btn" style="margin-top:8px;width:100%" onclick="strPlayOne('B')">&#x25B6; 현 B 듣기</button>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div class="str-ratio-disp" id="strRatioDisp">비율: — : —</div>
+          <button class="act-btn" style="background:var(--purple);color:#fff;border:none;padding:10px 22px" onclick="strPlayBoth()">🎵 함께 듣기</button>
+        </div>
+        <div class="str-info-card" style="border-color:var(--blue)">
+          <div class="str-info-label" style="color:var(--blue)">현 B</div>
+          <div class="str-info-note" style="color:var(--blue)" id="strNameB">솔</div>
+          <div class="str-info-hz" id="strHzB">392 Hz</div>
+          <button class="act-btn" style="margin-top:6px;font-size:.78rem;padding:6px 16px" onclick="strPlayOne('B')">▶ 듣기</button>
         </div>
       </div>
-      <div class="str-ratio-disp" id="strRatioDisp">비율: — : —</div>
-      <button class="act-btn" style="display:block;margin:12px auto;background:var(--purple);color:#fff;border:none;padding:10px 28px" onclick="strPlayBoth()">&#x1F3B5; 두 현 함께 듣기</button>
-      <div class="inst-tip">&#x1F3B8; 현이 <strong>짧을수록</strong> 소리가 높아요. 두 현의 길이 비율이 단순할수록 화음이 아름다워요!</div>
+      <p class="str-inst-tip">🎸 안족(▲)을 좌우로 드래그해 현의 울리는 길이를 바꿔요. 현이 <strong>짧을수록</strong> 소리가 높아요. 두 현의 길이 비율이 단순할수록 화음이 아름다워요!</p>
     </div>
   </div>
 </div>
 
-<!-- ════════ 화음 감상실 (2단계 구조) ════════ -->
+<!-- ════════ 화음 감상실 ════════ -->
 <div class="lab" id="lab-harmony">
-  <div class="snd-stage-bar">
-    <button class="snd-stage-btn active" id="harmStageBtn1" onclick="harmStage(1)">1단계: 화음 탐험</button>
-    <button class="snd-stage-btn" id="harmStageBtn2" onclick="harmStage(2)">2단계: 화음 감상실</button>
-  </div>
-  <!-- 1단계: 화음 탐험 (블록 탑 어울림 탐험) -->
-  <div id="harmS1">
-    <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">화음 탐험</span> 블록을 쌓아 두 음의 어울림을 탐험해 보세요</div>
-    <div class="sound-layout">
-      <div>
-        <div class="towers-area">
-          <div class="tower tower-a"><div class="tower-count" style="color:var(--red)" id="tcA">2</div><div class="tower-label" style="color:var(--red)">음 A</div><div class="tower-stack" id="tsA"></div><div class="tower-btns"><button class="tower-btn" onclick="chgT('a',-1)">&#x2212;</button><button class="tower-btn" onclick="chgT('a',1)">+</button></div></div>
-          <div class="tower tower-b"><div class="tower-count" style="color:var(--blue)" id="tcB">3</div><div class="tower-label" style="color:var(--blue)">음 B</div><div class="tower-stack" id="tsB"></div><div class="tower-btns"><button class="tower-btn" onclick="chgT('b',-1)">&#x2212;</button><button class="tower-btn" onclick="chgT('b',1)">+</button></div></div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0">
-          <button class="play-btn" id="sPlayBtn" onclick="toggleSnd()"><span id="sPlayIco">&#9654;</span></button>
-          <div style="text-align:center"><div class="harmony-face" id="hFace">&#x1F60A;</div><div class="harmony-label" id="hLabel">재생해서 들어 보세요!</div></div>
-          <div class="wave-vis" id="waveVis"></div>
-        </div>
-        <div class="task-bar task-bar-purple">
-          <div style="flex:1"><div class="task-title">어울리는 소리 찾기</div><div class="task-desc" id="sTDesc">블록을 조절하고 재생해서 잘 어울리는 소리 조합을 3개 찾아보세요!</div></div>
-          <div style="display:flex;gap:6px"><button class="task-btn task-btn-go" onclick="recSnd()">기록하기</button><button class="task-btn task-btn-reset" onclick="rstSndTask()">리셋</button></div>
-        </div>
-        <div id="sFB"></div>
-      </div>
-      <div>
-        <div class="stitle"><span class="badge" style="background:#F0F0F0;color:var(--text-sub)">기록</span> 소리 기록</div>
-        <div class="record-table-wrap" style="max-height:400px"><table class="snd-tbl"><thead><tr><th>#</th><th style="color:var(--red)">음A</th><th style="color:var(--blue)">음B</th><th>어울림</th><th>다시듣기</th></tr></thead><tbody id="sLog"></tbody></table></div>
-        <div style="margin-top:12px;display:flex;gap:8px"><button class="act-btn" onclick="clrSndRec()">&#x1F5D1; 기록 비우기</button></div>
-      </div>
-    </div>
-  </div>
-  <!-- 2단계: 피아노 건반 + 파형 -->
-  <div id="harmS2" style="display:none">
-    <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">2단계</span> 기본음 '도'와 다른 음을 비교해 보세요</div>
+  <div id="harmS2">
+    <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">화음 감상실</span> 기본음 '도'와 다른 음을 비교해 보세요</div>
     <div class="harmony-layout">
       <div>
         <div class="piano-wrap" id="pianoKeys"></div>
@@ -862,47 +857,104 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 
 <!-- ════════ 6. 그림자와 비율 ════════ -->
 <div class="lab" id="lab-shadow">
-  <div class="shadow-layout">
-    <div class="shadow-canvas-area">
-      <canvas id="shadCanvas" width="700" height="380"></canvas>
-      <div class="shad-ctrl">
-        <label>☀️ 태양 위치</label>
-        <input type="range" class="shad-angle-track" id="shadAngleSlider" min="30" max="80" value="45" oninput="shadSetAngle(+this.value)">
-        <span class="shad-angle-val" id="shadAngleVal">45°</span>
-        <label style="margin-left:14px">숫자 보기</label>
-        <input type="checkbox" id="shadShowNums" checked onchange="shadDraw()" style="width:18px;height:18px;cursor:pointer;accent-color:#E67E22">
+  <div class="snd-stage-bar">
+    <button class="snd-stage-btn active" id="shadStageBtn1" onclick="shadStage(1)">1단계: 그림자 탐험</button>
+    <button class="snd-stage-btn" id="shadStageBtn2" onclick="shadStage(2)">2단계: 빛 조절 실험</button>
+  </div>
+  <!-- 1단계: 태양 위치 + 에라토스테네스 -->
+  <div id="shadS1">
+    <div class="shadow-layout">
+      <div class="shadow-canvas-area">
+        <canvas id="shadCanvas" width="700" height="380"></canvas>
+        <div class="shad-ctrl">
+          <label>☀️ 태양 위치</label>
+          <input type="range" class="shad-angle-track" id="shadAngleSlider" min="30" max="80" value="45" oninput="shadSetAngle(+this.value)">
+          <span class="shad-angle-val" id="shadAngleVal">45°</span>
+          <label style="margin-left:14px">숫자 보기</label>
+          <input type="checkbox" id="shadShowNums" checked onchange="shadDraw()" style="width:18px;height:18px;cursor:pointer;accent-color:#E67E22">
+        </div>
+        <div class="shad-ratio-box">
+          <div class="shad-ratio-hint">☀️ 같은 시각 — 모든 물체의 <strong>높이 : 그림자</strong> 비율은 항상 같아요!</div>
+          <div class="shad-ratio-display" id="shadRatioDisp">1 : 1.00</div>
+          <div class="shad-ratio-hint">태양이 기울수록 그림자는 길어지고, 비율도 달라져요</div>
+        </div>
+        <!-- 에라토스테네스 -->
+        <div class="erato-card">
+          <h4>🌍 에라토스테네스의 지구 둘레 측정 (기원전 240년)</h4>
+          <p>고대 그리스의 에라토스테네스는 <strong>그림자 비율</strong>만으로 지구의 둘레를 계산했어요!</p>
+          <div class="erato-diagram">
+            <div class="erato-city">
+              <span style="font-size:.7rem;color:var(--blue)">시에네 (아스완)</span>
+              <div style="display:flex;align-items:flex-end;gap:6px">
+                <div style="width:5px;height:40px;background:#5D4037;border-radius:3px 3px 0 0"></div>
+                <div style="font-size:1.2rem;color:#FFD700;margin-bottom:8px">☀️</div>
+              </div>
+              <div style="width:80px;height:3px;background:#4CAF50;border-radius:2px"></div>
+              <span style="font-size:.7rem;color:var(--text-sub)">그림자 없음 (0°)</span>
+            </div>
+            <div style="font-size:1.5rem;color:var(--text-sub);padding-bottom:14px">→</div>
+            <div class="erato-city">
+              <span style="font-size:.7rem;color:var(--orange)">알렉산드리아</span>
+              <div style="display:flex;align-items:flex-end;gap:2px">
+                <div style="width:5px;height:40px;background:#5D4037;border-radius:3px 3px 0 0"></div>
+                <div style="width:16px;height:3px;background:rgba(0,0,0,.3);border-radius:1px;margin-bottom:1px"></div>
+              </div>
+              <div style="width:80px;height:3px;background:#4CAF50;border-radius:2px"></div>
+              <span style="font-size:.7rem;color:var(--orange);font-weight:700">그림자 각도 7.2°</span>
+            </div>
+          </div>
+          <p style="font-size:.82rem;color:var(--text-sub)">두 도시 사이 거리: <strong>925km</strong> &nbsp;|&nbsp; 각도 7.2° ÷ 360° = 1/50<br>
+          ∴ 지구 둘레 = 925km × 50 = <strong style="color:var(--blue)">약 46,250km</strong> (실제 약 40,075km)</p>
+        </div>
       </div>
-      <div class="shad-ratio-box">
-        <div class="shad-ratio-hint">☀️ 같은 시각 — 모든 물체의 <strong>높이 : 그림자</strong> 비율은 항상 같아요!</div>
-        <div class="shad-ratio-display" id="shadRatioDisp">1 : 1.00</div>
-        <div class="shad-ratio-hint">태양이 기울수록 그림자는 길어지고, 비율도 달라져요</div>
+      <div class="shad-panel">
+        <div class="shad-tabs">
+          <button class="shad-tab-btn active" id="shadTabA" onclick="shadSetTab('expl')">🔍 그림자 탐험</button>
+          <button class="shad-tab-btn" id="shadTabB" onclick="shadSetTab('prob')">🧮 비율로 풀기</button>
+        </div>
+        <div id="shadExpl">
+          <div class="shad-expl-card">
+            <strong>📌 오늘의 발견</strong><br>
+            같은 시각, 같은 장소에서<br>
+            <span style="color:#E67E22;font-weight:800">높이 : 그림자 = 항상 같은 비율!</span><br><br>
+            ☀️ 태양 슬라이더를 움직여 보세요<br>
+            📏 막대기 비율 = 나무 비율 = 건물 비율<br><br>
+            <strong>에라토스테네스도 이걸 이용했어요!</strong><br>
+            두 도시의 그림자 각도 차이로<br>
+            지구 둘레를 계산했답니다.<br><br>
+            <span style="font-size:.78rem;color:var(--text-sub)">💡 <strong>비율로 풀기</strong> 탭에서 직접 풀어봐요!</span>
+          </div>
+        </div>
+        <div id="shadProb" style="display:none">
+          <div class="shad-prob-card" id="shadProbCard"></div>
+          <div class="shad-nav-bar">
+            <button class="shad-nav-btn" onclick="shadPrev()">◀ 이전</button>
+            <span class="shad-prog" id="shadProbProg">1 / 3</span>
+            <button class="shad-nav-btn" onclick="shadNext()">다음 ▶</button>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="shad-panel">
-      <div class="shad-tabs">
-        <button class="shad-tab-btn active" id="shadTabA" onclick="shadSetTab('expl')">🔍 그림자 탐험</button>
-        <button class="shad-tab-btn" id="shadTabB" onclick="shadSetTab('prob')">🧮 비율로 풀기</button>
+  </div>
+  <!-- 2단계: 빛 조절 실험 -->
+  <div id="shadS2" style="display:none">
+    <div class="stitle"><span class="badge" style="background:#FFF3CD;color:#856404">빛 조절</span> 손전등 각도를 바꿔 그림자 길이를 조절해요</div>
+    <div class="shad2-layout">
+      <canvas id="shadCanvas2" width="700" height="340"></canvas>
+      <div class="shad2-ctrl">
+        <label>💡 빛의 각도</label>
+        <input type="range" class="shad-angle-track" id="shad2AngleSlider" min="15" max="85" value="45" oninput="shad2SetAngle(+this.value)" style="flex:1;min-width:120px">
+        <span class="shad-angle-val" id="shad2AngleVal">45°</span>
       </div>
-      <div id="shadExpl">
-        <div class="shad-expl-card">
-          <strong>📌 오늘의 발견</strong><br>
-          같은 시각, 같은 장소에서<br>
-          <span style="color:#E67E22;font-weight:800">높이 : 그림자 = 항상 같은 비율!</span><br><br>
-          ☀️ 태양 슬라이더를 움직여 보세요<br>
-          📏 막대기 비율 = 나무 비율 = 건물 비율<br><br>
-          <strong>이걸 활용하면?</strong><br>
-          내 키와 그림자로 나무·건물의<br>
-          실제 높이를 구할 수 있어요!<br><br>
-          <span style="font-size:.78rem;color:var(--text-sub)">💡 <strong>비율로 풀기</strong> 탭에서 직접 풀어봐요!</span>
-        </div>
+      <div class="shad2-info">
+        <div class="shad2-info-card"><div>막대 높이</div><div class="shad2-info-val" id="shad2ObjH">100 cm</div></div>
+        <div class="shad2-info-card"><div>그림자 길이</div><div class="shad2-info-val" id="shad2ShadLen">— cm</div></div>
+        <div class="shad2-info-card"><div>높이 : 그림자</div><div class="shad2-info-val" id="shad2Ratio">— : —</div></div>
       </div>
-      <div id="shadProb" style="display:none">
-        <div class="shad-prob-card" id="shadProbCard"></div>
-        <div class="shad-nav-bar">
-          <button class="shad-nav-btn" onclick="shadPrev()">◀ 이전</button>
-          <span class="shad-prog" id="shadProbProg">1 / 3</span>
-          <button class="shad-nav-btn" onclick="shadNext()">다음 ▶</button>
-        </div>
+      <div class="shad-expl-card" style="margin-top:6px">
+        💡 빛이 <strong>수직(90°)에 가까울수록</strong> 그림자가 짧아지고,<br>
+        빛이 <strong>기울수록</strong> 그림자가 길어져요.<br>
+        각도 슬라이더를 움직여 보고 비율이 어떻게 달라지는지 관찰해요!
       </div>
     </div>
   </div>
@@ -952,8 +1004,8 @@ function switchTab(t){
   });
   document.querySelectorAll('.lab').forEach(l=>l.classList.remove('active'));
   $('lab-'+t).classList.add('active');
-  if(t!=='harmony'&&snd.playing)stopSnd();
-  if(t!=='sound'&&t!=='harmony')glStopAll();
+  if(snd.playing)stopSnd();
+  if(t!=='sound')glStopAll();
   if(t==='sound'&&!$('gl1Row').children.length)glBuildS1();
   if(t==='harmony'){buildPiano();stopWaveAnim()};
   if(t==='shadow'){shadDraw()}
@@ -997,18 +1049,22 @@ function glPlayStopOne(i){
 function glStopAll(){for(let i=0;i<8;i++)glPlayStopOne(i)}
 function glPlayBrief(i,freq,dur){
   glInitAud();glPlayStopOne(i);
-  const ctx=gl.ctx,g=ctx.createGain(),o=ctx.createOscillator();
-  g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(.14,ctx.currentTime+.04);
-  g.connect(gl.comp||ctx.destination);o.type='triangle';o.frequency.value=freq;o.connect(g);o.start();
+  const ctx=gl.ctx,t=ctx.currentTime;
+  const g=ctx.createGain(),o=ctx.createOscillator();
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(.24,t+.007);
+  g.gain.exponentialRampToValueAtTime(.001,t+(dur||480)/1000);
+  g.connect(gl.comp||ctx.destination);
+  o.type='sine';o.frequency.value=freq;o.connect(g);o.start(t);
   gl.oscs[i]=o;gl.gains[i]=g;
   clearTimeout(gl['t'+i]);
-  gl['t'+i]=setTimeout(()=>glPlayStopOne(i),dur||350);
+  gl['t'+i]=setTimeout(()=>glPlayStopOne(i),dur||480);
 }
 function glPlayHold(i,freq){
   glInitAud();glPlayStopOne(i);
   const ctx=gl.ctx,g=ctx.createGain(),o=ctx.createOscillator();
-  g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(.15,ctx.currentTime+.05);
-  g.connect(gl.comp||ctx.destination);o.type='triangle';o.frequency.value=freq;o.connect(g);o.start();
+  g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(.18,ctx.currentTime+.04);
+  g.connect(gl.comp||ctx.destination);o.type='sine';o.frequency.value=freq;o.connect(g);o.start();
   gl.oscs[i]=o;gl.gains[i]=g;
 }
 function glUpdateCup(i){
@@ -1421,8 +1477,11 @@ function consonance(a,b){const[sa,sb]=simplify(a,b),p=sa*sb;
   if(p<=2)return{s:1,f:'\u{1F929}',l:'완벽한 어울림!'};if(p<=6)return{s:.85,f:'\u{1F60A}',l:'아주 잘 어울려요'};if(p<=12)return{s:.65,f:'\u{1F642}',l:'꽤 어울려요'};if(p<=20)return{s:.4,f:'\u{1F610}',l:'조금 어색해요'};if(p<=30)return{s:.2,f:'\u{1F615}',l:'잘 안 어울려요'};return{s:.08,f:'\u{1F616}',l:'많이 어긋나요'}}
 function chgT(w,d){snd[w]=Math.max(1,Math.min(10,snd[w]+d));updSnd();if(snd.playing)updFreqs()}
 function bldT(id,n){const s=$(id);s.innerHTML='';for(let i=0;i<n;i++){const b=document.createElement('div');b.className='tower-block'+(i===n-1?' pop-in':'');s.appendChild(b)}}
-function updSnd(){$('tcA').textContent=XYLO_NAMES[snd.a-1];$('tcB').textContent=XYLO_NAMES[snd.b-1];bldT('tsA',snd.a);bldT('tsB',snd.b);
-  if(snd.playing){const c=consonance(XYLO_JI[snd.a-1],XYLO_JI[snd.b-1]);$('hFace').textContent=c.f;$('hLabel').textContent=c.l;$('hLabel').style.color=c.s>=.6?'var(--teal)':c.s>=.35?'#C29200':'var(--red)'}}
+function updSnd(){
+  if($('tcA'))$('tcA').textContent=XYLO_NAMES[snd.a-1];
+  if($('tcB'))$('tcB').textContent=XYLO_NAMES[snd.b-1];
+  if($('tsA'))bldT('tsA',snd.a);if($('tsB'))bldT('tsB',snd.b);
+  if(snd.playing&&$('hFace')){const c=consonance(XYLO_JI[snd.a-1],XYLO_JI[snd.b-1]);$('hFace').textContent=c.f;$('hLabel').textContent=c.l;$('hLabel').style.color=c.s>=.6?'var(--teal)':c.s>=.35?'#C29200':'var(--red)'}}
 function initAud(){if(!snd.ctx)snd.ctx=new(window.AudioContext||window.webkitAudioContext)();if(snd.ctx.state==='suspended')snd.ctx.resume()}
 /* 실로폰 타악 음색: 기본음 + 비조화 배음(3.1배) + 어택 과도음 */
 function xyloNote(ctx,freq,t,vol){
@@ -1443,8 +1502,8 @@ function startSnd(){
   const strikeNow=()=>{xyloNote(ctx,XYLO_FREQS[snd.a-1],ctx.currentTime);xyloNote(ctx,XYLO_FREQS[snd.b-1],ctx.currentTime+0.07)};
   strikeNow();
   snd.loopId=setInterval(strikeNow,1800);
-  snd.oscs=[];snd.playing=true;$('sPlayBtn').classList.add('playing');$('sPlayIco').innerHTML='&#9646;&#9646;';startWv();updSnd()}
-function stopSnd(){clearInterval(snd.loopId);snd.loopId=null;snd.playing=false;$('sPlayBtn').classList.remove('playing');$('sPlayIco').innerHTML='&#9654;';stopWv()}
+  snd.oscs=[];snd.playing=true;if($('sPlayBtn'))$('sPlayBtn').classList.add('playing');if($('sPlayIco'))$('sPlayIco').innerHTML='&#9646;&#9646;';startWv();updSnd()}
+function stopSnd(){clearInterval(snd.loopId);snd.loopId=null;snd.playing=false;if($('sPlayBtn'))$('sPlayBtn').classList.remove('playing');if($('sPlayIco'))$('sPlayIco').innerHTML='&#9654;';stopWv()}
 function stopSndNow(){clearInterval(snd.loopId);snd.loopId=null;snd.oscs=[]}
 function updFreqs(){if(!snd.playing)return;const ctx=snd.ctx;xyloNote(ctx,XYLO_FREQS[snd.a-1],ctx.currentTime);xyloNote(ctx,XYLO_FREQS[snd.b-1],ctx.currentTime+0.07);updSnd()}
 function toggleSnd(){snd.playing?stopSnd():startSnd()}
@@ -1505,14 +1564,7 @@ function sndStage(n){
   if(n===2)initInst();
 }
 
-function harmStage(n){
-  $('harmS1').style.display=n===1?'':'none';
-  $('harmS2').style.display=n===2?'':'none';
-  $('harmStageBtn1').classList.toggle('active',n===1);
-  $('harmStageBtn2').classList.toggle('active',n===2);
-  if(n===1)updSnd();
-  if(n===2){buildPiano();stopWaveAnim()}
-}
+function harmStage(n){buildPiano();stopWaveAnim();}
 
 function instSet(name){
   ['glass','panflute','string'].forEach(k=>{
@@ -1522,137 +1574,342 @@ function instSet(name){
 }
 
 // ── Pan Flute ──
-let pfTubes=null,pfSel=0;
+let pfTubes=null,pfSel=0,pfCutCm=50;
 
 function pfBuild(){
   if(pfTubes)return;
-  const startL=+pfLenFromFreq(392).toFixed(1);
-  pfTubes=Array(7).fill(0).map(()=>startL);
+  pfTubes=Array(7).fill(null); // null = 아직 자르지 않음
 }
 
 function buildPfUI(){
   const cont=$('pfInst');if(!cont||cont.children.length>0)return;
   PF_NOTES.forEach((name,i)=>{
-    const curH=Math.round((pfTubes[i]-PF_MIN)/(PF_MAX-PF_MIN)*140+20);
-    const nn=nearestNote(pfFreqFromLen(pfTubes[i]));
-    const correct=Math.abs(XYLO_FREQS[i]-pfFreqFromLen(pfTubes[i]))<3;
     const wrap=document.createElement('div');
-    wrap.className='pf-tube-wrap'+(i===pfSel?' sel':'')+(correct?' correct':'');
+    wrap.className='pf-tube-wrap pf-tube-empty'+(i===pfSel?' sel':'');
     wrap.id='pfTube'+i;
-    wrap.innerHTML=`<div class="pf-tube-body" style="height:${curH}px" id="pfBody${i}"></div><div class="pf-tube-cur" id="pfCur${i}">${nn.name}</div><div class="pf-tube-tgt">${name}</div>`;
+    wrap.innerHTML=`<div class="pf-tube-body" style="height:20px" id="pfBody${i}"><span style="font-size:.65rem;color:#aaa">?</span></div><div class="pf-tube-cur" id="pfCur${i}"></div><div class="pf-tube-tgt">${name}</div>`;
     wrap.addEventListener('click',()=>pfSelect(i));
     cont.appendChild(wrap);
   });
+  pfBuildCutter();
+  pfSetCutCm(pfCutCm);
+}
+
+function pfBuildCutter(){
+  const area=$('pfCutArea');if(!area)return;
+  const rulerRow=$('pfRulerRow');if(!rulerRow)return;
+  rulerRow.innerHTML='';
+  // 5cm 간격 눈금
+  for(let cm=PF_MIN;cm<=PF_MAX;cm+=5){
+    const pct=(cm-PF_MIN)/(PF_MAX-PF_MIN)*100;
+    const tick=document.createElement('div');
+    tick.className='pf-rtick';tick.style.left=pct+'%';
+    const isMajor=(cm%10===0);
+    tick.innerHTML=`<div class="pf-rtick-line" style="height:${isMajor?12:7}px"></div><div class="pf-rtick-lbl">${isMajor?cm:''}</div>`;
+    rulerRow.appendChild(tick);
+  }
+  // 음 위치 표시
+  XYLO_FREQS.slice(0,7).forEach((freq,i)=>{
+    const len=pfLenFromFreq(freq);
+    const pct=(len-PF_MIN)/(PF_MAX-PF_MIN)*100;
+    const tick=document.createElement('div');
+    tick.className='pf-ntick';tick.style.left=pct+'%';
+    tick.innerHTML=`<div class="pf-ntick-line" style="height:12px"></div><div class="pf-ntick-lbl">${PF_NOTES[i]}</div>`;
+    rulerRow.appendChild(tick);
+  });
+  // 대나무 마디
+  const fill=$('pfBambooFill');if(fill){
+    fill.innerHTML='';
+    [20,35,50,65].forEach(pct=>{
+      const node=document.createElement('div');
+      node.className='pf-bnode';node.style.left=pct+'%';
+      fill.appendChild(node);
+    });
+  }
+  // 드래그 이벤트
+  const tubeEl=$('pfBambooTube');if(!tubeEl)return;
+  let dragging=false;
+  const getX=(e,rect)=>{
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    return Math.max(0,Math.min(1,(cx-rect.left)/rect.width));
+  };
+  tubeEl.addEventListener('pointerdown',e=>{
+    dragging=true;tubeEl.setPointerCapture(e.pointerId);
+    pfSetCutFromEvent(e,tubeEl.getBoundingClientRect());
+  });
+  tubeEl.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    pfSetCutFromEvent(e,tubeEl.getBoundingClientRect());
+  });
+  tubeEl.addEventListener('pointerup',()=>{dragging=false;});
+}
+
+function pfSetCutFromEvent(e,rect){
+  const cx=e.clientX;
+  const ratio=Math.max(0,Math.min(1,(cx-rect.left)/rect.width));
+  const cm=PF_MIN+(PF_MAX-PF_MIN)*ratio;
+  pfSetCutCm(+cm.toFixed(1));
+}
+
+function pfSetCutCm(cm){
+  pfCutCm=Math.max(PF_MIN,Math.min(PF_MAX,cm));
+  const pct=(pfCutCm-PF_MIN)/(PF_MAX-PF_MIN)*100;
+  const line=$('pfCutterLine');if(line)line.style.left=pct+'%';
+  const d=$('pfCutLenDisp');if(d)d.textContent=pfCutCm.toFixed(1)+' cm';
+  // 힌트: 가장 가까운 음 표시
+  const tgtFreq=XYLO_FREQS[pfSel];
+  const tgtLen=pfLenFromFreq(tgtFreq);
+  const diff=pfCutCm-tgtLen;
+  const hint=$('pfCutHint');
+  if(hint){
+    if(Math.abs(diff)<0.8)hint.textContent='✅ 딱 맞아요!';
+    else if(diff>0)hint.textContent=`↑ ${diff.toFixed(1)}cm 더 자르세요`;
+    else hint.textContent=`↓ ${(-diff).toFixed(1)}cm 덜 자르세요`;
+    hint.style.color=Math.abs(diff)<0.8?'var(--teal)':Math.abs(diff)<3?'var(--orange)':'var(--red)';
+  }
 }
 
 function pfSelect(i){
   pfSel=i;
   document.querySelectorAll('.pf-tube-wrap').forEach((w,j)=>w.classList.toggle('sel',j===i));
-  const len=pfTubes[i];
-  $('pfSlider').value=len;
-  $('pfLenDisp').textContent=len.toFixed(1)+' cm';
-  updateNoteMarkers('pfMarkers',len);
-  pfShowNote();
+  // 해당 음의 목표 길이 근처로 커터 이동
+  const tgtLen=pfLenFromFreq(XYLO_FREQS[i]);
+  pfSetCutCm(+tgtLen.toFixed(1));
+  const note=$('pfSelNote');if(note)note.textContent='✂️ '+PF_NOTES[i]+' 관 만들기 (목표: '+tgtLen.toFixed(1)+'cm)';
+  const hz=$('pfHzDisp');if(hz)hz.textContent=pfFreqFromLen(tgtLen).toFixed(0)+' Hz';
 }
 
-function pfSlide(val){
-  pfTubes[pfSel]=val;
-  const freq=pfFreqFromLen(val);
-  const h=Math.round((val-PF_MIN)/(PF_MAX-PF_MIN)*140+20);
-  const body=$('pfBody'+pfSel);if(body)body.style.height=h+'px';
-  const nn=nearestNote(freq);
-  const cur=$('pfCur'+pfSel);if(cur)cur.textContent=nn.name;
+function pfCutTube(){
+  pfTubes[pfSel]=pfCutCm;
+  const freq=pfFreqFromLen(pfCutCm);
+  const h=Math.round((pfCutCm-PF_MIN)/(PF_MAX-PF_MIN)*140+20);
+  const body=$('pfBody'+pfSel);
   const wrap=$('pfTube'+pfSel);
-  if(wrap)wrap.classList.toggle('correct',Math.abs(XYLO_FREQS[pfSel]-freq)<3);
-  $('pfLenDisp').textContent=val.toFixed(1)+' cm';
-  updateNoteMarkers('pfMarkers',val);
-  pfShowNote();
-  initAud();xyloNote(snd.ctx,freq,snd.ctx.currentTime,0.15);
+  const cur=$('pfCur'+pfSel);
+  const correct=Math.abs(XYLO_FREQS[pfSel]-freq)<1.5;
+  if(body){body.style.height=h+'px';body.innerHTML='';}
+  if(wrap){wrap.classList.remove('pf-tube-empty');wrap.classList.toggle('correct',correct);}
+  if(cur){const nn=nearestNote(freq);cur.textContent=nn.name;}
+  initAud();pfNote(snd.ctx,freq,snd.ctx.currentTime,0.2);
+  if(correct&&!fb('pfFB','','')){boom(PF_NOTES[pfSel]+'!','var(--purple)')}
   checkPfDone();
-}
-
-function pfShowNote(){
-  const freq=pfFreqFromLen(pfTubes[pfSel]);
-  const nn=nearestNote(freq);
-  $('pfNoteDisp').textContent=PF_NOTES[pfSel]+' ('+pfSel+'번 관) → 현재: '+nn.name;
-  $('pfHzDisp').textContent=freq.toFixed(0)+' Hz';
+  // 다음 미완성 관으로 자동 이동
+  const next=pfTubes.findIndex((t,j)=>j!==pfSel&&(t===null||Math.abs(XYLO_FREQS[j]-pfFreqFromLen(t))>=1.5));
+  if(next>=0)setTimeout(()=>pfSelect(next),400);
 }
 
 function checkPfDone(){
-  const allOk=pfTubes.every((len,i)=>Math.abs(XYLO_FREQS[i]-pfFreqFromLen(len))<3);
-  if(allOk){fb('pfFB','success','완벽해요! 팬플룻이 완성됐어요! 전체 연주 버튼을 눌러보세요!');boom('팬플룻 완성!','var(--purple)')}
+  const allOk=pfTubes.every((len,i)=>len!==null&&Math.abs(XYLO_FREQS[i]-pfFreqFromLen(len))<1.5);
+  if(allOk){fb('pfFB','success','완벽해요! 팬플룻이 완성됐어요! 전체 연주 버튼을 눌러보세요! 🎶');boom('팬플룻 완성!','var(--purple)')}
+}
+
+function pfReset(){
+  pfTubes=Array(7).fill(null);
+  const cont=$('pfInst');if(cont)cont.innerHTML='';
+  pfSel=0;pfCutCm=50;buildPfUI();pfSelect(0);
+  $('pfFB').innerHTML='';
+}
+
+function pfNote(ctx,freq,t,gain=0.18){
+  // 팬플룻 음색: 부드러운 사인파 + 감쇠
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(gain,t+0.02);
+  g.gain.exponentialRampToValueAtTime(0.001,t+1.2);
+  g.connect(ctx.destination);
+  [1,2,3].forEach((n,idx)=>{
+    const o=ctx.createOscillator();
+    o.type='sine';o.frequency.value=freq*n;
+    const gp=ctx.createGain();gp.gain.value=[1,0.35,0.12][idx];
+    o.connect(gp);gp.connect(g);o.start(t);o.stop(t+1.2);
+  });
 }
 
 async function pfPlayAll(){
   initAud();
   for(let i=0;i<7;i++){
-    xyloNote(snd.ctx,pfFreqFromLen(pfTubes[i]),snd.ctx.currentTime,0.2);
+    const len=pfTubes[i];if(len===null)continue;
+    pfNote(snd.ctx,pfFreqFromLen(len),snd.ctx.currentTime,0.2);
     await new Promise(r=>setTimeout(r,650));
   }
 }
 
 function pfPlaySel(){
-  initAud();xyloNote(snd.ctx,pfFreqFromLen(pfTubes[pfSel]),snd.ctx.currentTime,0.2);
+  initAud();
+  pfNote(snd.ctx,pfFreqFromLen(pfCutCm),snd.ctx.currentTime,0.2);
 }
 
-// ── String Instrument ──
-let strLenA=60,strLenB=40.1; // 도(60cm=262Hz) : 솔(40.1cm=392Hz) → 3:2 완전5도
+// ── String Instrument (거문고) ──
+let strLenA=60,strLenB=40.1; // 도(60cm≈262Hz) : 솔(40.1cm≈392Hz) → 3:2 완전5도
+let strDragging=null; // 'A' or 'B' or null
 
-function buildStrNeck(neckId){
-  const neck=$(neckId);if(!neck||neck.querySelectorAll('.str-fret-line').length>0)return;
-  XYLO_FREQS.slice(0,8).forEach((freq,i)=>{
-    const len=STR_REF/freq;
-    if(len<STR_MIN-0.5||len>STR_MAX+0.5)return;
-    const pct=(Math.min(Math.max(len,STR_MIN),STR_MAX)-STR_MIN)/(STR_MAX-STR_MIN)*100;
-    const fl=document.createElement('div');fl.className='str-fret-line';
-    fl.style.left=pct+'%';fl.title=XYLO_NAMES[i];
-    neck.appendChild(fl);
+function stringNote(ctx,freq,t,gain=0.18){
+  const dur=1.8;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(gain,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+  g.connect(ctx.destination);
+  [1,2,3,4,5].forEach((n,idx)=>{
+    const o=ctx.createOscillator();
+    o.type='sine';o.frequency.value=freq*n;
+    const gp=ctx.createGain();
+    gp.gain.value=[1,0.6,0.35,0.18,0.08][idx]*gain;
+    o.connect(gp);gp.connect(g);o.start(t);o.stop(t+dur);
   });
 }
 
-function strRenderFinger(which,len){
-  const pct=(len-STR_MIN)/(STR_MAX-STR_MIN)*100;
-  const f=$('strFinger'+which);if(f)f.style.left=pct+'%';
+function strDrawCanvas(){
+  const cv=$('strCanvas');if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const bx=30,by=30,bw=W-60,bh=H-60;
+
+  // 거문고 몸체
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=12;ctx.shadowOffsetY=4;
+  ctx.fillStyle='#2A1005';
+  roundRectPath(ctx,bx,by,bw,bh,18);ctx.fill();
+  ctx.restore();
+
+  // 나뭇결
+  ctx.save();roundRectPath(ctx,bx,by,bw,bh,18);ctx.clip();
+  ctx.strokeStyle='rgba(255,255,255,.04)';ctx.lineWidth=1;
+  for(let y=by+6;y<by+bh;y+=10){
+    ctx.beginPath();ctx.moveTo(bx,y);ctx.lineTo(bx+bw,y);ctx.stroke();
+  }
+  ctx.restore();
+
+  // 좌우 스크롤 장식
+  [[bx+2,by+bh/2],[bx+bw-2,by+bh/2]].forEach(([cx2,cy2],side)=>{
+    ctx.fillStyle='#5A2808';
+    ctx.beginPath();ctx.arc(cx2+(side?-4:4),cy2,bh*0.32,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#3A1606';
+    ctx.beginPath();ctx.arc(cx2+(side?-4:4),cy2,bh*0.2,0,Math.PI*2);ctx.fill();
+  });
+
+  // 괘(줄받침) 위치 계산
+  const nutX=bx+44,bridgeX=bx+bw-28;
+  const strAY=by+bh*0.35,strBY=by+bh*0.65;
+  const pA=(strLenA-STR_MIN)/(STR_MAX-STR_MIN);
+  const pB=(strLenB-STR_MIN)/(STR_MAX-STR_MIN);
+  const anjokAX=nutX+pA*(bridgeX-nutX);
+  const anjokBX=nutX+pB*(bridgeX-nutX);
+
+  // 음 위치 눈금 (바닥 부분에 작게)
+  XYLO_FREQS.slice(0,8).forEach((freq,i)=>{
+    const len=strLenFromFreq(freq);
+    if(len<STR_MIN||len>STR_MAX)return;
+    const p=(len-STR_MIN)/(STR_MAX-STR_MIN);
+    const mx=nutX+p*(bridgeX-nutX);
+    ctx.fillStyle='rgba(255,200,60,.55)';
+    ctx.beginPath();ctx.arc(mx,by+bh-6,3,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,210,80,.9)';
+    ctx.font='bold 9px sans-serif';ctx.textAlign='center';
+    ctx.fillText(XYLO_NAMES[i],mx,by+bh+14);
+  });
+
+  // 전체 현 (어두운색, 기둥 전체)
+  [strAY,strBY].forEach(sy=>{
+    ctx.strokeStyle='rgba(120,80,30,.4)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(nutX,sy);ctx.lineTo(bridgeX,sy);ctx.stroke();
+  });
+
+  // 현 A 울리는 구간 (빨강, 진하게)
+  ctx.strokeStyle='#E74C3C';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(nutX,strAY);ctx.lineTo(anjokAX,strAY);ctx.stroke();
+  ctx.strokeStyle='rgba(180,60,40,.25)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(anjokAX,strAY);ctx.lineTo(bridgeX,strAY);ctx.stroke();
+
+  // 현 B 울리는 구간 (파랑)
+  ctx.strokeStyle='#2980B9';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(nutX,strBY);ctx.lineTo(anjokBX,strBY);ctx.stroke();
+  ctx.strokeStyle='rgba(40,80,180,.25)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(anjokBX,strBY);ctx.lineTo(bridgeX,strBY);ctx.stroke();
+
+  // 안족 A (빨강 삼각형)
+  ctx.fillStyle='#C0392B';
+  ctx.beginPath();ctx.moveTo(anjokAX-7,strAY-14);ctx.lineTo(anjokAX+7,strAY-14);ctx.lineTo(anjokAX,strAY+4);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#E74C3C';
+  ctx.beginPath();ctx.moveTo(anjokAX-5,strAY-12);ctx.lineTo(anjokAX+5,strAY-12);ctx.lineTo(anjokAX,strAY+2);ctx.closePath();ctx.fill();
+
+  // 안족 B (파랑 삼각형)
+  ctx.fillStyle='#1A5276';
+  ctx.beginPath();ctx.moveTo(anjokBX-7,strBY+14);ctx.lineTo(anjokBX+7,strBY+14);ctx.lineTo(anjokBX,strBY-4);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#2980B9';
+  ctx.beginPath();ctx.moveTo(anjokBX-5,strBY+12);ctx.lineTo(anjokBX+5,strBY+12);ctx.lineTo(anjokBX,strBY-2);ctx.closePath();ctx.fill();
+
+  // 길이 표시
+  ctx.fillStyle='rgba(231,76,60,.9)';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
+  ctx.fillText('현A: '+(strLenA).toFixed(1)+'cm',nutX+2,strAY-18);
+  ctx.fillStyle='rgba(41,128,185,.9)';
+  ctx.fillText('현B: '+(strLenB).toFixed(1)+'cm',nutX+2,strBY+26);
 }
 
-function strSlide(which,val){
-  if(which==='A')strLenA=val;else strLenB=val;
-  strRenderFinger(which,val);
-  updateNoteMarkers('strMarkers'+which,val);
-  strShowNote(which);
-  initAud();xyloNote(snd.ctx,strFreqFromLen(val),snd.ctx.currentTime,0.15);
+function roundRectPath(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h);ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();
+}
+
+function strInitCanvas(){
+  const cv=$('strCanvas');if(!cv||cv._strInited)return;
+  cv._strInited=true;
+  const bx=30,bw=cv.width-60,nutX=bx+44,bridgeX=bx+bw-28;
+  const strAY=cv.height*0.35,strBY=cv.height*0.65;
+  let dragging=null;
+  const lenFromX=x=>STR_MIN+(STR_MAX-STR_MIN)*Math.max(0,Math.min(1,(x-nutX)/(bridgeX-nutX)));
+  cv.addEventListener('pointerdown',e=>{
+    const rect=cv.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(cv.width/rect.width);
+    const my=(e.clientY-rect.top)*(cv.height/rect.height);
+    const pA=(strLenA-STR_MIN)/(STR_MAX-STR_MIN);
+    const pB=(strLenB-STR_MIN)/(STR_MAX-STR_MIN);
+    const anjokAX=nutX+pA*(bridgeX-nutX);
+    const anjokBX=nutX+pB*(bridgeX-nutX);
+    if(Math.abs(mx-anjokAX)<18&&Math.abs(my-strAY)<22){dragging='A';cv.setPointerCapture(e.pointerId);}
+    else if(Math.abs(mx-anjokBX)<18&&Math.abs(my-strBY)<22){dragging='B';cv.setPointerCapture(e.pointerId);}
+  });
+  cv.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    const rect=cv.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)*(cv.width/rect.width);
+    const len=+lenFromX(mx).toFixed(1);
+    if(dragging==='A')strLenA=Math.max(STR_MIN,Math.min(STR_MAX,len));
+    else strLenB=Math.max(STR_MIN,Math.min(STR_MAX,len));
+    strShowNote(dragging);strDrawCanvas();
+    initAud();stringNote(snd.ctx,strFreqFromLen(dragging==='A'?strLenA:strLenB),snd.ctx.currentTime,0.08);
+  });
+  cv.addEventListener('pointerup',()=>dragging=null);
 }
 
 function strShowNote(which){
   const len=which==='A'?strLenA:strLenB;
   const freq=strFreqFromLen(len);
   const nn=nearestNote(freq);
-  $('strName'+which).textContent=nn.name;
-  $('strHz'+which).textContent=freq.toFixed(0)+' Hz';
-  const fa=strFreqFromLen(strLenA),fb=strFreqFromLen(strLenB);
-  const[sa,sb]=simplify(Math.round(fa),Math.round(fb));
-  $('strRatioDisp').textContent='비율: '+sa+' : '+sb;
+  const nameEl=$('strName'+which);if(nameEl)nameEl.textContent=nn.name;
+  const hzEl=$('strHz'+which);if(hzEl)hzEl.textContent=freq.toFixed(0)+' Hz';
+  const fa=strFreqFromLen(strLenA),fb2=strFreqFromLen(strLenB);
+  const[sa,sb]=simplify(Math.round(fa),Math.round(fb2));
+  const rd=$('strRatioDisp');if(rd)rd.textContent='비율: '+sa+' : '+sb;
 }
 
 function strPlayOne(which){
-  initAud();xyloNote(snd.ctx,strFreqFromLen(which==='A'?strLenA:strLenB),snd.ctx.currentTime,0.2);
+  initAud();stringNote(snd.ctx,strFreqFromLen(which==='A'?strLenA:strLenB),snd.ctx.currentTime,0.2);
 }
 
 function strPlayBoth(){
   initAud();const t=snd.ctx.currentTime;
-  xyloNote(snd.ctx,strFreqFromLen(strLenA),t,0.2);
-  xyloNote(snd.ctx,strFreqFromLen(strLenB),t+0.06,0.2);
+  stringNote(snd.ctx,strFreqFromLen(strLenA),t,0.18);
+  stringNote(snd.ctx,strFreqFromLen(strLenB),t+0.04,0.18);
 }
 
 function initInst(){
   if(!$('gl2Row').children.length)glBuildS2();
-  pfBuild();buildPfUI();
-  buildNoteMarkers('pfMarkers',PF_MIN,PF_MAX,pfLenFromFreq);
-  buildStrNeck('strNeckA');buildStrNeck('strNeckB');
-  buildNoteMarkers('strMarkersA',STR_MIN,STR_MAX,strLenFromFreq);
-  buildNoteMarkers('strMarkersB',STR_MIN,STR_MAX,strLenFromFreq);
-  strRenderFinger('A',strLenA);strRenderFinger('B',strLenB);
-  strShowNote('A');strShowNote('B');pfSelect(pfSel);
+  pfBuild();buildPfUI();pfSelect(pfSel);
+  strShowNote('A');strShowNote('B');
+  strInitCanvas();strDrawCanvas();
 }
 
 // ━━━━━━ 2.5 HARMONY ROOM (화음 감상실) ━━━━━━
@@ -2254,6 +2511,79 @@ const SHAD_PROBS=[
    hint:'1.5 : 1 = ? : 48',
    reveal:'1.5/1 = 1.5\n탑 높이 = 48 × 1.5 = 72m ✓'},
 ];
+function shadStage(n){
+  $('shadS1').style.display=n===1?'':'none';
+  $('shadS2').style.display=n===2?'':'none';
+  $('shadStageBtn1').classList.toggle('active',n===1);
+  $('shadStageBtn2').classList.toggle('active',n===2);
+  if(n===1)shadDraw();
+  if(n===2){shad2Angle=+($('shad2AngleSlider')||{value:45}).value||45;shad2Draw();}
+}
+let shad2Angle=45;
+function shad2SetAngle(v){
+  shad2Angle=v;$('shad2AngleVal').textContent=v+'°';shad2Draw();
+}
+function shad2Draw(){
+  const cv=$('shadCanvas2');if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+  const ang=shad2Angle; // 빛의 각도 (지면 기준 수직=90)
+  const rad=ang*Math.PI/180;
+  const groundY=H*0.75;
+  // 배경
+  const sky=ctx.createLinearGradient(0,0,0,groundY);
+  sky.addColorStop(0,'#1A2A3A');sky.addColorStop(1,'#3A5A7A');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,groundY);
+  const gnd=ctx.createLinearGradient(0,groundY,0,H);
+  gnd.addColorStop(0,'#5D4037');gnd.addColorStop(1,'#3E2723');
+  ctx.fillStyle=gnd;ctx.fillRect(0,groundY,W,H-groundY);
+  // 막대기
+  const objX=W*0.45,objH=120;
+  ctx.fillStyle='#A0522D';ctx.fillRect(objX-5,groundY-objH,10,objH);
+  ctx.beginPath();ctx.arc(objX,groundY-objH,8,0,Math.PI*2);ctx.fillStyle='#CD853F';ctx.fill();
+  // 그림자 길이: h/tan(ang)
+  const tan=Math.tan(rad);
+  const shadowLen=Math.min(objH/tan,W-objX-20);
+  ctx.fillStyle='rgba(0,0,0,.35)';
+  ctx.beginPath();
+  ctx.ellipse(objX+shadowLen/2,groundY+4,shadowLen/2,8,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.25)';ctx.lineWidth=4;ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(objX,groundY);ctx.lineTo(objX+shadowLen,groundY);ctx.stroke();ctx.lineCap='butt';
+  // 손전등 광선
+  const lightX=objX-shadowLen*0.9,lightY=groundY-shadowLen*Math.tan(rad)*0.9;
+  const clampedLY=Math.max(20,Math.min(groundY-20,lightY));
+  const clampedLX=Math.max(20,Math.min(W-20,lightX));
+  // 빛 광선
+  const grad=ctx.createLinearGradient(clampedLX,clampedLY,objX,groundY-objH);
+  grad.addColorStop(0,'rgba(255,255,150,0)');grad.addColorStop(1,'rgba(255,255,150,.3)');
+  ctx.beginPath();
+  ctx.moveTo(clampedLX,clampedLY);ctx.lineTo(objX-20,groundY-objH-20);ctx.lineTo(objX+20,groundY-objH+20);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  // 손전등
+  ctx.save();
+  const lfx=clampedLX,lfy=clampedLY;
+  const beamAng=Math.atan2(groundY-objH-lfy,objX-lfx);
+  ctx.translate(lfx,lfy);ctx.rotate(beamAng);
+  ctx.fillStyle='#FFD700';ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#FFF';ctx.beginPath();ctx.arc(0,0,14,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#FFE000';ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+  // 각도 호
+  ctx.strokeStyle='rgba(255,200,0,.7)';ctx.lineWidth=2;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.arc(objX,groundY,60,-Math.PI/2,-Math.PI/2+rad);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,200,0,.9)';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
+  ctx.fillText(ang+'°',objX+Math.cos(-Math.PI/2+rad/2)*72,groundY+Math.sin(-Math.PI/2+rad/2)*72);
+  // 수치 업데이트
+  const realH=100;
+  const realShad=(realH/tan).toFixed(1);
+  const[sa,sb]=simplify(Math.round(realH),Math.round(realH/tan));
+  const oh=$('shad2ObjH'),sl=$('shad2ShadLen'),sr=$('shad2Ratio');
+  if(oh)oh.textContent=realH+' cm';
+  if(sl)sl.textContent=realShad+' cm';
+  if(sr)sr.textContent=sa+' : '+sb;
+}
 function shadSetAngle(v){shadState.angle=v;$('shadAngleVal').textContent=v+'°';shadDraw();}
 function shadSetTab(tab){
   shadState.tab=tab;
@@ -2411,7 +2741,7 @@ function shadDraw(){
 }
 
 // ━━━━━━ INIT ━━━━━━
-bldWv();updSnd();updColor();buildBeakerMarks();glBuildS1();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();shpBuildGal();
+bldWv();updColor();buildBeakerMarks();glBuildS1();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();shpBuildGal();
 </script>
 </body>
 </html>
