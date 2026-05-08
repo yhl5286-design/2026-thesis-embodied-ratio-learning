@@ -513,7 +513,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   <button class="tab-btn active" onclick="switchTab('color')">&#x1f3a8; 색상 실험실</button>
   <button class="tab-btn" onclick="switchTab('sound')">&#x1f3b5; 악기 만들기</button>
   <button class="tab-btn" onclick="switchTab('harmony')">&#x1f3b9; 화음 감상실</button>
-  <button class="tab-btn" onclick="switchTab('shape')">&#x1F3A8; 닮음의 세계</button>
+  <button class="tab-btn" onclick="switchTab('similarity')">&#x1F4D0; 도형의 닮음비</button>
+  <button class="tab-btn" onclick="switchTab('masterpiece')">&#x1F5BC;&#xFE0F; 명화 속 비율</button>
   <button class="tab-btn" onclick="switchTab('shadow')">&#x1F31F; 그림자와 비율</button>
 </div>
 
@@ -837,20 +838,38 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 </div>
 
 
-<!-- ════════ 5. 닮음의 세계 ════════ -->
-<div class="lab" id="lab-shape">
-  <div style="font-size:.92rem;font-weight:700;color:var(--text-sub);margin-bottom:20px">🎨 닮음비가 숨어있는 아름다운 패턴과 명화들을 탐험하고 비율을 찾아봐요!</div>
-  <div class="shp-gal-tabs" id="shpGalTabs"></div>
+<!-- ════════ 4. 도형의 닮음비 ════════ -->
+<div class="lab" id="lab-similarity">
+  <div style="font-size:.92rem;font-weight:700;color:var(--text-sub);margin-bottom:20px">📐 수학 패턴 속에 숨은 닮음비를 직접 그려보고 발견해요!</div>
+  <div class="shp-gal-tabs" id="simTabs"></div>
   <div class="shp-gal-area">
     <div class="shp-gal-canvas-wrap">
-      <canvas id="shpGalCanvas" width="500" height="430"></canvas>
+      <canvas id="simCanvas" width="500" height="430"></canvas>
     </div>
     <div class="shp-gal-info">
-      <div class="shp-gal-title" id="shpGalTitle"></div>
-      <div class="shp-gal-desc" id="shpGalDesc"></div>
-      <div class="shp-gal-q" id="shpGalQ"></div>
-      <div class="shp-gal-opts" id="shpGalOpts"></div>
-      <div class="shp-gal-reveal" id="shpGalReveal" style="display:none"></div>
+      <div class="shp-gal-title" id="simTitle"></div>
+      <div class="shp-gal-desc" id="simDesc"></div>
+      <div class="shp-gal-q" id="simQ"></div>
+      <div class="shp-gal-opts" id="simOpts"></div>
+      <div class="shp-gal-reveal" id="simReveal" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ 5. 명화 속 비율 ════════ -->
+<div class="lab" id="lab-masterpiece">
+  <div style="font-size:.92rem;font-weight:700;color:var(--text-sub);margin-bottom:20px">🖼️ 명화·건축·조각 속 비율을 발견하고, 거장들이 숨겨둔 수학을 찾아봐요!</div>
+  <div class="shp-gal-tabs" id="artTabs"></div>
+  <div class="shp-gal-area">
+    <div class="shp-gal-canvas-wrap">
+      <canvas id="artCanvas" width="500" height="430"></canvas>
+    </div>
+    <div class="shp-gal-info">
+      <div class="shp-gal-title" id="artTitle"></div>
+      <div class="shp-gal-desc" id="artDesc"></div>
+      <div class="shp-gal-q" id="artQ"></div>
+      <div class="shp-gal-opts" id="artOpts"></div>
+      <div class="shp-gal-reveal" id="artReveal" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -997,7 +1016,7 @@ function boom(msg,clr){
   for(let i=0;i<14;i++){const s=document.createElement('div');s.className='sparkle';s.style.background=['var(--red)','var(--yellow)','var(--blue)','var(--teal)','var(--purple)','var(--gold)'][i%6];s.style.setProperty('--tx',(Math.random()-.5)*300+'px');s.style.setProperty('--ty',(Math.random()-.5)*300+'px');s.style.left='50%';s.style.top='50%';o.appendChild(s)}
   setTimeout(()=>o.innerHTML='',1200);
 }
-const ALL_TABS=['color','sound','harmony','shape','shadow'];
+const ALL_TABS=['color','sound','harmony','similarity','masterpiece','shadow'];
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
@@ -1042,30 +1061,38 @@ function glFreq(h){
 }
 function glS2FreqRaw(h){return 220+(1-h/100)*(900-220)}
 function glPlayStopOne(i){
-  if(gl.gains[i]){try{gl.gains[i].gain.linearRampToValueAtTime(0,gl.ctx.currentTime+.08)}catch(e){}}
-  if(gl.oscs[i]){clearTimeout(gl['t'+i]);setTimeout(()=>{try{gl.oscs[i].stop()}catch(e){}},120)}
-  gl.oscs[i]=null;gl.gains[i]=null;
+  const o=gl.oscs[i],g=gl.gains[i],o2=gl['o2_'+i];
+  if(g){try{g.gain.linearRampToValueAtTime(0,gl.ctx.currentTime+.08)}catch(e){}}
+  if(o){clearTimeout(gl['t'+i]);setTimeout(()=>{try{o.stop()}catch(e){};try{o2&&o2.stop()}catch(e){}},120)}
+  gl.oscs[i]=null;gl.gains[i]=null;gl['o2_'+i]=null;
 }
 function glStopAll(){for(let i=0;i<8;i++)glPlayStopOne(i)}
 function glPlayBrief(i,freq,dur){
   glInitAud();glPlayStopOne(i);
   const ctx=gl.ctx,t=ctx.currentTime;
   const g=ctx.createGain(),o=ctx.createOscillator();
+  const g2=ctx.createGain(),o2=ctx.createOscillator();
   g.gain.setValueAtTime(0,t);
   g.gain.linearRampToValueAtTime(.24,t+.007);
   g.gain.exponentialRampToValueAtTime(.001,t+(dur||480)/1000);
+  g2.gain.value=.35; // 2nd harmonic — adds bell-like body so pitch is easier to perceive
   g.connect(gl.comp||ctx.destination);
   o.type='sine';o.frequency.value=freq;o.connect(g);o.start(t);
-  gl.oscs[i]=o;gl.gains[i]=g;
+  o2.type='sine';o2.frequency.value=freq*2;o2.connect(g2);g2.connect(g);o2.start(t);
+  gl.oscs[i]=o;gl.gains[i]=g;gl['o2_'+i]=o2;
   clearTimeout(gl['t'+i]);
   gl['t'+i]=setTimeout(()=>glPlayStopOne(i),dur||480);
 }
 function glPlayHold(i,freq){
   glInitAud();glPlayStopOne(i);
   const ctx=gl.ctx,g=ctx.createGain(),o=ctx.createOscillator();
+  const g2=ctx.createGain(),o2=ctx.createOscillator();
   g.gain.setValueAtTime(0,ctx.currentTime);g.gain.linearRampToValueAtTime(.18,ctx.currentTime+.04);
-  g.connect(gl.comp||ctx.destination);o.type='sine';o.frequency.value=freq;o.connect(g);o.start();
-  gl.oscs[i]=o;gl.gains[i]=g;
+  g2.gain.value=.35;
+  g.connect(gl.comp||ctx.destination);
+  o.type='sine';o.frequency.value=freq;o.connect(g);o.start();
+  o2.type='sine';o2.frequency.value=freq*2;o2.connect(g2);g2.connect(g);o2.start();
+  gl.oscs[i]=o;gl.gains[i]=g;gl['o2_'+i]=o2;
 }
 function glUpdateCup(i){
   const w=$('gl1W'+i);if(w)w.style.height=gl.heights[i]+'%';
@@ -2153,9 +2180,8 @@ if($('mapCanvas'))$('mapCanvas').addEventListener('click',function(e){
 });
 function clearMap(){mapPoints.length=0;drawMap();calcMapDist();$('mapHint').textContent='지도 위를 클릭해서 두 지점을 찍어 보세요!'}
 
-// ━━━━━━ 닮음의 세계 ━━━━━━
-const shp={galIdx:0,galDone:[false,false,false,false,false,false,false,false]};
-const SHP_GAL=[
+// ━━━━━━ 도형의 닮음비 + 명화 속 비율 ━━━━━━
+const SIM_ITEMS=[
   {icon:'▲',title:'시에르핀스키 삼각형',
    desc:'큰 삼각형 안에 작은 삼각형이 반복되는 프랙탈 도형이에요. 큰 삼각형을 계속 절반씩 나누면 이런 신기한 패턴이 나와요!',
    q:'큰 삼각형의 한 변은 바로 아래 작은 삼각형 한 변의 몇 배인가요?',
@@ -2186,6 +2212,8 @@ const SHP_GAL=[
    opts:['1 : 2','2 : 3','1 : 3','3 : 4'],ans:'2 : 3',
    reveal:'각 가지는 이전 가지의 ⅔ 길이예요. 닮음비 = 2 : 3! 실제 나무와 혈관, 번개도 이 프랙탈 구조를 따라요.',
    draw:'tree'},
+];
+const ART_ITEMS=[
   {icon:'🏛️',title:'파르테논 신전',
    desc:'기원전 447년 그리스 아테네에 지어진 파르테논 신전! 건물 정면의 가로세로 비율이 정확히 황금비예요. 고대 그리스인들은 황금비를 아름다움의 기준으로 삼았어요.',
    q:'파르테논 신전 정면의 가로 : 세로 비율은?',
@@ -2205,47 +2233,52 @@ const SHP_GAL=[
    reveal:'파도의 소용돌이 중심에서 바깥쪽으로 황금비 나선이 펼쳐져요! 자연의 파도·소용돌이·태풍도 황금 나선을 따라요.',
    draw:'hokusai'},
 ];
+const galSec={
+  sim:{items:SIM_ITEMS,idx:0,done:Array(SIM_ITEMS.length).fill(false)},
+  art:{items:ART_ITEMS,idx:0,done:Array(ART_ITEMS.length).fill(false)}
+};
 
-function shpBuildGal(){
-  const tabs=$('shpGalTabs');tabs.innerHTML='';
-  SHP_GAL.forEach((ex,i)=>{
+function galBuild(key){
+  const sec=galSec[key];const tabs=$(key+'Tabs');if(!tabs)return;
+  tabs.innerHTML='';
+  sec.items.forEach((ex,i)=>{
     const b=document.createElement('button');
     b.className='shp-gal-tab'+(i===0?' active':'');
-    b.id='shpGalTab'+i;b.onclick=()=>shpLoadGal(i);
+    b.id=key+'Tab'+i;b.onclick=()=>galLoad(key,i);
     b.textContent=ex.icon+' '+ex.title;
     tabs.appendChild(b);
   });
-  shpLoadGal(0);
+  galLoad(key,0);
 }
-function shpLoadGal(i){
-  shp.galIdx=i;
-  SHP_GAL.forEach((_,j)=>{const t=$('shpGalTab'+j);if(t)t.classList.toggle('active',j===i)});
-  const ex=SHP_GAL[i];
-  $('shpGalTitle').textContent=ex.icon+' '+ex.title;
-  $('shpGalDesc').textContent=ex.desc;
-  $('shpGalQ').textContent='❓ '+ex.q;
-  $('shpGalOpts').innerHTML=ex.opts.map(o=>`<button class="shp-gal-opt" onclick="shpGalAnswer(this,'${o.replace(/'/g,"\\'")}')">${o}</button>`).join('');
-  const rv=$('shpGalReveal');rv.style.display='none';rv.innerHTML='';
-  setTimeout(()=>shpGalDraw(ex.draw),60);
+function galLoad(key,i){
+  const sec=galSec[key];sec.idx=i;
+  sec.items.forEach((_,j)=>{const t=$(key+'Tab'+j);if(t)t.classList.toggle('active',j===i)});
+  const ex=sec.items[i];
+  $(key+'Title').textContent=ex.icon+' '+ex.title;
+  $(key+'Desc').textContent=ex.desc;
+  $(key+'Q').textContent='❓ '+ex.q;
+  $(key+'Opts').innerHTML=ex.opts.map(o=>`<button class="shp-gal-opt" onclick="galAnswer('${key}',this,'${o.replace(/'/g,"\\'")}')">${o}</button>`).join('');
+  const rv=$(key+'Reveal');rv.style.display='none';rv.innerHTML='';
+  setTimeout(()=>galDraw(key,ex.draw),60);
 }
-function shpGalAnswer(btn,ans){
-  const ex=SHP_GAL[shp.galIdx],ok=(ans===ex.ans);
-  document.querySelectorAll('.shp-gal-opt').forEach(b=>{
+function galAnswer(key,btn,ans){
+  const sec=galSec[key],ex=sec.items[sec.idx],ok=(ans===ex.ans);
+  document.querySelectorAll('#'+key+'Opts .shp-gal-opt').forEach(b=>{
     b.disabled=true;
     const t=b.textContent.trim();
     if(t===ex.ans)b.classList.add('correct');
     else if(t===ans&&!ok)b.classList.add('wrong');
   });
-  const rv=$('shpGalReveal');rv.style.display='block';
+  const rv=$(key+'Reveal');rv.style.display='block';
   rv.innerHTML=(ok?'🎉 정답! ':'💡 정답은 <strong>'+ex.ans+'</strong>!<br>')+ex.reveal;
-  if(ok&&!shp.galDone[shp.galIdx]){
-    shp.galDone[shp.galIdx]=true;
-    const t=$('shpGalTab'+shp.galIdx);if(t)t.classList.add('done');
+  if(ok&&!sec.done[sec.idx]){
+    sec.done[sec.idx]=true;
+    const t=$(key+'Tab'+sec.idx);if(t)t.classList.add('done');
     boom('발견!','var(--teal)');
   }
 }
-function shpGalDraw(type){
-  const canvas=$('shpGalCanvas');if(!canvas)return;
+function galDraw(key,type){
+  const canvas=$(key+'Canvas');if(!canvas)return;
   const ctx=canvas.getContext('2d');
   const W=canvas.width,H=canvas.height;
   ctx.clearRect(0,0,W,H);
@@ -2741,7 +2774,7 @@ function shadDraw(){
 }
 
 // ━━━━━━ INIT ━━━━━━
-bldWv();updColor();buildBeakerMarks();glBuildS1();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();shpBuildGal();
+bldWv();updColor();buildBeakerMarks();glBuildS1();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();galBuild('sim');galBuild('art');
 </script>
 </body>
 </html>
