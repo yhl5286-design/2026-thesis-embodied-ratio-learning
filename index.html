@@ -1619,9 +1619,9 @@ function stopSndNow(){clearInterval(snd.loopId);snd.loopId=null;snd.oscs=[]}
 function updFreqs(){if(!snd.playing)return;const ctx=snd.ctx;xyloNote(ctx,XYLO_FREQS[snd.a-1],ctx.currentTime);xyloNote(ctx,XYLO_FREQS[snd.b-1],ctx.currentTime+0.07);updSnd()}
 function toggleSnd(){snd.playing?stopSnd():startSnd()}
 function playOnce(a,b){initAud();const ctx=snd.ctx,t=ctx.currentTime;xyloNote(ctx,XYLO_FREQS[a-1],t);xyloNote(ctx,XYLO_FREQS[b-1],t+0.07)}
-function bldWv(){const el=$('waveVis');el.innerHTML='';for(let i=0;i<10;i++){const b=document.createElement('div');b.className='wave-bar';b.style.height='6px';b.style.animationDelay=(i*.07)+'s';el.appendChild(b)}}
-function startWv(){const bars=$('waveVis').children;for(const b of bars){b.classList.add('active');b.style.height=(8+Math.random()*30)+'px'};snd.wI=setInterval(()=>{for(const b of bars)b.style.height=(6+Math.random()*34)+'px'},180)}
-function stopWv(){clearInterval(snd.wI);for(const b of $('waveVis').children){b.classList.remove('active');b.style.height='6px'}}
+function bldWv(){const el=$('waveVis');if(!el)return;el.innerHTML='';for(let i=0;i<10;i++){const b=document.createElement('div');b.className='wave-bar';b.style.height='6px';b.style.animationDelay=(i*.07)+'s';el.appendChild(b)}}
+function startWv(){const el=$('waveVis');if(!el)return;const bars=el.children;for(const b of bars){b.classList.add('active');b.style.height=(8+Math.random()*30)+'px'};snd.wI=setInterval(()=>{for(const b of bars)b.style.height=(6+Math.random()*34)+'px'},180)}
+function stopWv(){clearInterval(snd.wI);const el=$('waveVis');if(!el)return;for(const b of el.children){b.classList.remove('active');b.style.height='6px'}}
 function recSnd(){const c=consonance(XYLO_JI[snd.a-1],XYLO_JI[snd.b-1]);snd.recs.push({a:snd.a,b:snd.b,c});renSndRec();
   if(c.s>=.6){snd.found++;if(snd.found>=snd.goal){fb('sFB','success','모두 찾았어요!');boom('대단해요!','var(--purple)')}else fb('sFB','success',`좋아요! ${snd.found}/${snd.goal}`);showReflection('sound',{a:snd.a,b:snd.b})}else fb('sFB','hint','더 어울리는 소리를 찾아보세요!')}
 function renSndRec(){let h='';snd.recs.forEach((r,i)=>{h+=`<tr class="${i===snd.recs.length-1?'latest':''}"><td>${i+1}</td><td>${XYLO_NAMES[r.a-1]}</td><td>${XYLO_NAMES[r.b-1]}</td><td>${r.c.f}</td><td><button class="replay-btn" onclick="playOnce(${r.a},${r.b})">&#9654;</button></td></tr>`});$('sLog').innerHTML=h}
