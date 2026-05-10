@@ -389,8 +389,16 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .shp-gal-tab.done{border-color:var(--teal);color:var(--teal)}
 .shp-gal-tab.active.done{background:var(--teal);color:#fff;border-color:var(--teal)}
 .shp-gal-area{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
-.shp-gal-canvas-wrap{background:#f7f7f5;border-radius:16px;padding:16px;display:flex;justify-content:center;align-items:center}
-.shp-gal-canvas-wrap canvas{max-width:100%;border-radius:8px}
+.shp-gal-canvas-wrap{background:#f7f7f5;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
+.shp-gal-canvas-stage{background:#fff;border-radius:8px;overflow:auto;max-height:440px;display:flex;justify-content:center;align-items:flex-start}
+.shp-gal-canvas-stage canvas{display:block;transform-origin:center top;transition:transform .15s;max-width:100%;border-radius:8px}
+.shp-gal-zoom-row{display:flex;align-items:center;gap:10px;padding:0 4px}
+.shp-gal-zoom-icon{font-size:.95rem;flex-shrink:0}
+.shp-gal-zoom-slider{flex:1;-webkit-appearance:none;appearance:none;height:6px;border-radius:4px;background:linear-gradient(90deg,#E0E0E0,#BDBDBD);outline:none;cursor:pointer}
+.shp-gal-zoom-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--teal);border:2px solid #fff;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.shp-gal-zoom-val{font-size:.78rem;font-weight:800;color:var(--text-sub);min-width:40px;text-align:right;flex-shrink:0}
+.shp-gal-tip{padding:10px 14px;background:linear-gradient(135deg,#FFF8E1,#FFEFC4);border-left:4px solid #E8B53C;border-radius:8px;font-size:.84rem;line-height:1.55;color:#7B5800}
+.shp-gal-tip::before{content:'🔍 ';margin-right:4px}
 .shp-gal-info{background:#fff;border:2px solid #E8E8E8;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px}
 .shp-gal-title{font-size:1.2rem;font-weight:900;color:var(--navy)}
 .shp-gal-desc{font-size:.88rem;line-height:1.7;color:var(--text-sub)}
@@ -867,7 +875,15 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   <div class="shp-gal-tabs" id="simTabs"></div>
   <div class="shp-gal-area">
     <div class="shp-gal-canvas-wrap">
-      <canvas id="simCanvas" width="500" height="430"></canvas>
+      <div class="shp-gal-canvas-stage" id="simStage">
+        <canvas id="simCanvas" width="500" height="430"></canvas>
+      </div>
+      <div class="shp-gal-zoom-row">
+        <span class="shp-gal-zoom-icon">🔎</span>
+        <input type="range" class="shp-gal-zoom-slider" id="simZoom" min="100" max="300" step="10" value="100" oninput="zoomGal('sim',this.value)">
+        <span class="shp-gal-zoom-val" id="simZoomVal">1.0×</span>
+      </div>
+      <div class="shp-gal-tip" id="simTip"></div>
     </div>
     <div class="shp-gal-info">
       <div class="shp-gal-title" id="simTitle"></div>
@@ -885,7 +901,15 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   <div class="shp-gal-tabs" id="artTabs"></div>
   <div class="shp-gal-area">
     <div class="shp-gal-canvas-wrap">
-      <canvas id="artCanvas" width="500" height="430"></canvas>
+      <div class="shp-gal-canvas-stage" id="artStage">
+        <canvas id="artCanvas" width="500" height="430"></canvas>
+      </div>
+      <div class="shp-gal-zoom-row">
+        <span class="shp-gal-zoom-icon">🔎</span>
+        <input type="range" class="shp-gal-zoom-slider" id="artZoom" min="100" max="300" step="10" value="100" oninput="zoomGal('art',this.value)">
+        <span class="shp-gal-zoom-val" id="artZoomVal">1.0×</span>
+      </div>
+      <div class="shp-gal-tip" id="artTip"></div>
     </div>
     <div class="shp-gal-info">
       <div class="shp-gal-title" id="artTitle"></div>
@@ -1051,6 +1075,9 @@ function switchTab(t){
   if(t==='sound'&&!$('gl1Row').children.length)glBuildS1();
   if(t==='harmony'){buildPiano();stopWaveAnim()};
   if(t==='shadow'){shadDraw()}
+  // Galleries: redraw when tab becomes visible (canvas in display:none may not render in some browsers)
+  if(t==='similarity'){const s=galSec.sim;setTimeout(()=>galDraw('sim',s.items[s.idx].draw),60);}
+  if(t==='masterpiece'){const a=galSec.art;setTimeout(()=>galDraw('art',a.items[a.idx].draw),60);}
 }
 
 // ━━━━━━ 1.5 GLASS CUP SOUND EXPLORATION ━━━━━━
@@ -2221,30 +2248,35 @@ function clearMap(){mapPoints.length=0;drawMap();calcMapDist();$('mapHint').text
 const SIM_ITEMS=[
   {icon:'▲',title:'시에르핀스키 삼각형',
    desc:'큰 삼각형 안에 작은 삼각형이 반복되는 프랙탈 도형이에요. 큰 삼각형을 계속 절반씩 나누면 이런 신기한 패턴이 나와요!',
+   tip:'큰 검은 삼각형의 한 변과 그 바로 안쪽 작은 삼각형의 한 변을 눈으로 비교해 보세요.',
    q:'큰 삼각형의 한 변은 바로 아래 작은 삼각형 한 변의 몇 배인가요?',
    opts:['같아요 (1배)','2배','3배','4배'],ans:'2배',
    reveal:'한 단계 내려갈 때마다 변의 길이가 ½이 돼요! 닮음비 = 1 : 2. 이것이 프랙탈의 비밀이에요 ✨',
    draw:'sierpinski'},
   {icon:'❄️',title:'코흐 눈송이',
    desc:'삼각형의 각 변 가운데 1/3을 작은 삼각형 돌기로 바꾸면 눈송이 모양이 돼요. 이 과정을 계속 반복하면 진짜 눈결정과 비슷해져요!',
+   tip:'한 변이 셋으로 나뉜 위치와, 그 위로 솟은 작은 삼각형 돌기의 변 길이를 비교하세요.',
    q:'각 단계에서 새로 생기는 작은 삼각형의 변은 원래 변의 몇 분의 1인가요?',
    opts:['1/2','1/3','1/4','1/5'],ans:'1/3',
    reveal:'각 단계에서 새 삼각형의 변 = 원래 변의 1/3! 닮음비 = 1 : 3. 단계가 높아질수록 둘레는 무한히 늘어나요.',
    draw:'koch'},
   {icon:'🌀',title:'황금비 나선',
    desc:'조개껍데기·해바라기·은하수에서 발견되는 아름다운 비율이에요. 다빈치와 르네상스 화가들이 즐겨 사용한 신성한 비율!',
+   tip:'큰 사각형 안의 작은 사각형이 어떻게 점점 줄어드는지 보세요. 줄어드는 비율이 모두 같아요.',
    q:'황금 직사각형의 가로 : 세로 비율은 약 얼마인가요?',
    opts:['1 : 1','1 : 1.3','1 : 1.6','1 : 2'],ans:'1 : 1.6',
    reveal:'황금비 φ ≈ 1.618... 가로 : 세로 = 1 : 1.618. 이 비율로 만든 직사각형이 가장 아름답다고 해요! 로고·명함·명화 속 비밀이에요.',
    draw:'golden'},
   {icon:'⭐',title:'황금 오각형과 별',
    desc:'정오각형의 대각선을 그으면 별이 생겨요. 이 별 안에도 또 오각형이, 그 안에도 별이... 무한히 반복돼요! 그리고 모든 비율이 황금비예요.',
+   tip:'별의 큰 변 하나를 골라, 별 안쪽 작은 오각형의 한 변과 길이를 비교해 보세요.',
    q:'정오각형에서 대각선 길이 ÷ 변의 길이는?',
    opts:['1.0','1.4','1.618','2.0'],ans:'1.618',
    reveal:'정오각형의 대각선 : 변 = 황금비 φ ≈ 1.618! 별 안의 모든 선분들도 황금비를 이뤄요. 자연에서 가장 아름다운 비율이에요.',
    draw:'pentagon'},
   {icon:'🌳',title:'프랙탈 나무',
    desc:'나무도 닮음비를 따라요! 줄기에서 가지가 뻗을 때 같은 패턴이 반복돼요. 작은 가지도 큰 가지와 똑같이 생겼어요.',
+   tip:'줄기와 첫 가지 길이를 비교한 뒤, 그 가지에서 뻗은 더 작은 가지와도 같은 방식으로 비교하세요.',
    q:'작은 가지 길이 : 큰 가지 길이 = ?',
    opts:['1 : 2','2 : 3','1 : 3','3 : 4'],ans:'2 : 3',
    reveal:'각 가지는 이전 가지의 ⅔ 길이예요. 닮음비 = 2 : 3! 실제 나무와 혈관, 번개도 이 프랙탈 구조를 따라요.',
@@ -2253,30 +2285,35 @@ const SIM_ITEMS=[
 const ART_ITEMS=[
   {icon:'🏛️',title:'파르테논 신전',
    desc:'기원전 447년 그리스 아테네에 지어진 파르테논 신전! 건물 정면의 가로세로 비율이 정확히 황금비예요. 고대 그리스인들은 황금비를 아름다움의 기준으로 삼았어요.',
+   tip:'건물 정면을 한 사각형 안에 넣어 보세요 — 가로 너비와 세로 높이를 머릿속에서 비교해 보세요.',
    q:'파르테논 신전 정면의 가로 : 세로 비율은?',
    opts:['1 : 1','1 : 1.2','1 : 1.618','1 : 2'],ans:'1 : 1.618',
    reveal:'파르테논의 가로:세로 = 1:φ (황금비)! 고대 그리스인들은 수학적으로 아름다운 건물을 지었어요. 현재도 황금비가 건축 설계에 쓰여요.',
    draw:'parthenon'},
   {icon:'🧑',title:'다빈치 — 비트루비우스 인체',
    desc:'다빈치의 가장 유명한 그림! 완벽한 인체는 머리 길이를 기준으로 모든 비율이 정해진다고 했어요. 몸속에 숨겨진 비율을 찾아봐요!',
+   tip:'팔을 활짝 펼친 너비와 키를 비교해 보세요. 그리고 배꼽 위치에서 위·아래 길이도 잼해 보세요.',
    q:'키는 머리 길이의 몇 배인가요?',
    opts:['6배','7배','8배','10배'],ans:'8배',
    reveal:'완벽한 인체 = 키 : 머리 × 8! 팔 너비 = 키, 배꼽이 황금비 위치, 어깨 = 키의 ¼. 몸이 곧 비율이에요 🎨',
    draw:'vitruvian'},
   {icon:'🌊',title:'호쿠사이 — 가나가와 파도',
    desc:'일본 화가 호쿠사이의 1831년 명작! 거대한 파도 곡선이 황금비 나선을 따라요. 자연의 파도에도 수학적 질서가 있어요.',
+   tip:'큰 파도의 안쪽 작은 굽이와 바깥쪽 큰 굽이의 굽음 정도를 비교해 보세요. 자연의 황금 나선이에요.',
    q:'파도 곡선의 중심과 파도 전체의 비율은?',
    opts:['1 : 1','1 : 1.618','1 : 2','1 : 3'],ans:'1 : 1.618',
    reveal:'파도의 소용돌이 중심에서 바깥쪽으로 황금비 나선이 펼쳐져요! 자연의 파도·소용돌이·태풍도 황금 나선을 따라요.',
    draw:'hokusai'},
   {icon:'🏛️',title:'라파엘로 — 아테네 학당',
    desc:'르네상스 정점에 라파엘로가 그린 벽화. 그림 양쪽의 벽·아치가 모두 한 점으로 모이는 일점 투시도법으로 그려졌어요. 그 한 점에는 누가 있을까요?',
+   tip:'양쪽 벽·아치 선을 손가락으로 따라가 한 점에서 만나는 곳을 찾고, 앞에 선 인물과 안쪽 인물의 키도 비교하세요.',
    q:'그림의 소실점(원근의 중심점)에는 누가 있나요?',
    opts:['소크라테스','플라톤·아리스토텔레스','라파엘로 자신','없음 (소실점 없음)'],ans:'플라톤·아리스토텔레스',
    reveal:'소실점 = 플라톤·아리스토텔레스 사이! 양쪽 벽·아치가 모두 한 점으로 수렴해요. 멀어질수록 인물·기둥이 닮음비로 작아져 보여요. 전경 인물 : 원경 인물 ≈ 2 : 1 🏛️',
    draw:'athens'},
   {icon:'🍞',title:'다빈치 — 최후의 만찬',
    desc:'다빈치가 밀라노 수도원 식당 벽에 그린 명작. 천장 격자가 멀어질수록 작아지는데, 그 격자가 닮음비를 그대로 보여줘요. 소실점은 어디일까요?',
+   tip:'천장 격자가 어떻게 점점 좁아지는지 보세요. 가장 가까운 격자와 멀어진 격자의 너비를 비교!',
    q:'천장 격자선이 모이는 소실점은 어디인가요?',
    opts:['예수의 머리','유다의 손','창문 가운데','왼쪽 벽 끝'],ans:'예수의 머리',
    reveal:'소실점 = 예수의 머리! 천장 격자가 1 : ½ : ⅓ : ¼ 등비수열 닮음비로 줄어들어요. 다빈치는 수학적 거리감을 그림으로 증명했어요 ✨',
@@ -2305,10 +2342,19 @@ function galLoad(key,i){
   const ex=sec.items[i];
   $(key+'Title').textContent=ex.icon+' '+ex.title;
   $(key+'Desc').textContent=ex.desc;
+  const tipEl=$(key+'Tip');if(tipEl)tipEl.textContent=ex.tip||'';
   $(key+'Q').textContent='❓ '+ex.q;
   $(key+'Opts').innerHTML=ex.opts.map(o=>`<button class="shp-gal-opt" onclick="galAnswer('${key}',this,'${o.replace(/'/g,"\\'")}')">${o}</button>`).join('');
   const rv=$(key+'Reveal');rv.style.display='none';rv.innerHTML='';
+  // reset zoom on item change
+  const zs=$(key+'Zoom');if(zs){zs.value=100;zoomGal(key,100);}
   setTimeout(()=>galDraw(key,ex.draw),60);
+}
+function zoomGal(key,val){
+  const scale=val/100;
+  const cv=$(key+'Canvas');if(!cv)return;
+  cv.style.transform='scale('+scale+')';
+  const lbl=$(key+'ZoomVal');if(lbl)lbl.textContent=scale.toFixed(1)+'×';
 }
 function galAnswer(key,btn,ans){
   const sec=galSec[key],ex=sec.items[sec.idx],ok=(ans===ex.ans);
