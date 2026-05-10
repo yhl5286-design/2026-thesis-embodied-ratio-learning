@@ -176,6 +176,10 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #lab-color.col-blind .recipe-drops,
 #lab-color.col-blind .recipe-total,
 #lab-color.col-blind .match-ratio-text{display:none !important}
+#lab-harmony.harm-blind .hi-ratio-big,
+#lab-harmony.harm-blind .hi-detail,
+#lab-harmony.harm-blind .wave-explain,
+#lab-harmony.harm-blind .harm-principle{display:none !important}
 /* 감각 모드: 기록 패널 자리에 안내문 */
 #lab-color.col-blind .record-section-title{display:none}
 #lab-color.col-blind .col-record-placeholder{display:block}
@@ -828,7 +832,18 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 </div>
 
 <!-- ════════ 화음 감상실 ════════ -->
-<div class="lab" id="lab-harmony">
+<div class="lab harm-blind" id="lab-harmony">
+  <div class="col-mode-bar">
+    <span class="col-mode-hint">🎼 어울리는 음을 귀로 먼저 찾아 보세요. 발견하면 비밀이 드러나요!</span>
+    <button class="col-mode-toggle" id="harmModeToggle" onclick="toggleHarmBlind()" title="숫자 보기 / 감추기">
+      <span class="pip"></span>
+      <span>🔢 비율·주파수 보기</span>
+    </button>
+  </div>
+  <div class="discovery-banner" id="harmDiscBanner">
+    <div class="discovery-banner-q">✨ 이 두 음이 잘 어울리네요! 왜 그럴까요?</div>
+    <button class="discovery-banner-btn" onclick="revealHarmRatios()">👀 비밀 풀어보기 — 주파수·비율 보기</button>
+  </div>
   <div id="harmS2">
     <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">화음 감상실</span> 기본음 '도'와 다른 음을 비교해 보세요</div>
     <div class="harmony-layout">
@@ -854,7 +869,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
           </div>
         </div>
         <div class="wave-explain" id="waveExplain" style="display:none"></div>
-        <div style="margin-top:16px;padding:16px;background:var(--purple-light);border-radius:var(--radius-sm)">
+        <div class="harm-principle" style="margin-top:16px;padding:16px;background:var(--purple-light);border-radius:var(--radius-sm)">
           <div style="font-size:.85rem;font-weight:700;color:var(--purple);margin-bottom:6px">&#x1F4A1; 핵심 원리</div>
           <div style="font-size:.82rem;color:var(--text-sub);line-height:1.7">
             비율이 <strong>단순할수록</strong>(숫자가 작을수록) 두 파형이 <strong>자주 만나고</strong> 규칙적으로 반복돼요.<br>
@@ -2054,6 +2069,19 @@ function buildPiano(){
     wrap.appendChild(el);
   }
 }
+let harmBlind=true, harmDiscovered=false;
+function toggleHarmBlind(){
+  harmBlind=!harmBlind;
+  const lab=$('lab-harmony');
+  if(harmBlind){lab.classList.add('harm-blind');$('harmModeToggle').classList.remove('on');}
+  else{lab.classList.remove('harm-blind');$('harmModeToggle').classList.add('on');$('harmDiscBanner').classList.remove('show');}
+}
+function revealHarmRatios(){
+  harmDiscovered=true;
+  if(harmBlind)toggleHarmBlind();
+  $('harmDiscBanner').classList.remove('show');
+  boom('비밀 발견!','var(--purple)');
+}
 function updatePianoInfo(){
   const info=$('pianoInfo'),k=PKEYS[pianoSel],freq=pianoFreq(pianoSel);
   const rk=`${k.ratio[0]}:${k.ratio[1]}`,intv=INTERVALS[rk]||'';
@@ -2074,6 +2102,9 @@ function updatePianoInfo(){
       <strong>음정:</strong> ${intv}<br>
       ${k.name}은 도의 <strong>${(k.ratio[0]/k.ratio[1]).toFixed(3)}배</strong> 주파수
     </div>`;
+  if(harmBlind && !harmDiscovered && stars>=4 && pianoSel!==0){
+    const b=$('harmDiscBanner');if(b)b.classList.add('show');
+  }
 }
 function resetPiano(){pianoSel=4;buildPiano();updatePianoInfo();stopWaveAnim();$('waveCard').style.display='none';$('waveExplain').style.display='none'}
 
