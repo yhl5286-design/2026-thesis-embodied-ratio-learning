@@ -2205,6 +2205,18 @@ const ART_ITEMS=[
    opts:['1 : 1','1 : 1.618','1 : 2','1 : 3'],ans:'1 : 1.618',
    reveal:'파도의 소용돌이 중심에서 바깥쪽으로 황금비 나선이 펼쳐져요! 자연의 파도·소용돌이·태풍도 황금 나선을 따라요.',
    draw:'hokusai'},
+  {icon:'🏛️',title:'라파엘로 — 아테네 학당',
+   desc:'르네상스 정점에 라파엘로가 그린 벽화. 그림 양쪽의 벽·아치가 모두 한 점으로 모이는 일점 투시도법으로 그려졌어요. 그 한 점에는 누가 있을까요?',
+   q:'그림의 소실점(원근의 중심점)에는 누가 있나요?',
+   opts:['소크라테스','플라톤·아리스토텔레스','라파엘로 자신','없음 (소실점 없음)'],ans:'플라톤·아리스토텔레스',
+   reveal:'소실점 = 플라톤·아리스토텔레스 사이! 양쪽 벽·아치가 모두 한 점으로 수렴해요. 멀어질수록 인물·기둥이 닮음비로 작아져 보여요. 전경 인물 : 원경 인물 ≈ 2 : 1 🏛️',
+   draw:'athens'},
+  {icon:'🍞',title:'다빈치 — 최후의 만찬',
+   desc:'다빈치가 밀라노 수도원 식당 벽에 그린 명작. 천장 격자가 멀어질수록 작아지는데, 그 격자가 닮음비를 그대로 보여줘요. 소실점은 어디일까요?',
+   q:'천장 격자선이 모이는 소실점은 어디인가요?',
+   opts:['예수의 머리','유다의 손','창문 가운데','왼쪽 벽 끝'],ans:'예수의 머리',
+   reveal:'소실점 = 예수의 머리! 천장 격자가 1 : ½ : ⅓ : ¼ 등비수열 닮음비로 줄어들어요. 다빈치는 수학적 거리감을 그림으로 증명했어요 ✨',
+   draw:'lastsupper'},
 ];
 const galSec={
   sim:{items:SIM_ITEMS,idx:0,done:Array(SIM_ITEMS.length).fill(false)},
@@ -2256,7 +2268,8 @@ function galDraw(key,type){
   const W=canvas.width,H=canvas.height;
   ctx.clearRect(0,0,W,H);
   ({sierpinski:shpDrawSierpinski,koch:shpDrawKoch,golden:shpDrawGolden,pentagon:shpDrawPentagon,
-    tree:shpDrawTree,parthenon:shpDrawParthenon,vitruvian:shpDrawVitruvian,hokusai:shpDrawHokusai}[type]||((c,w,h)=>{}))(ctx,W,H);
+    tree:shpDrawTree,parthenon:shpDrawParthenon,vitruvian:shpDrawVitruvian,hokusai:shpDrawHokusai,
+    athens:shpDrawAthens,lastsupper:shpDrawLastSupper}[type]||((c,w,h)=>{}))(ctx,W,H);
 }
 
 function shpDrawSierpinski(ctx,W,H){
@@ -2412,7 +2425,7 @@ function shpLoadImage(url,ctx,W,H,afterDraw){
   ctx.fillStyle='#85929E';ctx.font='15px sans-serif';ctx.textAlign='center';
   ctx.fillText('이미지 불러오는 중...',W/2,H/2-8);
   ctx.font='12px sans-serif';ctx.fillStyle='#AEB6BF';
-  ctx.fillText('(인터넷 연결 필요)',W/2,H/2+14);
+  ctx.fillText('(images/ 폴더에서 읽는 중)',W/2,H/2+14);
   const img=new Image();
   img.onload=()=>{
     const ar=img.naturalWidth/img.naturalHeight,ca=W/H;
@@ -2436,7 +2449,7 @@ function shpLoadImage(url,ctx,W,H,afterDraw){
 
 function shpDrawParthenon(ctx,W,H){
   shpLoadImage(
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/The_Parthenon_in_Athens.jpg/500px-The_Parthenon_in_Athens.jpg',
+    'images/parthenon.jpg',
     ctx,W,H,
     (ctx,W,H,dx,dy,dw,dh)=>{
       const phi=1.618,rh=Math.round(dw/phi),ry=dy+Math.round((dh-rh)/2);
@@ -2454,7 +2467,7 @@ function shpDrawParthenon(ctx,W,H){
 
 function shpDrawVitruvian(ctx,W,H){
   shpLoadImage(
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Da_Vinci_Vitruve_Luc_Viatour.jpg/500px-Da_Vinci_Vitruve_Luc_Viatour.jpg',
+    'images/vitruvian.jpg',
     ctx,W,H,
     (ctx,W,H,dx,dy,dw,dh)=>{
       const phi=1.618,cx=dx+dw/2,cy=dy+dh/2;
@@ -2477,7 +2490,7 @@ function shpDrawVitruvian(ctx,W,H){
 
 function shpDrawHokusai(ctx,W,H){
   shpLoadImage(
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Great_Wave_off_Kanagawa2.jpg/500px-Great_Wave_off_Kanagawa2.jpg',
+    'images/hokusai.jpg',
     ctx,W,H,
     (ctx,W,H,dx,dy,dw,dh)=>{
       const phi=1.618,spW=dw*.88,spH=spW/phi,sox=dx+dw*.03,soy=dy+dh*.02;
@@ -2491,6 +2504,79 @@ function shpDrawHokusai(ctx,W,H){
       ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(W/2-200,H-30,400,24);
       ctx.fillStyle='#FFF';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
       ctx.fillText('호쿠사이 가나가와 파도 (1831) — 파도 = 황금비 나선',W/2,H-13);
+    }
+  );
+}
+
+function shpDrawAthens(ctx,W,H){
+  shpLoadImage(
+    'images/athens.jpg',
+    ctx,W,H,
+    (ctx,W,H,dx,dy,dw,dh)=>{
+      const vx=dx+dw*0.5, vy=dy+dh*0.42;
+      ctx.strokeStyle='rgba(231,76,60,.7)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+      ctx.beginPath();
+      ctx.moveTo(dx,dy+dh*0.85);ctx.lineTo(vx,vy);
+      ctx.moveTo(dx+dw,dy+dh*0.85);ctx.lineTo(vx,vy);
+      ctx.moveTo(dx,dy+dh*0.15);ctx.lineTo(vx,vy);
+      ctx.moveTo(dx+dw,dy+dh*0.15);ctx.lineTo(vx,vy);
+      ctx.stroke();ctx.setLineDash([]);
+      ctx.strokeStyle='rgba(255,215,0,.95)';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(vx,vy,18,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='rgba(255,215,0,.95)';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+      ctx.fillText('소실점',vx,vy-25);
+      const fgX=dx+dw*0.10,fgY1=dy+dh*0.55,fgY2=dy+dh*0.95;
+      const bgX=dx+dw*0.45,bgY1=dy+dh*0.50,bgY2=dy+dh*0.65;
+      ctx.strokeStyle='rgba(41,128,185,.9)';ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(fgX,fgY1);ctx.lineTo(fgX,fgY2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(bgX,bgY1);ctx.lineTo(bgX,bgY2);ctx.stroke();
+      ctx.fillStyle='rgba(41,128,185,.95)';ctx.font='bold 12px sans-serif';ctx.textAlign='left';
+      ctx.fillText('전경 : 원경 ≈ 2 : 1',fgX+8,fgY2-6);
+      ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(dx+6,dy+6,128,22);
+      ctx.fillStyle='#FFD700';ctx.font='bold 12px sans-serif';ctx.textAlign='left';
+      ctx.fillText('원근 → 닮음비',dx+12,dy+22);
+      ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(W/2-220,H-30,440,24);
+      ctx.fillStyle='#FFF';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
+      ctx.fillText('라파엘로 아테네 학당 (1511) — 멀어질수록 닮음비로 작아져요',W/2,H-13);
+    }
+  );
+}
+
+function shpDrawLastSupper(ctx,W,H){
+  shpLoadImage(
+    'images/lastsupper.jpg',
+    ctx,W,H,
+    (ctx,W,H,dx,dy,dw,dh)=>{
+      const vx=dx+dw*0.5, vy=dy+dh*0.37;
+      ctx.strokeStyle='rgba(41,128,185,.65)';ctx.lineWidth=1.8;ctx.setLineDash([6,4]);
+      ctx.beginPath();
+      ctx.moveTo(dx,dy);ctx.lineTo(vx,vy);
+      ctx.moveTo(dx+dw,dy);ctx.lineTo(vx,vy);
+      ctx.moveTo(dx,dy+dh*0.55);ctx.lineTo(vx,vy);
+      ctx.moveTo(dx+dw,dy+dh*0.55);ctx.lineTo(vx,vy);
+      ctx.stroke();ctx.setLineDash([]);
+      const ceilTop=dy+dh*0.05, ceilBack=vy;
+      const labels=['1','½','⅓','¼'];
+      ctx.strokeStyle='rgba(255,215,0,.85)';ctx.lineWidth=1.8;
+      ctx.fillStyle='rgba(255,215,0,.95)';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
+      for(let i=0;i<labels.length;i++){
+        const t=i/labels.length;
+        const yLine=ceilTop+(ceilBack-ceilTop)*t;
+        const widthFactor=1-t*0.85;
+        const lx=vx-dw*0.5*widthFactor, rx=vx+dw*0.5*widthFactor;
+        ctx.beginPath();ctx.moveTo(lx,yLine);ctx.lineTo(rx,yLine);ctx.stroke();
+        ctx.fillText(labels[i],rx+4,yLine+4);
+      }
+      ctx.fillStyle='rgba(231,76,60,.95)';ctx.font='bold 22px serif';ctx.textAlign='center';
+      ctx.fillText('★',vx,vy+6);
+      ctx.font='bold 11px sans-serif';
+      ctx.fillText('소실점=예수',vx,vy+22);
+      ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(dx+6,dy+6,148,22);
+      ctx.fillStyle='#FFD700';ctx.font='bold 12px sans-serif';ctx.textAlign='left';
+      ctx.fillText('천장 격자 = 닮음비',dx+12,dy+22);
+      ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(W/2-230,H-30,460,24);
+      ctx.fillStyle='#FFF';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
+      ctx.fillText('다빈치 최후의 만찬 (1498) — 천장 격자가 1 : ½ : ⅓ : ¼로 줄어요',W/2,H-13);
     }
   );
 }
