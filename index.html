@@ -152,6 +152,41 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .report-bar-val{font-size:.7rem;font-weight:700;width:36px;text-align:right;flex-shrink:0}
 .report-bar-pct{font-size:.62rem;color:var(--text-sub);width:30px;flex-shrink:0}
 
+/* ── Color Lab: 감각 모드 (숫자 잠금) ── */
+.col-mode-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;padding:6px 10px;border-radius:12px;background:#FAFAFA;border:1px solid #EEE}
+.col-mode-hint{font-size:.74rem;color:var(--text-sub);font-style:italic;flex:1}
+.col-mode-toggle{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:100px;border:2px solid #D5D5D5;background:#fff;font-family:var(--font);font-size:.78rem;font-weight:700;color:var(--text-sub);cursor:pointer;transition:all .2s;user-select:none}
+.col-mode-toggle:hover{border-color:#A0A0A0}
+.col-mode-toggle .pip{width:34px;height:18px;border-radius:100px;background:#D0D0D0;position:relative;transition:background .2s;flex-shrink:0}
+.col-mode-toggle .pip::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.col-mode-toggle.on{border-color:var(--teal);color:var(--teal);background:var(--teal-light)}
+.col-mode-toggle.on .pip{background:var(--teal)}
+.col-mode-toggle.on .pip::after{transform:translateX(16px)}
+#lab-color.col-blind .paint-jar-ml,
+#lab-color.col-blind .paint-count,
+#lab-color.col-blind #ratioBox,
+#lab-color.col-blind .beaker-total,
+#lab-color.col-blind .beaker-scale,
+#lab-color.col-blind .record-table-wrap,
+#lab-color.col-blind .report-bar-val,
+#lab-color.col-blind .report-bar-pct,
+#lab-color.col-blind .report-total-text,
+#lab-color.col-blind .report-ratio-disp,
+#lab-color.col-blind .recipe-map-axes,
+#lab-color.col-blind .recipe-drops,
+#lab-color.col-blind .recipe-total,
+#lab-color.col-blind .match-ratio-text{display:none !important}
+/* 감각 모드: 기록 패널 자리에 안내문 */
+#lab-color.col-blind .record-section-title{display:none}
+#lab-color.col-blind .col-record-placeholder{display:block}
+.col-record-placeholder{display:none;padding:18px 16px;background:linear-gradient(135deg,#F7F2EA,#FEF9EE);border:1.5px dashed #D5C3A0;border-radius:12px;color:#8E6E3A;font-size:.82rem;line-height:1.55;text-align:center}
+/* 발견 배너 (감각 모드 → 양적 모드 전환 모먼트) */
+.discovery-banner{margin:10px 0 4px;padding:16px 18px;border-radius:14px;background:linear-gradient(135deg,#FFF7E0,#FFE9A8);border:2px solid #E8B53C;display:none;animation:fadeUp .35s;text-align:center}
+.discovery-banner.show{display:block}
+.discovery-banner-q{font-size:.96rem;font-weight:800;color:#7B4E00;margin-bottom:10px;line-height:1.4}
+.discovery-banner-btn{padding:9px 22px;border-radius:100px;border:none;background:var(--teal);color:#fff;font-family:var(--font);font-size:.85rem;font-weight:800;cursor:pointer;transition:all .2s}
+.discovery-banner-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,184,148,.35)}
+
 /* ══════════════════════
    2. SOUND LAB
    ══════════════════════ */
@@ -521,7 +556,18 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 <main>
 
 <!-- ════════ 1. COLOR LAB ════════ -->
-<div class="lab active" id="lab-color">
+<div class="lab active col-blind" id="lab-color">
+  <div class="col-mode-bar">
+    <span class="col-mode-hint">🎨 먼저 색깔만 보고 비교해 보세요. 같은 색을 만들면 비밀이 드러나요!</span>
+    <button class="col-mode-toggle" id="colModeToggle" onclick="toggleBlindMode()" title="숫자 보기 / 감추기">
+      <span class="pip"></span>
+      <span>🔢 숫자 보기</span>
+    </button>
+  </div>
+  <div class="discovery-banner" id="discBanner">
+    <div class="discovery-banner-q">✨ 같은 색을 다른 양으로 만들었네요! 왜 같은 색일까요?</div>
+    <button class="discovery-banner-btn" onclick="revealRatios()">👀 비밀 풀어보기 — 비율 보기</button>
+  </div>
   <div class="color-layout">
     <!-- 왼쪽: 물감 잉크(가운데) + 비커 + 조작 -->
     <div>
@@ -649,7 +695,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     </div>
     <!-- 오른쪽: 기록(작게) + 저장 레시피 -->
     <div>
-      <div class="stitle"><span class="badge" style="background:#F0F0F0;color:var(--text-sub)">기록</span> mL 기록</div>
+      <div class="stitle record-section-title"><span class="badge" style="background:#F0F0F0;color:var(--text-sub)">기록</span> mL 기록</div>
+      <div class="col-record-placeholder">🎨 숫자 대신 색깔만 — 비커에서 색이 어떻게 변하는지 잘 보세요.<br>같은 색을 두 번 다른 방법으로 만들면 비밀이 드러나요!</div>
       <div class="record-table-wrap"><table class="rtbl"><thead><tr><th>#</th><th style="color:var(--red)">빨</th><th style="color:#C29200">노</th><th style="color:var(--blue)">파</th><th>합계</th><th>색상</th></tr></thead><tbody id="cLog"></tbody></table></div>
       <div style="margin-top:16px">
         <div class="stitle"><span class="badge" style="background:var(--teal-light);color:var(--teal)">비교</span> 저장된 레시피 <button class="act-btn" style="margin-left:auto;font-size:.68rem;padding:4px 10px" onclick="clearAllRecipes()">전체 삭제</button></div>
@@ -1177,7 +1224,19 @@ function glS2Reset(){
 }
 
 // ━━━━━━ 1. COLOR LAB ━━━━━━
-const col={r:0,y:0,b:0,hist:[],recipes:[],interactions:0,dragLog:[],strategy:'explore'};
+const col={r:0,y:0,b:0,hist:[],recipes:[],interactions:0,dragLog:[],strategy:'explore',blind:true,discovered:false};
+function toggleBlindMode(){
+  col.blind=!col.blind;
+  const lab=$('lab-color');
+  if(col.blind){lab.classList.add('col-blind');$('colModeToggle').classList.remove('on');}
+  else{lab.classList.remove('col-blind');$('colModeToggle').classList.add('on');$('discBanner').classList.remove('show');}
+}
+function revealRatios(){
+  col.discovered=true;
+  if(col.blind){toggleBlindMode();}
+  $('discBanner').classList.remove('show');
+  boom('비밀 발견!','var(--teal)');
+}
 function ryb2rgb(r,y,b){
   const t=r+y+b;if(t===0)return[245,245,240];
   const rn=r/t,yn=y/t,bn=b/t;
@@ -1262,7 +1321,12 @@ function saveRecipe(){
   const idx=col.recipes.length;
   renderRecipes();updateRecipeMapVisibility();
   const m=col.recipes.filter(x=>x.ratio===ratio);
-  if(m.length>=2&&new Set(m.map(x=>`${x.r}-${x.y}-${x.b}`)).size>=2){boom('같은 색!','var(--teal)');fb('cFB','success','같은 색을 다른 양으로 만들었어요!')}
+  const sameRatioDiffAmount=m.length>=2&&new Set(m.map(x=>`${x.r}-${x.y}-${x.b}`)).size>=2;
+  if(sameRatioDiffAmount){
+    boom('같은 색!','var(--teal)');
+    if(col.blind&&!col.discovered){$('discBanner').classList.add('show');}
+    else{fb('cFB','success','같은 색을 다른 양으로 만들었어요!')}
+  }
   showReflection('color',{ratio,r,y,b});
   showRecipeReport(recipe,idx);
 }
@@ -1342,7 +1406,7 @@ function renderRecipes(){
   let h='';
   for(const k of Object.keys(G)){const g=G[k],diff=g.length>=2&&new Set(g.map(x=>`${x.r}-${x.y}-${x.b}`)).size>=2;
     if(diff){const p=k.split(':').map(Number),L=[];if(p[0])L.push(`<span style="color:var(--red)">빨${p[0]}</span>`);if(p[1])L.push(`<span style="color:#C29200">노${p[1]}</span>`);if(p[2])L.push(`<span style="color:var(--blue)">파${p[2]}</span>`);
-      h+=`<div class="recipe-match-group"><div class="match-header">&#x2728; 같은 색! 기본 비율 = ${L.join(' : ')}</div><div class="match-cards">${g.map(rCard).join('')}</div></div>`}
+      h+=`<div class="recipe-match-group"><div class="match-header">&#x2728; 같은 색!<span class="match-ratio-text"> 기본 비율 = ${L.join(' : ')}</span></div><div class="match-cards">${g.map(rCard).join('')}</div></div>`}
     else g.forEach(r=>{h+=rCard(r)})}
   box.innerHTML=h;
 }
