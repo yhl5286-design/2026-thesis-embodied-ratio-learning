@@ -799,7 +799,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
           <button class="act-btn" style="background:var(--red);color:#fff;border:none;padding:11px 26px;font-size:.95rem;font-weight:800" onclick="pfCutTube()">✂️ 이 길이로 자르기</button>
           <button class="act-btn" onclick="pfPlaySel()">&#x25B6; 미리 듣기</button>
         </div>
-        <div class="inst-tip">💡 관이 <strong>길수록</strong> 소리가 낮아요. 주황색 눈금 위치에서 자르면 음이 딱 맞아요!</div>
+        <div class="inst-tip">💡 주황색 눈금 위치에서 자르면 음이 딱 맞아요!</div>
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
         <button class="act-btn" style="background:var(--purple);color:#fff;border:none" onclick="pfPlayAll()">&#x1F3B5; 전체 연주</button>
@@ -821,7 +821,6 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
           <button class="act-btn" style="margin-top:6px;font-size:.78rem;padding:6px 16px" onclick="strPlayOne('A')">▶ 듣기</button>
         </div>
       </div>
-      <p class="str-inst-tip">🎸 안족(▲)을 좌우로 드래그해 현의 울리는 길이를 바꿔요. 현이 <strong>짧을수록</strong> 소리가 높아져요!</p>
     </div>
   </div>
 </div>
@@ -2891,7 +2890,7 @@ function shadRenderProb(){
     ${done
       ?`<div class="shad-fb ok">🎉 정답! &nbsp; ${p.reveal.replace(/\n/g,'<br>')}</div>`
       :`<div class="shad-input-row">
-          <input class="shad-num-input" type="number" id="shadAns" placeholder="답..." onkeydown="if(event.key==='Enter')shadCheck()">
+          <input class="shad-num-input" type="text" inputmode="decimal" autocomplete="off" id="shadAns" placeholder="답..." onkeydown="if(event.key==='Enter')shadCheck()">
           <span style="font-size:.88rem;font-weight:700;flex-shrink:0">${p.unit}</span>
           <button class="shad-check-btn" onclick="shadCheck()">확인 ✓</button>
         </div>
