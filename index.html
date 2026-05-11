@@ -468,6 +468,12 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .shad2-info{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:4px}
 .shad2-info-card{background:#fff;border:2px solid #E0E0E0;border-radius:10px;padding:8px 18px;text-align:center;font-size:.82rem}
 .shad2-info-val{font-size:1.2rem;font-weight:900;color:#D35400}
+.sndS1-layout{display:grid;grid-template-columns:1fr 1.5fr;gap:32px;align-items:start}
+@media (max-width: 980px){.sndS1-layout{grid-template-columns:1fr}}
+.sndS1-col{display:flex;flex-direction:column;gap:14px}
+.gl-doremi-tag{font-size:1.05rem;font-weight:900;color:var(--purple);text-align:center;line-height:1}
+.gl-cup-unit.gl-doremi-unit.tuned-unit .gl-cup-vis{border-color:var(--teal);box-shadow:0 0 0 4px rgba(0,184,148,.35)}
+.gl-cup-unit.gl-doremi-unit.tuned-unit .gl-doremi-tag::after{content:' ✓';color:var(--teal)}
 .gl-cups-row{display:flex;gap:20px;justify-content:center;align-items:flex-end;padding:24px 0;flex-wrap:wrap}
 .gl-cup-unit{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:90px}
 .gl-cup-vis{width:72px;height:180px;border:3px solid #BDC3C7;border-top:none;border-radius:0 0 16px 16px;position:relative;overflow:hidden;background:rgba(255,255,255,.6);cursor:pointer;transition:border-color .3s,box-shadow .3s}
@@ -750,15 +756,30 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     <button class="snd-stage-btn" id="sndStageBtn2" onclick="sndStage(2)">2단계: 악기 만들기</button>
   </div>
   <div id="sndS1">
-    <div class="stitle"><span class="badge" style="background:#E8F8F5;color:#1ABC9C">소리 탐험</span> 슬라이더로 물의 양을 바꾸며 소리 변화를 느껴 보세요</div>
-    <div class="gl-cups-row" id="gl1Row"></div>
-    <div style="text-align:center;margin:12px 0;display:flex;gap:10px;justify-content:center">
-      <button class="act-btn" onclick="glS1Reset()">&#x1F504; 초기화</button>
+    <div class="sndS1-layout">
+      <div class="sndS1-col">
+        <div class="stitle"><span class="badge" style="background:#E8F8F5;color:#1ABC9C">소리 탐험</span> 슬라이더로 물의 양을 바꾸며 소리 변화를 느껴 보세요</div>
+        <div class="gl-cups-row" id="gl1Row"></div>
+        <div style="text-align:center;display:flex;gap:10px;justify-content:center">
+          <button class="act-btn" onclick="glS1Reset()">&#x1F504; 초기화</button>
+        </div>
+        <div class="task-bar task-bar-teal">
+          <div style="flex:1"><div class="task-title">탐험 미션</div><div class="task-desc" id="gl1Desc">슬라이더를 움직여 보세요. 물이 많을수록 소리가 어떻게 달라지나요?</div></div>
+        </div>
+        <div id="gl1FB"></div>
+      </div>
+      <div class="sndS1-col">
+        <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">도레미 만들기</span> 세 컵의 물 양을 맞춰 도·레·미 세 음을 완성해요</div>
+        <div class="gl-cups-row" id="glDoremiRow"></div>
+        <div style="text-align:center;display:flex;gap:10px;justify-content:center">
+          <button class="act-btn" onclick="glDoremiReset()">&#x1F504; 초기화</button>
+        </div>
+        <div class="task-bar" style="background:var(--purple-light);border-color:var(--purple)">
+          <div style="flex:1"><div class="task-title" style="color:var(--purple)">만들기 미션</div><div class="task-desc" id="glDoremiDesc">컵마다 라벨에 적힌 음(도·레·미)이 되도록 슬라이더로 물 양을 조절해요. 맞으면 컵 둘레가 초록색으로 빛나요!</div></div>
+        </div>
+        <div id="glDoremiFB"></div>
+      </div>
     </div>
-    <div class="task-bar task-bar-teal">
-      <div style="flex:1"><div class="task-title">탐험 미션</div><div class="task-desc" id="gl1Desc">슬라이더를 움직여 보세요. 물이 많을수록 소리가 어떻게 달라지나요?</div></div>
-    </div>
-    <div id="gl1FB"></div>
     <div class="glass-reveal" id="glReveal" style="display:none">
       <button class="act-btn" onclick="sndStage(2);instSet('panflute')" style="background:var(--teal);color:#fff;border:none;padding:12px 24px;font-size:1rem">다음: 악기 만들기 &#x2192;</button>
     </div>
@@ -1095,11 +1116,14 @@ const gl={
   heights:[50,50,75],
   h2:[0,0,0,0,0,0,0,0],
   tuned:[false,false,false,false,false,false,false,false],
+  doremi:[50,50,50],
+  doremiTuned:[false,false,false],
   ctx:null,comp:null,
   oscs:new Array(8).fill(null),
   gains:new Array(8).fill(null),
   hist:[],s1int:0
 };
+const DOREMI_LABELS=['도','레','미'];
 const SCALE_NOTES=['도','레','미','파','솔','라','시','도↑'];
 const SCALE_FREQ=[261.63,293.66,329.63,349.23,392.00,440.00,493.88,523.25];
 const SCALE_TGTS=[80,69,59,54,42,31,20,13];
@@ -1192,6 +1216,47 @@ function glS1Reset(){
 }
 function glS1ShowReveal(){
   const rv=$('glReveal');if(!rv)return;rv.style.display='block';
+}
+// ── 도-레-미 만들기 (Stage 1 보조 활동) ──
+function glBuildDoremi(){
+  const row=$('glDoremiRow');if(!row)return;
+  row.innerHTML=DOREMI_LABELS.map((label,i)=>{
+    const slot=5+i; // gl.oscs slot 5,6,7 (8개 슬롯 중 stage 1 doremi 전용)
+    const h=gl.doremi[i];
+    return `<div class="gl-cup-unit gl-doremi-unit" id="glDR${i}">
+      <div class="gl-doremi-tag">${label}</div>
+      <div class="gl-cup-vis" id="glDRV${i}" onclick="glPlayBrief(${slot},glFreq(gl.doremi[${i}]),500)">
+        <div class="gl-water" id="glDRW${i}" style="height:${h}%"></div>
+      </div>
+      <input type="range" class="gl-slider" min="5" max="95" value="${h}" oninput="glDoremiMove(${i},+this.value)" id="glDRSl${i}">
+      <button class="gl-play-mini"
+        onmousedown="glPlayHold(${slot},glFreq(gl.doremi[${i}]))" onmouseup="glPlayStopOne(${slot})"
+        ontouchstart="glPlayHold(${slot},glFreq(gl.doremi[${i}]))" ontouchend="glPlayStopOne(${slot})">&#x25B6; 듣기</button>
+    </div>`;
+  }).join('');
+  // 초기 튜닝 상태 반영
+  for(let i=0;i<3;i++)glDoremiUpdateTuned(i);
+}
+function glDoremiMove(i,val){
+  gl.doremi[i]=val;
+  const w=$('glDRW'+i);if(w)w.style.height=val+'%';
+  glPlayBrief(5+i,glFreq(val),400);
+  glDoremiUpdateTuned(i);
+}
+function glDoremiUpdateTuned(i){
+  const f=glFreq(gl.doremi[i]);
+  const target=PENTA[i]; // 도=PENTA[0], 레=PENTA[1], 미=PENTA[2]
+  const tuned=Math.abs(f-target)<0.1;
+  const unit=$('glDR'+i);if(unit)unit.classList.toggle('tuned-unit',tuned);
+  const wasTuned=gl.doremiTuned[i];
+  gl.doremiTuned[i]=tuned;
+  if(tuned&&!wasTuned)boom(DOREMI_LABELS[i]+' 완성!','var(--teal)');
+  if(gl.doremiTuned.every(t=>t))fb('glDoremiFB','success','🎉 도-레-미 세 음을 모두 완성했어요! 세 컵의 물 양 차이를 잘 보세요.');
+}
+function glDoremiReset(){
+  for(let i=0;i<3;i++){gl.doremi[i]=50;gl.doremiTuned[i]=false;}
+  $('glDoremiFB').innerHTML='';
+  glBuildDoremi();
 }
 // ── Stage 2 ──
 const SCALE_CELLS=[8,7,6,5,4,3,2,1]; // 도→도↑: cells needed (out of 10)
@@ -3010,7 +3075,7 @@ function shadDraw(){
 }
 
 // ━━━━━━ INIT ━━━━━━
-bldWv();updColor();buildBeakerMarks();glBuildS1();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();galBuild('sim');galBuild('art');
+bldWv();updColor();buildBeakerMarks();glBuildS1();glBuildDoremi();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();galBuild('sim');galBuild('art');
 </script>
 </body>
 </html>
