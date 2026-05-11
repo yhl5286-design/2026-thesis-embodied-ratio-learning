@@ -468,12 +468,12 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .shad2-info{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:4px}
 .shad2-info-card{background:#fff;border:2px solid #E0E0E0;border-radius:10px;padding:8px 18px;text-align:center;font-size:.82rem}
 .shad2-info-val{font-size:1.2rem;font-weight:900;color:#D35400}
-.sndS1-layout{display:grid;grid-template-columns:1fr 1.5fr;gap:32px;align-items:start}
+.sndS1-layout{display:grid;grid-template-columns:1fr 1.4fr;gap:32px;align-items:start}
 @media (max-width: 980px){.sndS1-layout{grid-template-columns:1fr}}
 .sndS1-col{display:flex;flex-direction:column;gap:14px}
 .gl-doremi-tag{font-size:1.05rem;font-weight:900;color:var(--purple);text-align:center;line-height:1}
-.gl-cup-unit.gl-doremi-unit.tuned-unit .gl-cup-vis{border-color:var(--teal);box-shadow:0 0 0 4px rgba(0,184,148,.35)}
-.gl-cup-unit.gl-doremi-unit.tuned-unit .gl-doremi-tag::after{content:' ✓';color:var(--teal)}
+.gl-cup-unit.gl-doremi-unit.tuned-unit .gl-doremi-tag{color:var(--teal)}
+.gl-cup-unit.gl-doremi-unit.tuned-unit .gl-doremi-tag::after{content:' ✓'}
 .gl-cups-row{display:flex;gap:20px;justify-content:center;align-items:flex-end;padding:24px 0;flex-wrap:wrap}
 .gl-cup-unit{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:90px}
 .gl-cup-vis{width:72px;height:180px;border:3px solid #BDC3C7;border-top:none;border-radius:0 0 16px 16px;position:relative;overflow:hidden;background:rgba(255,255,255,.6);cursor:pointer;transition:border-color .3s,box-shadow .3s}
@@ -1116,7 +1116,7 @@ const gl={
   heights:[50,50,75],
   h2:[0,0,0,0,0,0,0,0],
   tuned:[false,false,false,false,false,false,false,false],
-  doremi:[50,50,50],
+  doremi:[0,0,0],
   doremiTuned:[false,false,false],
   ctx:null,comp:null,
   oscs:new Array(8).fill(null),
@@ -1217,44 +1217,63 @@ function glS1Reset(){
 function glS1ShowReveal(){
   const rv=$('glReveal');if(!rv)return;rv.style.display='block';
 }
-// ── 도-레-미 만들기 (Stage 1 보조 활동) ──
+// ── 도-레-미 만들기 (Stage 1 보조 활동) — 칸(셀) 클릭 방식 ──
+// 도=8칸, 레=7칸, 미=6칸 (SCALE_CELLS[0..2]). 매칭 시 SCALE_FREQ로 재생, 그 외 셀 수는 가장 가까운 SCALE_FREQ로.
+function glDoremiFreqFromCells(n){
+  if(n===0)return null;
+  let bestIdx=0,bestDiff=Infinity;
+  for(let i=0;i<SCALE_CELLS.length;i++){
+    const d=Math.abs(SCALE_CELLS[i]-n);
+    if(d<bestDiff){bestDiff=d;bestIdx=i;}
+  }
+  return SCALE_FREQ[bestIdx];
+}
 function glBuildDoremi(){
   const row=$('glDoremiRow');if(!row)return;
   row.innerHTML=DOREMI_LABELS.map((label,i)=>{
-    const slot=5+i; // gl.oscs slot 5,6,7 (8개 슬롯 중 stage 1 doremi 전용)
-    const h=gl.doremi[i];
+    const cells=Array.from({length:GL_MAX_CELLS},(_,j)=>{
+      const level=GL_MAX_CELLS-j;
+      return `<div class="gl-cell" id="glDRCell${i}_${j}" onclick="glDoremiSetCells(${i},${level})"></div>`;
+    }).join('');
     return `<div class="gl-cup-unit gl-doremi-unit" id="glDR${i}">
       <div class="gl-doremi-tag">${label}</div>
-      <div class="gl-cup-vis" id="glDRV${i}" onclick="glPlayBrief(${slot},glFreq(gl.doremi[${i}]),500)">
-        <div class="gl-water" id="glDRW${i}" style="height:${h}%"></div>
-      </div>
-      <input type="range" class="gl-slider" min="5" max="95" value="${h}" oninput="glDoremiMove(${i},+this.value)" id="glDRSl${i}">
-      <button class="gl-play-mini"
-        onmousedown="glPlayHold(${slot},glFreq(gl.doremi[${i}]))" onmouseup="glPlayStopOne(${slot})"
-        ontouchstart="glPlayHold(${slot},glFreq(gl.doremi[${i}]))" ontouchend="glPlayStopOne(${slot})">&#x25B6; 듣기</button>
+      <div class="gl-cell-cup" id="glDRCC${i}">${cells}</div>
+      <div class="gl-pct" id="glDRP${i}">${gl.doremi[i]}칸</div>
+      <div class="gl-tune-tag" id="glDRT${i}">눌러서 채워요</div>
     </div>`;
   }).join('');
-  // 초기 튜닝 상태 반영
-  for(let i=0;i<3;i++)glDoremiUpdateTuned(i);
+  for(let i=0;i<3;i++)glDoremiUpdateDisplay(i);
 }
-function glDoremiMove(i,val){
-  gl.doremi[i]=val;
-  const w=$('glDRW'+i);if(w)w.style.height=val+'%';
-  glPlayBrief(5+i,glFreq(val),400);
-  glDoremiUpdateTuned(i);
+function glDoremiSetCells(i,n){
+  gl.doremi[i]=n;
+  glDoremiUpdateDisplay(i);
+  const freq=glDoremiFreqFromCells(n);
+  if(freq)glPlayBrief(5+i,freq,450);
 }
-function glDoremiUpdateTuned(i){
-  const f=glFreq(gl.doremi[i]);
-  const target=PENTA[i]; // 도=PENTA[0], 레=PENTA[1], 미=PENTA[2]
-  const tuned=Math.abs(f-target)<0.1;
-  const unit=$('glDR'+i);if(unit)unit.classList.toggle('tuned-unit',tuned);
+function glDoremiUpdateDisplay(i){
+  const n=gl.doremi[i];
+  for(let j=0;j<GL_MAX_CELLS;j++){
+    const cell=$('glDRCell'+i+'_'+j);
+    if(cell)cell.classList.toggle('filled',(GL_MAX_CELLS-1-j)<n);
+  }
+  const pct=$('glDRP'+i);if(pct)pct.textContent=n+'칸';
+  const target=SCALE_CELLS[i]; // 도=8, 레=7, 미=6
+  const tuned=(n===target);
+  $('glDR'+i).classList.toggle('tuned-unit',tuned);
+  const tag=$('glDRT'+i);
+  if(tag){
+    if(tuned){tag.textContent='✓ '+DOREMI_LABELS[i]+'!';tag.className='gl-tune-tag ok';}
+    else if(n===0){tag.textContent='눌러서 채워요';tag.className='gl-tune-tag';}
+    else if(n<target){tag.textContent='↑ 칸을 더 채워요';tag.className='gl-tune-tag';}
+    else{tag.textContent='↓ 칸을 줄여요';tag.className='gl-tune-tag';}
+  }
   const wasTuned=gl.doremiTuned[i];
   gl.doremiTuned[i]=tuned;
   if(tuned&&!wasTuned)boom(DOREMI_LABELS[i]+' 완성!','var(--teal)');
-  if(gl.doremiTuned.every(t=>t))fb('glDoremiFB','success','🎉 도-레-미 세 음을 모두 완성했어요! 세 컵의 물 양 차이를 잘 보세요.');
+  if(gl.doremiTuned.every(t=>t))fb('glDoremiFB','success','🎉 도-레-미 세 음 모두 완성! 세 컵의 칸 수 차이를 잘 보세요.');
 }
 function glDoremiReset(){
-  for(let i=0;i<3;i++){gl.doremi[i]=50;gl.doremiTuned[i]=false;}
+  for(let i=0;i<3;i++){gl.doremi[i]=0;gl.doremiTuned[i]=false;}
   $('glDoremiFB').innerHTML='';
   glBuildDoremi();
 }
