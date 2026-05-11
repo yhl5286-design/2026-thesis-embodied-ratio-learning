@@ -760,10 +760,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     </div>
     <div id="gl1FB"></div>
     <div class="glass-reveal" id="glReveal" style="display:none">
-      <div class="glass-reveal-text">지금 물의 높이는 <span id="glRevealNums" style="display:inline-flex;gap:4px"></span></div>
-      <div class="glass-reveal-text" style="color:var(--teal);font-weight:800;margin-top:8px">물이 많을수록 소리가 낮아지고, 적을수록 높아져요!</div>
-      <div class="glass-reveal-text" style="margin-top:4px">이 원리로 8개 컵을 맞추면 <em>도레미파솔라시도</em>를 만들 수 있어요.</div>
-      <button class="act-btn" onclick="sndStage(2);instSet('panflute')" style="margin-top:16px;background:var(--teal);color:#fff;border:none;padding:12px 24px;font-size:1rem">다음: 악기 만들기 &#x2192;</button>
+      <button class="act-btn" onclick="sndStage(2);instSet('panflute')" style="background:var(--teal);color:#fff;border:none;padding:12px 24px;font-size:1rem">다음: 악기 만들기 &#x2192;</button>
     </div>
   </div>
   <div id="sndS2" style="display:none">
@@ -1196,7 +1193,6 @@ function glS1Reset(){
 }
 function glS1ShowReveal(){
   const rv=$('glReveal');if(!rv)return;rv.style.display='block';
-  $('glRevealNums').innerHTML=`<div class="glass-reveal-num">${glS1Ml(gl.heights[0])} mL</div>`;
 }
 // ── Stage 2 ──
 const SCALE_CELLS=[8,7,6,5,4,3,2,1]; // 도→도↑: cells needed (out of 10)
