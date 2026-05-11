@@ -503,8 +503,6 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .gl-next-btn:hover{background:var(--navy)}
 @keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 /* ── A: Cross-modal Ratio Bridge ── */
-.bridge-btn{padding:3px 9px;border-radius:100px;border:1.5px solid var(--teal);background:var(--teal-light);color:var(--teal);font-family:var(--font);font-size:.63rem;font-weight:700;cursor:pointer;transition:all .2s;display:block;margin-top:5px;width:100%;text-align:center}
-.bridge-btn:hover{background:var(--teal);color:#fff}
 .gl-bridge-info{background:linear-gradient(135deg,var(--teal-light),#E8FFF4);border:2px solid var(--teal);border-radius:var(--radius-sm);padding:10px 16px;font-size:.82rem;font-weight:700;color:var(--teal);margin-bottom:12px;display:none;animation:fadeUp .3s}
 /* ── D: Yellow lock ── */
 .yellow-unlock-msg{font-size:.7rem;color:#C29200;font-weight:700;text-align:center;padding:3px 8px;background:#FEF9E7;border-radius:6px;border:1px solid #FFE082;margin-top:4px;animation:fadeUp .4s}
@@ -1453,7 +1451,7 @@ function renderRecipes(){
   box.innerHTML=h;
 }
 function rCard(r){const d=[];if(r.r)d.push(`<span class="r">빨 ${r.r}mL</span>`);if(r.y)d.push(`<span class="y">노 ${r.y}mL</span>`);if(r.b)d.push(`<span class="b">파 ${r.b}mL</span>`);
-  return`<div class="recipe-card"><div class="recipe-color" style="background:${rs(r.rgb)}"><div class="recipe-color-label">#${r.idx}</div></div><div class="recipe-body"><div class="recipe-drops">${d.join(' + ')}</div><div class="recipe-total">합계 ${r.r+r.y+r.b}mL</div><button class="bridge-btn" onclick="bridgeColorToSound(${r.id})">&#x1F50A; 소리로 듣기</button></div><button class="recipe-delete" onclick="delRecipe(${r.id})">&#x2715;</button></div>`}
+  return`<div class="recipe-card"><div class="recipe-color" style="background:${rs(r.rgb)}"><div class="recipe-color-label">#${r.idx}</div></div><div class="recipe-body"><div class="recipe-drops">${d.join(' + ')}</div><div class="recipe-total">합계 ${r.r+r.y+r.b}mL</div></div><button class="recipe-delete" onclick="delRecipe(${r.id})">&#x2715;</button></div>`}
 
 // ━━━━━━ RECIPE MAP (내 레시피 지도) ━━━━━━
 function toggleRecipeMap(){
@@ -1560,20 +1558,6 @@ function showReflection(domain,data){
 function dismissReflection(){
   clearTimeout(reflState.timer);
   const el=$('reflBanner');if(el)el.remove();
-}
-
-// ━━━━━━ A: CROSS-MODAL RATIO BRIDGE ━━━━━━
-function bridgeColorToSound(id){
-  const r=col.recipes.find(x=>x.id===id);if(!r)return;
-  const vals=[{v:r.r},{v:r.y},{v:r.b}].sort((a,b)=>b.v-a.v);
-  const v1=vals[0].v||1, v2=vals[1].v||Math.max(1,Math.round(v1/2));
-  const mx=Math.max(v1,v2);
-  gl.heights[0]=Math.round(20+(v1/mx)*60);
-  gl.heights[1]=Math.round(20+(v2/mx)*60);
-  gl.heights[2]=Math.round((gl.heights[0]+gl.heights[1])/2);
-  for(let i=0;i<3;i++)glUpdateCup(i);
-  fb('gl1FB','hint',`&#x1F3A8;&#x2192;&#x1F50A; 색상 비율 <strong>${r.ratio}</strong>을 소리 높이로 가져왔어요! 컵을 드래그해서 차이를 느껴 보세요.`);
-  switchTab('sound');sndStage(1);
 }
 
 // ━━━━━━ 2. SOUND LAB ━━━━━━
