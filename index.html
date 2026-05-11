@@ -1822,43 +1822,62 @@ function pfReset(){
 }
 
 function pfNote(ctx,freq,t,gain=0.18){
-  // 팬플룻 음색: 부드러운 어택 + 거의 순수 사인 + 비브라토 + 입김 노이즈 (목관악기 특성)
-  const dur=1.4;
+  // 콘서트 플룻 음색: 또렷한 chiff 어택 + 거의 순수한 사인 + 5.5Hz 비브라토 + 잔잔한 입김
+  const dur=1.6;
   const g=ctx.createGain();
   g.gain.setValueAtTime(0,t);
-  g.gain.linearRampToValueAtTime(gain,t+0.08);          // soft attack 80ms (입김이 천천히 차오르는 느낌)
-  g.gain.setValueAtTime(gain,t+dur-0.3);
-  g.gain.exponentialRampToValueAtTime(0.001,t+dur);     // gentle release
+  g.gain.linearRampToValueAtTime(gain,t+0.06);            // 가벼운 어택 60ms
+  g.gain.setValueAtTime(gain,t+dur-0.4);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
   g.connect(ctx.destination);
-  // 기본음 (사인 — 플룻은 거의 순음에 가까움)
+  // 기본음 — 거의 순순한 사인 (플룻의 핵심 음색)
   const o1=ctx.createOscillator();
   o1.type='sine';o1.frequency.value=freq;
   const g1=ctx.createGain();g1.gain.value=1;
   o1.connect(g1);g1.connect(g);o1.start(t);o1.stop(t+dur);
-  // 2배음 (살짝 — 통울림 느낌)
+  // 2배음 (약간 — 음역대를 또렷하게)
   const o2=ctx.createOscillator();
   o2.type='sine';o2.frequency.value=freq*2;
-  const g2=ctx.createGain();g2.gain.value=0.10;
+  const g2=ctx.createGain();g2.gain.value=0.06;
   o2.connect(g2);g2.connect(g);o2.start(t);o2.stop(t+dur);
-  // 비브라토 (5Hz 피치 떨림 — 사람이 부는 느낌)
+  // 3배음 (아주 살짝 — 통의 울림감)
+  const o3=ctx.createOscillator();
+  o3.type='triangle';o3.frequency.value=freq*3;
+  const g3=ctx.createGain();g3.gain.value=0.025;
+  o3.connect(g3);g3.connect(g);o3.start(t);o3.stop(t+dur);
+  // 비브라토 5.5Hz — 플룻 연주자의 호흡 떨림
   const lfo=ctx.createOscillator();
-  lfo.type='sine';lfo.frequency.value=5;
-  const lfoG=ctx.createGain();lfoG.gain.value=freq*0.006;
-  lfo.connect(lfoG);lfoG.connect(o1.frequency);lfoG.connect(o2.frequency);
-  lfo.start(t+0.15);lfo.stop(t+dur);
-  // 입김 노이즈 (대역 통과 필터 — 플룻의 "후~" 느낌)
+  lfo.type='sine';lfo.frequency.value=5.5;
+  const lfoG=ctx.createGain();lfoG.gain.value=freq*0.0055;
+  lfo.connect(lfoG);lfoG.connect(o1.frequency);lfoG.connect(o2.frequency);lfoG.connect(o3.frequency);
+  lfo.start(t+0.2);lfo.stop(t+dur);
+  // Chiff (입김 어택) — 플룻 특유의 "츳" 소리. 매우 짧은 고역 노이즈 버스트
+  const chiffDur=0.12;
+  const cbSize=Math.max(1,Math.floor(ctx.sampleRate*chiffDur));
+  const cbuf=ctx.createBuffer(1,cbSize,ctx.sampleRate);
+  const cdata=cbuf.getChannelData(0);
+  for(let i=0;i<cbSize;i++)cdata[i]=(Math.random()*2-1)*(1-i/cbSize);
+  const chiff=ctx.createBufferSource();chiff.buffer=cbuf;
+  const cbp=ctx.createBiquadFilter();
+  cbp.type='bandpass';cbp.frequency.value=freq*3.5;cbp.Q.value=5;
+  const cg=ctx.createGain();
+  cg.gain.setValueAtTime(0,t);
+  cg.gain.linearRampToValueAtTime(0.11,t+0.015);
+  cg.gain.exponentialRampToValueAtTime(0.001,t+chiffDur);
+  chiff.connect(cbp);cbp.connect(cg);cg.connect(ctx.destination);
+  chiff.start(t);chiff.stop(t+chiffDur);
+  // 지속 입김 — 매우 약하게 (콘서트 플룻은 팬플룻보다 깨끗함)
   const bufSize=Math.max(1,Math.floor(ctx.sampleRate*dur));
   const buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
   const data=buf.getChannelData(0);
   for(let i=0;i<bufSize;i++)data[i]=Math.random()*2-1;
   const noise=ctx.createBufferSource();noise.buffer=buf;
   const bp=ctx.createBiquadFilter();
-  bp.type='bandpass';bp.frequency.value=freq*1.8;bp.Q.value=3;
+  bp.type='bandpass';bp.frequency.value=freq*2.2;bp.Q.value=4;
   const ng=ctx.createGain();
   ng.gain.setValueAtTime(0,t);
-  ng.gain.linearRampToValueAtTime(0.06,t+0.04);          // 어택 순간 입김 강하게
-  ng.gain.exponentialRampToValueAtTime(0.015,t+0.3);     // 지속음 동안 약하게
-  ng.gain.setValueAtTime(0.015,t+dur-0.2);
+  ng.gain.linearRampToValueAtTime(0.022,t+0.1);
+  ng.gain.setValueAtTime(0.022,t+dur-0.3);
   ng.gain.exponentialRampToValueAtTime(0.001,t+dur);
   noise.connect(bp);bp.connect(ng);ng.connect(g);
   noise.start(t);noise.stop(t+dur);
@@ -1883,18 +1902,56 @@ let strLenA=60,strLenB=40.1; // 도(60cm≈262Hz) : 솔(40.1cm≈392Hz) → 3:2 
 let strDragging=null; // 'A' or 'B' or null
 
 function stringNote(ctx,freq,t,gain=0.18){
-  const dur=1.8;
+  // 거문고 음색: 술대(대나무 채)로 명주실을 친 강한 발현 어택 + 사인·톱니 혼합 지속음
+  // + 빠른 초기 감쇠 + 긴 잔향 + 누름 줄의 미세한 비브라토
+  const dur=2.4;
+  // ── (1) 술대 어택 노이즈: 채로 줄을 친 직후의 짧은 "탁/툭" 소리 ──
+  const aDur=0.10;
+  const abSize=Math.max(1,Math.floor(ctx.sampleRate*aDur));
+  const abuf=ctx.createBuffer(1,abSize,ctx.sampleRate);
+  const adata=abuf.getChannelData(0);
+  for(let i=0;i<abSize;i++)adata[i]=(Math.random()*2-1)*(1-i/abSize); // decaying noise
+  const att=ctx.createBufferSource();att.buffer=abuf;
+  const abp=ctx.createBiquadFilter();
+  abp.type='bandpass';abp.frequency.value=freq*5;abp.Q.value=1.8;
+  const ag=ctx.createGain();
+  ag.gain.setValueAtTime(gain*0.55,t);
+  ag.gain.exponentialRampToValueAtTime(0.001,t+aDur);
+  att.connect(abp);abp.connect(ag);ag.connect(ctx.destination);
+  att.start(t);att.stop(t+aDur);
+  // ── (2) 메인 지속음: 톱니파(풍부한 배음) + 사인(저역 안정) ──
   const g=ctx.createGain();
-  g.gain.setValueAtTime(gain,t);
-  g.gain.exponentialRampToValueAtTime(0.001,t+dur);
-  g.connect(ctx.destination);
-  [1,2,3,4,5].forEach((n,idx)=>{
-    const o=ctx.createOscillator();
-    o.type='sine';o.frequency.value=freq*n;
-    const gp=ctx.createGain();
-    gp.gain.value=[1,0.6,0.35,0.18,0.08][idx]*gain;
-    o.connect(gp);gp.connect(g);o.start(t);o.stop(t+dur);
-  });
+  g.gain.setValueAtTime(gain*1.3,t);                          // 강한 발현 어택
+  g.gain.exponentialRampToValueAtTime(gain*0.45,t+0.18);      // 빠른 초기 감쇠 (현이 풀림)
+  g.gain.exponentialRampToValueAtTime(gain*0.18,t+0.8);
+  g.gain.exponentialRampToValueAtTime(0.001,t+dur);           // 긴 잔향
+  // 저역 통과 — 톱니의 거친 고음을 부드럽게 (거문고는 따뜻한 중·저역)
+  const lp=ctx.createBiquadFilter();
+  lp.type='lowpass';lp.frequency.value=freq*5;lp.Q.value=1.5;
+  g.connect(lp);lp.connect(ctx.destination);
+  // 톱니파 기본음 (발현 직후 풍부한 배음 — 거문고 특유의 어두운 광채)
+  const o1=ctx.createOscillator();
+  o1.type='sawtooth';o1.frequency.value=freq;
+  const g1=ctx.createGain();g1.gain.value=0.45;
+  o1.connect(g1);g1.connect(g);o1.start(t);o1.stop(t+dur);
+  // 사인 보강 (지속음의 안정감)
+  const o2=ctx.createOscillator();
+  o2.type='sine';o2.frequency.value=freq;
+  const g2=ctx.createGain();g2.gain.value=0.55;
+  o2.connect(g2);g2.connect(g);o2.start(t);o2.stop(t+dur);
+  // 옥타브 위 사인 (가벼운 광채)
+  const o3=ctx.createOscillator();
+  o3.type='sine';o3.frequency.value=freq*2;
+  const g3=ctx.createGain();g3.gain.value=0.18;
+  o3.connect(g3);g3.connect(g);o3.start(t);o3.stop(t+dur);
+  // 비브라토 4Hz — 왼손이 줄을 누른 채 살짝 흔드는 "농현(弄絃)"
+  const lfo=ctx.createOscillator();
+  lfo.type='sine';lfo.frequency.value=4;
+  const lfoG=ctx.createGain();
+  lfoG.gain.setValueAtTime(freq*0.014,t);
+  lfoG.gain.exponentialRampToValueAtTime(freq*0.003,t+0.7); // 어택 직후 흔들림이 강하고 점차 잦아듦
+  lfo.connect(lfoG);lfoG.connect(o1.frequency);lfoG.connect(o2.frequency);lfoG.connect(o3.frequency);
+  lfo.start(t+0.05);lfo.stop(t+dur);
 }
 
 function strDrawCanvas(){
