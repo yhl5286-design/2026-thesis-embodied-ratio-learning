@@ -799,13 +799,13 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     </div>
     <!-- 팬플룻 -->
     <div id="inst-panflute">
-      <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">팬플룻</span> 대나무 관을 잘라 도레미파솔라시를 만들어요</div>
+      <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">팬플룻</span> 갈대 관을 잘라 도레미파솔라시를 만들어요</div>
       <!-- 완성된 팬플룻 악기 디스플레이 -->
       <div style="max-width:480px;margin:0 auto">
         <div class="pf-instruments" id="pfInst"></div>
         <div class="pf-base" id="pfBase"></div>
       </div>
-      <!-- 대나무 작업실 -->
+      <!-- 갈대 작업실 -->
       <div class="pf-workshop">
         <div class="pf-workshop-hdr">
           <span class="pf-sel-note" id="pfSelNote">✂️ 도 관 만들기</span>
@@ -1804,7 +1804,7 @@ function pfBuildCutter(){
     tick.innerHTML=`<div class="pf-ntick-line" style="height:12px"></div><div class="pf-ntick-lbl">${PF_NOTES[i]}</div>`;
     rulerRow.appendChild(tick);
   });
-  // 대나무 마디
+  // 갈대 마디
   const fill=$('pfBambooFill');if(fill){
     fill.innerHTML='';
     [20,35,50,65].forEach(pct=>{
