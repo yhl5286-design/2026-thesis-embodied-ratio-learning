@@ -403,6 +403,14 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .shp-gal-zoom-val{font-size:.78rem;font-weight:800;color:var(--text-sub);min-width:40px;text-align:right;flex-shrink:0}
 .shp-gal-tip{padding:10px 14px;background:linear-gradient(135deg,#FFF8E1,#FFEFC4);border-left:4px solid #E8B53C;border-radius:8px;font-size:.84rem;line-height:1.55;color:#7B5800}
 .shp-gal-tip::before{content:'🔍 ';margin-right:4px}
+.vit-controls{display:none;align-items:center;justify-content:center;gap:14px;padding:10px 14px;background:#FFF7E6;border:2px solid #F2C66D;border-radius:10px;flex-wrap:wrap}
+.vit-controls.show{display:flex}
+.vit-controls .vit-btn{padding:8px 16px;border-radius:100px;border:2px solid #E0E0E0;background:#fff;font-family:var(--font);font-weight:700;font-size:.82rem;cursor:pointer;transition:all .15s}
+.vit-controls .vit-btn:hover{border-color:var(--orange)}
+.vit-controls .vit-btn-primary{background:#E67E22;color:#fff;border-color:#E67E22}
+.vit-controls .vit-btn-primary:hover{background:#D35400;border-color:#D35400}
+.vit-count{font-size:.95rem;font-weight:800;color:#7B4E00}
+.vit-count .vit-num{color:#E67E22;font-size:1.15rem}
 .shp-gal-info{background:#fff;border:2px solid #E8E8E8;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px}
 .shp-gal-title{font-size:1.2rem;font-weight:900;color:var(--navy)}
 .shp-gal-desc{font-size:.88rem;line-height:1.7;color:var(--text-sub)}
@@ -938,6 +946,11 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
         <span class="shp-gal-zoom-icon">🔎</span>
         <input type="range" class="shp-gal-zoom-slider" id="artZoom" min="100" max="300" step="10" value="100" oninput="zoomGal('art',this.value)">
         <span class="shp-gal-zoom-val" id="artZoomVal">1.0×</span>
+      </div>
+      <div class="vit-controls" id="vitControls">
+        <button class="vit-btn" onclick="vitStackChange(-1)">↺ 처음으로</button>
+        <div class="vit-count">얼굴 <span class="vit-num" id="vitCount">0</span> / 8</div>
+        <button class="vit-btn vit-btn-primary" onclick="vitStackChange(1)">＋ 얼굴 1개 쌓기</button>
       </div>
       <div class="shp-gal-tip" id="artTip"></div>
     </div>
@@ -2481,6 +2494,13 @@ function galLoad(key,i){
   const rv=$(key+'Reveal');rv.style.display='none';rv.innerHTML='';
   // reset zoom on item change
   const zs=$(key+'Zoom');if(zs){zs.value=100;zoomGal(key,100);}
+  // Vitruvian 얼굴 적층 컨트롤 표시: 명화 탭의 vitruvian 항목일 때만
+  const vc=$('vitControls');
+  if(vc){
+    const showVit=(key==='art' && ex.draw==='vitruvian');
+    vc.classList.toggle('show',showVit);
+    if(showVit){vitStack=0;const c=$('vitCount');if(c)c.textContent='0';}
+  }
   setTimeout(()=>galDraw(key,ex.draw),60);
 }
 function zoomGal(key,val){
@@ -2691,42 +2711,158 @@ function shpLoadImage(url,ctx,W,H,afterDraw){
 }
 
 function shpDrawParthenon(ctx,W,H){
-  shpLoadImage(
-    'images/parthenon.jpg',
-    ctx,W,H,
-    (ctx,W,H,dx,dy,dw,dh)=>{
-      const phi=1.618,rh=Math.round(dw/phi),ry=dy+Math.round((dh-rh)/2);
-      ctx.strokeStyle='rgba(231,76,60,.9)';ctx.lineWidth=3;ctx.setLineDash([8,4]);
-      ctx.strokeRect(dx,ry,dw,rh);ctx.setLineDash([]);
-      ctx.fillStyle='rgba(231,76,60,.12)';ctx.fillRect(dx,ry,dw,rh);
-      ctx.fillStyle='rgba(231,76,60,.95)';ctx.font='bold 28px serif';ctx.textAlign='right';
-      ctx.fillText('φ',dx+dw-10,ry+34);
-      ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(W/2-195,H-30,390,24);
-      ctx.fillStyle='#FFF';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
-      ctx.fillText('파르테논 신전 — 가로:세로 = 황금비 (φ≈1.618)',W/2,H-13);
+  // 정면 도식: 가로:세로 황금비를 한눈에 볼 수 있도록 캔버스에 직접 그리기
+  // (옆에서 찍은 사진은 원근으로 가로:세로 비율이 왜곡되어 보이기 때문)
+  const sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#6FA8DC');sky.addColorStop(0.7,'#B6CFE5');sky.addColorStop(1,'#E8E4D5');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+  // 지면
+  ctx.fillStyle='#B8A586';ctx.fillRect(0,H*0.86,W,H*0.14);
+  ctx.fillStyle='#9C8868';ctx.fillRect(0,H*0.86,W,3);
+  // 황금비 사각형의 위치·크기
+  const phi=1.618,PAD=40;
+  const facadeW=W-PAD*2;
+  const facadeH=facadeW/phi;
+  const fx=PAD,fy=H*0.86-facadeH-6;
+  // 신전 구성 비율
+  const pedimentH=facadeH*0.22;        // 박공(삼각형) 22%
+  const entablH=facadeH*0.14;          // 엔타블러처(기둥 위 띠) 14%
+  const colH=facadeH-pedimentH-entablH-facadeH*0.05; // 기둥 높이
+  const stylobateH=facadeH*0.05;       // 기단
+  // 기단(stylobate)
+  ctx.fillStyle='#EFE5D2';ctx.fillRect(fx-6,fy+facadeH-stylobateH,facadeW+12,stylobateH+4);
+  ctx.strokeStyle='#A6906A';ctx.lineWidth=1;ctx.strokeRect(fx-6,fy+facadeH-stylobateH,facadeW+12,stylobateH+4);
+  // 기둥 8개 (도리아식)
+  const colN=8;
+  const slotW=facadeW/(colN+0.5);
+  const colW=slotW*0.72;
+  for(let i=0;i<colN;i++){
+    const cx=fx+slotW*(i+0.55)-colW/2;
+    const cy=fy+pedimentH+entablH;
+    const cH=colH;
+    // 기둥 몸체 (살짝 통(entasis) 효과는 생략, 직선 단순화)
+    const colGrad=ctx.createLinearGradient(cx,0,cx+colW,0);
+    colGrad.addColorStop(0,'#D9CDB0');colGrad.addColorStop(0.5,'#F2E8D0');colGrad.addColorStop(1,'#D9CDB0');
+    ctx.fillStyle=colGrad;ctx.fillRect(cx,cy,colW,cH);
+    // 세로 홈(fluting)
+    ctx.strokeStyle='rgba(140,120,80,.45)';ctx.lineWidth=0.8;
+    for(let k=1;k<5;k++){
+      const lx=cx+colW*k/5;
+      ctx.beginPath();ctx.moveTo(lx,cy);ctx.lineTo(lx,cy+cH);ctx.stroke();
     }
-  );
+    // 주두(capital) + 주초(base)
+    ctx.fillStyle='#E8DBC0';
+    ctx.fillRect(cx-3,cy-5,colW+6,5);     // 주두
+    ctx.fillRect(cx-3,cy+cH,colW+6,3);    // 주초
+  }
+  // 엔타블러처 (architrave + frieze + cornice)
+  const eY=fy+pedimentH;
+  ctx.fillStyle='#F5EAD0';ctx.fillRect(fx,eY,facadeW,entablH);
+  ctx.strokeStyle='#A6906A';ctx.lineWidth=1;ctx.strokeRect(fx,eY,facadeW,entablH);
+  // 트라이글리프(triglyph) — 기둥 위 세 줄 홈
+  const trigW=facadeW/(colN*2);
+  ctx.fillStyle='#D8C9AF';
+  for(let i=0;i<colN*2;i++){
+    if(i%2===0){
+      const tx=fx+trigW*i+trigW*0.65;
+      ctx.fillRect(tx,eY+entablH*0.25,trigW*0.4,entablH*0.55);
+    }
+  }
+  // 박공(pediment) — 삼각형
+  const pedimentGrad=ctx.createLinearGradient(0,fy,0,eY);
+  pedimentGrad.addColorStop(0,'#EFE5CC');pedimentGrad.addColorStop(1,'#E5D8B8');
+  ctx.fillStyle=pedimentGrad;
+  ctx.beginPath();
+  ctx.moveTo(fx,eY);ctx.lineTo(fx+facadeW/2,fy);ctx.lineTo(fx+facadeW,eY);
+  ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#A6906A';ctx.lineWidth=1.5;ctx.stroke();
+  // 황금비 사각형 외곽선 (가로:세로 = φ:1)
+  ctx.strokeStyle='rgba(231,76,60,.95)';ctx.lineWidth=3;ctx.setLineDash([8,4]);
+  ctx.strokeRect(fx,fy,facadeW,facadeH);ctx.setLineDash([]);
+  ctx.fillStyle='rgba(231,76,60,.95)';ctx.font='bold 32px serif';ctx.textAlign='right';
+  ctx.fillText('φ',fx+facadeW-8,fy+36);
+  // 가로 라벨
+  ctx.fillStyle='rgba(231,76,60,.95)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(fx,fy+facadeH+14);ctx.lineTo(fx+facadeW,fy+facadeH+14);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(fx,fy+facadeH+10);ctx.lineTo(fx,fy+facadeH+18);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(fx+facadeW,fy+facadeH+10);ctx.lineTo(fx+facadeW,fy+facadeH+18);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.92)';ctx.fillRect(fx+facadeW/2-65,fy+facadeH+20,130,18);
+  ctx.fillStyle='#C0392B';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('가로 = 1.618',fx+facadeW/2,fy+facadeH+33);
+  // 세로 라벨
+  ctx.strokeStyle='rgba(41,128,185,.95)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(fx-14,fy);ctx.lineTo(fx-14,fy+facadeH);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(fx-18,fy);ctx.lineTo(fx-10,fy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(fx-18,fy+facadeH);ctx.lineTo(fx-10,fy+facadeH);ctx.stroke();
+  ctx.save();ctx.translate(fx-22,fy+facadeH/2);ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='rgba(255,255,255,.92)';ctx.fillRect(-40,-9,80,18);
+  ctx.fillStyle='#2980B9';ctx.font='bold 12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('세로 = 1',0,4);ctx.restore();
+  // 하단 캡션
+  ctx.fillStyle='rgba(0,0,0,.78)';ctx.fillRect(W/2-220,H-30,440,24);
+  ctx.fillStyle='#FFF';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
+  ctx.fillText('파르테논 신전 정면 — 가로 : 세로 = 1.618 : 1 (황금비 φ)',W/2,H-13);
 }
 
+let vitStack=0;
+function vitStackChange(delta){
+  if(delta<0)vitStack=0;
+  else if(vitStack<8)vitStack++;
+  const c=$('vitCount');if(c)c.textContent=vitStack;
+  if(vitStack===8)boom('완성! 키 = 얼굴 × 8','var(--orange)');
+  galDraw('art','vitruvian');
+}
 function shpDrawVitruvian(ctx,W,H){
   shpLoadImage(
     'images/vitruvian.jpg',
     ctx,W,H,
     (ctx,W,H,dx,dy,dw,dh)=>{
       const phi=1.618,cx=dx+dw/2,cy=dy+dh/2;
-      ctx.strokeStyle='rgba(192,57,43,.75)';ctx.lineWidth=2.5;ctx.setLineDash([6,3]);
+      // 원·사각형 가이드
+      ctx.strokeStyle='rgba(192,57,43,.55)';ctx.lineWidth=2;ctx.setLineDash([6,3]);
       ctx.beginPath();ctx.arc(cx,cy,dh*0.46,0,Math.PI*2);ctx.stroke();
       const sq=dh*0.84;
-      ctx.strokeStyle='rgba(41,128,185,.75)';
+      ctx.strokeStyle='rgba(41,128,185,.55)';
       ctx.strokeRect(cx-sq/2,dy+dh*0.07,sq,sq);ctx.setLineDash([]);
+      // 배꼽 = 황금비 위치
       const navelY=dy+dh-dh/phi;
       ctx.beginPath();ctx.moveTo(dx+10,navelY);ctx.lineTo(dx+dw-10,navelY);
-      ctx.strokeStyle='rgba(243,156,18,.9)';ctx.lineWidth=2;ctx.stroke();
+      ctx.strokeStyle='rgba(243,156,18,.85)';ctx.lineWidth=2;ctx.stroke();
       ctx.fillStyle='rgba(243,156,18,.95)';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
       ctx.fillText('배꼽=황금비',dx+14,navelY-5);
+      // 얼굴 적층 시각화 — 학습자가 "+1 얼굴 쌓기" 버튼을 누를 때마다 적층
+      // 이미지 좌표 기준: 머리 꼭대기≈0.05, 한 얼굴 높이≈0.115 (8개 쌓으면 발 끝 ~0.97)
+      if(vitStack>0){
+        const yTop=dy+dh*0.05;
+        const fH=dh*0.115;
+        const bX=dx+dw*0.66;        // 인물 오른쪽 옆에 적층
+        const bW=dw*0.16;
+        for(let i=0;i<vitStack;i++){
+          const y=yTop+fH*i;
+          ctx.fillStyle=i%2===0?'rgba(243,156,18,.62)':'rgba(231,76,60,.62)';
+          ctx.fillRect(bX,y,bW,fH);
+          ctx.strokeStyle='#FFF';ctx.lineWidth=2;
+          ctx.strokeRect(bX,y,bW,fH);
+          ctx.fillStyle='#FFF';ctx.font='bold 15px sans-serif';ctx.textAlign='center';
+          ctx.fillText(String(i+1),bX+bW/2,y+fH/2+5);
+        }
+        // 머리 꼭대기 ↔ 현재 적층 끝 가로 선
+        const yEnd=yTop+fH*vitStack;
+        ctx.strokeStyle='rgba(255,215,0,.95)';ctx.lineWidth=2;ctx.setLineDash([6,3]);
+        ctx.beginPath();ctx.moveTo(dx,yTop);ctx.lineTo(dx+dw,yTop);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(dx,yEnd);ctx.lineTo(dx+dw,yEnd);ctx.stroke();
+        ctx.setLineDash([]);
+        // 완성 시 상단 배너
+        if(vitStack===8){
+          ctx.fillStyle='rgba(46,204,113,.92)';ctx.fillRect(dx+8,dy+dh*0.965-26,dw-16,24);
+          ctx.fillStyle='#FFF';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
+          ctx.fillText('✓ 키 = 얼굴 × 8  (키 : 얼굴 = 8 : 1)',dx+dw/2,dy+dh*0.965-9);
+        }
+      }
+      // 하단 캡션
       ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(W/2-200,H-30,400,24);
       ctx.fillStyle='#FFF';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
-      ctx.fillText('다빈치 비트루비우스 인체 (1490) — 키:머리 = 8:1',W/2,H-13);
+      ctx.fillText(vitStack>0&&vitStack<8 ? `얼굴 ${vitStack}개 쌓음 — 키까지 ${8-vitStack}개 더!` : '다빈치 비트루비우스 인체 (1490) — 키 : 얼굴 = 8 : 1',W/2,H-13);
     }
   );
 }
