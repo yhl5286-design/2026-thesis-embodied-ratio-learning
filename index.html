@@ -403,14 +403,18 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .shp-gal-zoom-val{font-size:.78rem;font-weight:800;color:var(--text-sub);min-width:40px;text-align:right;flex-shrink:0}
 .shp-gal-tip{padding:10px 14px;background:linear-gradient(135deg,#FFF8E1,#FFEFC4);border-left:4px solid #E8B53C;border-radius:8px;font-size:.84rem;line-height:1.55;color:#7B5800}
 .shp-gal-tip::before{content:'🔍 ';margin-right:4px}
-.vit-controls{display:none;align-items:center;justify-content:center;gap:14px;padding:10px 14px;background:#FFF7E6;border:2px solid #F2C66D;border-radius:10px;flex-wrap:wrap}
+.vit-controls{display:none;flex-direction:column;gap:8px;padding:10px 14px;background:#FFF7E6;border:2px solid #F2C66D;border-radius:10px}
 .vit-controls.show{display:flex}
-.vit-controls .vit-btn{padding:8px 16px;border-radius:100px;border:2px solid #E0E0E0;background:#fff;font-family:var(--font);font-weight:700;font-size:.82rem;cursor:pointer;transition:all .15s}
+.vit-row{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.vit-row + .vit-row{border-top:1px dashed #E0C080;padding-top:8px}
+.vit-controls .vit-btn{padding:7px 14px;border-radius:100px;border:2px solid #E0E0E0;background:#fff;font-family:var(--font);font-weight:700;font-size:.8rem;cursor:pointer;transition:all .15s}
 .vit-controls .vit-btn:hover{border-color:var(--orange)}
 .vit-controls .vit-btn-primary{background:#E67E22;color:#fff;border-color:#E67E22}
 .vit-controls .vit-btn-primary:hover{background:#D35400;border-color:#D35400}
-.vit-count{font-size:.95rem;font-weight:800;color:#7B4E00}
-.vit-count .vit-num{color:#E67E22;font-size:1.15rem}
+.vit-controls .vit-cmp-btn.active{background:#F1C40F;color:#7B4E00;border-color:#F1C40F}
+.vit-count{font-size:.92rem;font-weight:800;color:#7B4E00}
+.vit-count .vit-num{color:#E67E22;font-size:1.1rem}
+.vit-label{font-size:.8rem;font-weight:800;color:#7B4E00}
 .shp-gal-info{background:#fff;border:2px solid #E8E8E8;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px}
 .shp-gal-title{font-size:1.2rem;font-weight:900;color:var(--navy)}
 .shp-gal-desc{font-size:.88rem;line-height:1.7;color:var(--text-sub)}
@@ -948,9 +952,16 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
         <span class="shp-gal-zoom-val" id="artZoomVal">1.0×</span>
       </div>
       <div class="vit-controls" id="vitControls">
-        <button class="vit-btn" onclick="vitStackChange(-1)">↺ 처음으로</button>
-        <div class="vit-count">얼굴 <span class="vit-num" id="vitCount">0</span> / 8</div>
-        <button class="vit-btn vit-btn-primary" onclick="vitStackChange(1)">＋ 얼굴 1개 쌓기</button>
+        <div class="vit-row">
+          <button class="vit-btn" onclick="vitStackChange(-1)">↺ 처음으로</button>
+          <div class="vit-count">키 적층: 얼굴 <span class="vit-num" id="vitCount">0</span> / 8</div>
+          <button class="vit-btn vit-btn-primary" onclick="vitStackChange(1)">＋ 얼굴 1개 쌓기</button>
+        </div>
+        <div class="vit-row">
+          <span class="vit-label">📏 얼굴 = 1. 같은 길이 찾기:</span>
+          <button class="vit-btn vit-cmp-btn" data-part="hand" onclick="vitCompareToggle('hand')">✋ 손</button>
+          <button class="vit-btn vit-cmp-btn" data-part="foot" onclick="vitCompareToggle('foot')">👣 발</button>
+        </div>
       </div>
       <div class="shp-gal-tip" id="artTip"></div>
     </div>
@@ -2494,12 +2505,16 @@ function galLoad(key,i){
   const rv=$(key+'Reveal');rv.style.display='none';rv.innerHTML='';
   // reset zoom on item change
   const zs=$(key+'Zoom');if(zs){zs.value=100;zoomGal(key,100);}
-  // Vitruvian 얼굴 적층 컨트롤 표시: 명화 탭의 vitruvian 항목일 때만
+  // Vitruvian 얼굴 적층/비교 컨트롤 표시: 명화 탭의 vitruvian 항목일 때만
   const vc=$('vitControls');
   if(vc){
     const showVit=(key==='art' && ex.draw==='vitruvian');
     vc.classList.toggle('show',showVit);
-    if(showVit){vitStack=0;const c=$('vitCount');if(c)c.textContent='0';}
+    if(showVit){
+      vitStack=0;const c=$('vitCount');if(c)c.textContent='0';
+      vitCompare=null;
+      document.querySelectorAll('.vit-cmp-btn').forEach(b=>b.classList.remove('active'));
+    }
   }
   setTimeout(()=>galDraw(key,ex.draw),60);
 }
@@ -2805,11 +2820,18 @@ function shpDrawParthenon(ctx,W,H){
 }
 
 let vitStack=0;
+let vitCompare=null; // null | 'hand' | 'foot'
 function vitStackChange(delta){
   if(delta<0)vitStack=0;
   else if(vitStack<8)vitStack++;
   const c=$('vitCount');if(c)c.textContent=vitStack;
   if(vitStack===8)boom('완성! 키 = 얼굴 × 8','var(--orange)');
+  galDraw('art','vitruvian');
+}
+function vitCompareToggle(part){
+  vitCompare=(vitCompare===part)?null:part;
+  document.querySelectorAll('.vit-cmp-btn').forEach(b=>b.classList.toggle('active',b.dataset.part===vitCompare));
+  if(vitCompare)boom('얼굴 길이와 비교!','#F1C40F');
   galDraw('art','vitruvian');
 }
 function shpDrawVitruvian(ctx,W,H){
@@ -2859,10 +2881,59 @@ function shpDrawVitruvian(ctx,W,H){
           ctx.fillText('✓ 키 = 얼굴 × 8  (키 : 얼굴 = 8 : 1)',dx+dw/2,dy+dh*0.965-9);
         }
       }
+      // 같은 길이 비교 모드 (얼굴 = 1)
+      if(vitCompare){
+        const fH=dh*0.115; // 얼굴 1 단위 길이
+        // 머리 옆 기준 자: 노랑 수직 선분 = 1 얼굴
+        const refX=dx+dw*0.85, refY1=dy+dh*0.05, refY2=refY1+fH;
+        ctx.strokeStyle='#F1C40F';ctx.lineWidth=3.5;
+        ctx.beginPath();
+        ctx.moveTo(refX,refY1);ctx.lineTo(refX,refY2);
+        ctx.moveTo(refX-7,refY1);ctx.lineTo(refX+7,refY1);
+        ctx.moveTo(refX-7,refY2);ctx.lineTo(refX+7,refY2);
+        ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,.95)';ctx.fillRect(refX-32,(refY1+refY2)/2-9,64,18);
+        ctx.fillStyle='#8E5A00';ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+        ctx.fillText('얼굴 = 1',refX,(refY1+refY2)/2+4);
+        // 부위 비교 선분: 같은 길이(=fH)를 해당 부위에 가로로 표시
+        const parts={
+          hand:{x:dx+dw*0.78, y:dy+dh*0.50, color:'#E74C3C', shadow:'rgba(231,76,60,.18)', label:'손 ≈ 1 얼굴'},
+          foot:{x:dx+dw*0.43, y:dy+dh*0.96, color:'#3498DB', shadow:'rgba(52,152,219,.18)', label:'발 ≈ 1 얼굴'}
+        };
+        const p=parts[vitCompare];
+        if(p){
+          const x1=p.x, x2=p.x+fH, y=p.y;
+          // 음영 박스 (같은 면적 비교 보조)
+          ctx.fillStyle=p.shadow;ctx.fillRect(x1,y-6,fH,12);
+          // 측정 선분 (가로 = fH)
+          ctx.strokeStyle=p.color;ctx.lineWidth=3.5;
+          ctx.beginPath();
+          ctx.moveTo(x1,y);ctx.lineTo(x2,y);
+          ctx.moveTo(x1,y-7);ctx.lineTo(x1,y+7);
+          ctx.moveTo(x2,y-7);ctx.lineTo(x2,y+7);
+          ctx.stroke();
+          // 라벨
+          const lY=(p.label==='발 ≈ 1 얼굴')?y-22:y+22;
+          ctx.fillStyle='rgba(255,255,255,.95)';
+          ctx.fillRect((x1+x2)/2-50,lY-9,100,18);
+          ctx.fillStyle=p.color;ctx.font='bold 11px sans-serif';ctx.textAlign='center';
+          ctx.fillText(p.label,(x1+x2)/2,lY+4);
+          // 머리 기준에서 부위까지 점선 연결 (두 길이가 같음을 강조)
+          ctx.strokeStyle='rgba(241,196,15,.5)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+          ctx.beginPath();
+          ctx.moveTo(refX,refY1);ctx.lineTo(x1,y);
+          ctx.moveTo(refX,refY2);ctx.lineTo(x2,y);
+          ctx.stroke();ctx.setLineDash([]);
+        }
+      }
       // 하단 캡션
       ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(W/2-200,H-30,400,24);
       ctx.fillStyle='#FFF';ctx.font='bold 13px sans-serif';ctx.textAlign='center';
-      ctx.fillText(vitStack>0&&vitStack<8 ? `얼굴 ${vitStack}개 쌓음 — 키까지 ${8-vitStack}개 더!` : '다빈치 비트루비우스 인체 (1490) — 키 : 얼굴 = 8 : 1',W/2,H-13);
+      let cap='다빈치 비트루비우스 인체 (1490) — 키 : 얼굴 = 8 : 1';
+      if(vitStack>0&&vitStack<8)cap=`얼굴 ${vitStack}개 쌓음 — 키까지 ${8-vitStack}개 더!`;
+      else if(vitCompare==='hand')cap='✋ 손 = 1 얼굴 — 다빈치가 발견한 인체 비율!';
+      else if(vitCompare==='foot')cap='👣 발 ≈ 1 얼굴 — 인체 곳곳에 같은 길이가 숨어있어요';
+      ctx.fillText(cap,W/2,H-13);
     }
   );
 }
