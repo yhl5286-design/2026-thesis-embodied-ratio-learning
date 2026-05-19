@@ -2208,17 +2208,28 @@ function revealHarmRatios(){
   $('harmDiscBanner').classList.remove('show');
   boom('비밀 발견!','var(--purple)');
 }
+// Consonance rating by musical interval category (Pythagorean ratios have complex sums
+// but thirds/sixths are still perceptually consonant — sum-based rating misclassifies them)
+const CONSONANCE={
+  '1:1':   {stars:5,level:'완벽한 어울림'},
+  '2:1':   {stars:5,level:'완벽한 어울림'},
+  '3:2':   {stars:5,level:'아주 잘 어울림'},
+  '4:3':   {stars:4,level:'잘 어울림'},
+  '81:64': {stars:4,level:'잘 어울림'},
+  '27:16': {stars:4,level:'잘 어울림'},
+  '9:8':   {stars:2,level:'약한 어울림'},
+  '243:128':{stars:1,level:'잘 안 어울림'},
+};
+function consonanceOf(rp,rq){
+  const c=CONSONANCE[`${rp}:${rq}`];
+  if(c)return c;
+  return {stars:3,level:'보통'};
+}
 function updatePianoInfo(){
   const info=$('pianoInfo'),k=PKEYS[pianoSel],freq=pianoFreq(pianoSel);
   const rk=`${k.ratio[0]}:${k.ratio[1]}`,intv=INTERVALS[rk]||'';
-  // Consonance analysis
-  const sum=k.ratio[0]+k.ratio[1],prod=k.ratio[0]*k.ratio[1];
-  let stars,level;
-  if(sum<=3){stars=5;level='완벽한 어울림'}
-  else if(sum<=5){stars=5;level='아주 잘 어울림'}
-  else if(sum<=7){stars=4;level='잘 어울림'}
-  else if(sum<=20){stars=3;level='보통'}
-  else{stars=1;level='잘 안 어울림'}
+  // Consonance analysis (interval-name based)
+  const {stars,level}=consonanceOf(k.ratio[0],k.ratio[1]);
   const starStr='\u2605'.repeat(stars)+'\u2606'.repeat(5-stars);
   info.innerHTML=`<div class="hi-title">도 vs ${k.name}(${k.en})</div>
     <div class="hi-ratio-big">${k.ratio[0]} : ${k.ratio[1]}</div>
@@ -2287,7 +2298,7 @@ function drawWaveAnim(){
       for(let x=0;x<W;x+=2){
         const t1=(x/W)*cycles*2*Math.PI-flowPhase*f1;
         const t2=(x/W)*cycles*2*Math.PI*f2-flowPhase*f2;
-        if(Math.abs(Math.sin(t1))<.12&&Math.abs(Math.sin(t2))<.12){
+        if(Math.abs(Math.sin(t1))<.22&&Math.abs(Math.sin(t2))<.22){
           if(!meets.length||x-meets[meets.length-1]>15)meets.push(x)}
       }
       ctx.fillStyle='rgba(0,184,148,.3)';ctx.strokeStyle='#00B894';ctx.lineWidth=1.5;
@@ -2311,14 +2322,17 @@ function drawWaveAnim(){
   }
   waveAnimId=requestAnimationFrame(animate);
 
-  // Update explanation
-  let desc,starsTxt;
-  const sum=rp+rq;
-  if(sum<=3){starsTxt='\u2B50\u2B50\u2B50\u2B50\u2B50';desc=`같은 음이거나 옥타브! 파형이 완전히 겹쳐요.`}
-  else if(sum<=5){starsTxt='\u2B50\u2B50\u2B50\u2B50\u2B50';desc=`도가 ${rq}번 진동할 때 ${k.name}은 ${rp}번 진동해요. 자주 만나서 아주 잘 어울려요!`}
-  else if(sum<=7){starsTxt='\u2B50\u2B50\u2B50\u2B50\u2606';desc=`도가 ${rq}번 진동할 때 ${k.name}은 ${rp}번 진동해요. 규칙적으로 만나서 잘 어울려요!`}
-  else if(sum<=20){starsTxt='\u2B50\u2B50\u2B50\u2606\u2606';desc=`도가 ${rq}번 진동해야 ${k.name}이 ${rp}번 진동해요. 만남 간격이 넓어 어울림이 약해요.`}
-  else{starsTxt='\u2B50\u2606\u2606\u2606\u2606';desc=`도가 ${rq}번이나 진동해야 ${k.name}이 ${rp}번 진동해요. 거의 안 만나서 규칙이 잘 안 보여요.`}
+  // Update explanation (interval-name based, matches updatePianoInfo)
+  const cons=consonanceOf(rp,rq);
+  const starsTxt='⭐'.repeat(cons.stars)+'☆'.repeat(5-cons.stars);
+  let desc;
+  if(rp===1&&rq===1)desc='같은 음이에요! 파형이 완전히 겹쳐요.';
+  else if(rp===2&&rq===1)desc=`옥타브! ${k.name}이 도보다 정확히 2배 빨라요. 파형이 매우 규칙적으로 만나요.`;
+  else if(rp===3&&rq===2)desc=`도가 ${rq}번 진동할 때 ${k.name}은 ${rp}번 진동해요. 자주 만나서 아주 잘 어울려요!`;
+  else if(rp===4&&rq===3)desc=`도가 ${rq}번 진동할 때 ${k.name}은 ${rp}번 진동해요. 규칙적으로 만나서 잘 어울려요!`;
+  else if((rp===81&&rq===64)||(rp===27&&rq===16))desc=`피타고라스 ${INTERVALS[rp+':'+rq]}예요. 비는 복잡해 보이지만 음악적으로 잘 어울리는 음정이에요.`;
+  else if(rp===9&&rq===8)desc=`도가 ${rq}번 진동해야 ${k.name}이 ${rp}번 진동해요. 만남 간격이 넓어 어울림이 약해요.`;
+  else desc=`도가 ${rq}번이나 진동해야 ${k.name}이 ${rp}번 진동해요. 거의 안 만나서 규칙이 잘 안 보여요.`;
   explEl.innerHTML=`<div style="font-size:1rem;margin-bottom:6px">${starsTxt} <strong>어울림 분석</strong></div>
     <div>${desc}</div>
     <div style="margin-top:8px;font-size:.78rem;color:var(--text-sub)">
