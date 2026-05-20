@@ -1061,11 +1061,12 @@ const Logger = (function () {
     });
   }
 
-  let retryDelay = 1000;
+  let retryDelay = 1000, retryTimer = null;
   function flush(useBeacon) {
     safe(() => {
       if (!queue.length || !LOG_CFG.endpoint) return;
       if (sending && !useBeacon) return;
+      if (retryTimer && !useBeacon) return; // 재시도 대기 중엔 중복 전송 방지(backoff 보장)
       const batch = queue.slice(0);
       const body = JSON.stringify({ token: LOG_CFG.token, records: batch });
       lastSend = Date.now();
@@ -1077,11 +1078,13 @@ const Logger = (function () {
       sending = true;
       fetch(LOG_CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body })
         .then(r => r.json())
-        .then(() => { queue.splice(0, batch.length); backup(); sending = false; retryDelay = 1000; })
+        .then(() => { queue.splice(0, batch.length); backup(); sending = false; retryDelay = 1000;
+          if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; } })
         .catch(() => {
           sending = false;
           retryDelay = Math.min(retryDelay * 2, 30000);
-          setTimeout(() => flush(), retryDelay); // 큐는 그대로 → 재전송
+          if (retryTimer) clearTimeout(retryTimer);
+          retryTimer = setTimeout(() => { retryTimer = null; flush(); }, retryDelay); // 큐는 그대로 → backoff 후 재전송
         });
     });
   }
@@ -1089,15 +1092,15 @@ const Logger = (function () {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(true); });
   window.addEventListener('pagehide', () => flush(true));
 
-  function startTrial(o) {
+  function startTrial(o) { return safe(() => {
     const trialId = uuid();
     trials[trialId] = { points: [], debTimer: null, lastState: null };
     enqueue({ _t: 'events', eventId: uuid(), trialId, tab: o.tab, eventType: 'trial_start',
       payload: JSON.stringify({ activityId: o.activity, taskId: o.task, attemptNo: o.attemptNo || 1 }) });
     trials[trialId].meta = { tab: o.tab, activity: o.activity, task: o.task, attemptNo: o.attemptNo || 1, startTs: new Date().toISOString() };
     return trialId;
-  }
-  function trialState(trialId, state) {
+  }); }
+  function trialState(trialId, state) { safe(() => {
     const tr = trials[trialId]; if (!tr) return;
     if (tr.debTimer) clearTimeout(tr.debTimer);
     tr.debTimer = setTimeout(() => safe(() => {
@@ -1105,27 +1108,29 @@ const Logger = (function () {
       tr.points = coalesce(tr.points);
       enqueue({ _t: 'events', eventId: uuid(), trialId, tab: tr.meta.tab, eventType: 'trial_state', payload: JSON.stringify(state) });
     }), LOG_CFG.debounceMs);
-  }
-  function endTrial(trialId, o) {
+  }); }
+  function endTrial(trialId, o) { return safe(() => {
     const tr = trials[trialId]; if (!tr) return;
     if (tr.debTimer) clearTimeout(tr.debTimer);
+    // 마지막 dwell 상태(400ms 미만에 종료돼 debounce가 못 남긴 것)를 궤적 종단점으로 보존
+    if (o && o.finalState) { tr.points.push({ t: Date.now(), state: o.finalState }); tr.points = coalesce(tr.points); }
     enqueue({ _t: 'trials', trialId, tab: tr.meta.tab, activityId: tr.meta.activity, taskId: tr.meta.task,
       attemptNo: tr.meta.attemptNo, startTs: tr.meta.startTs, endTs: new Date().toISOString(),
       outcome: o.outcome, trajectory: tr.points, finalState: o.finalState || null, triggerRef: o.triggerRef || '' });
     delete trials[trialId];
-  }
+  }); }
 
-  function setUser(u) { user = { code: u.code, name: u.name }; }
-  function startSession(meta) {
+  function setUser(u) { safe(() => { user = { code: u.code, name: u.name }; }); }
+  function startSession(meta) { safe(() => {
     sessionId = uuid(); seq = 0;
     enqueue({ _t: 'sessions', startTs: new Date().toISOString(), endTs: '',
       userAgent: navigator.userAgent, screen: screen.width + 'x' + screen.height,
       lang: navigator.language, appVersion: LOG_CFG.appVersion });
     enqueue({ _t: 'events', eventId: uuid(), eventType: meta && meta.resume ? 'resume' : 'login', payload: '{}' });
-  }
-  function event(type, payload, extra) {
+  }); }
+  function event(type, payload, extra) { safe(() => {
     enqueue(Object.assign({ _t: 'events', eventId: uuid(), eventType: type, payload: JSON.stringify(payload || {}) }, extra || {}));
-  }
+  }); }
   function init(cfg) { Object.assign(LOG_CFG, cfg || {}); restore();
     window.addEventListener('error', e => safe(() => event('client_error', { msg: String(e.message), src: e.filename, line: e.lineno })));
     setInterval(() => { if (sessionId) event('heartbeat', {}); }, 120000);
