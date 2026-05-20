@@ -1189,7 +1189,34 @@ const Logger = (function () {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(true); });
   window.addEventListener('pagehide', () => flush(true));
 
-  return { _pure: { decideBatch, applyOverflow, coalesce }, _q: () => queue, enqueue, flush, _uuid: uuid };
+  function startTrial(o) {
+    const trialId = uuid();
+    trials[trialId] = { points: [], debTimer: null, lastState: null };
+    enqueue({ _t: 'events', eventId: uuid(), trialId, tab: o.tab, eventType: 'trial_start',
+      payload: JSON.stringify({ activityId: o.activity, taskId: o.task, attemptNo: o.attemptNo || 1 }) });
+    trials[trialId].meta = { tab: o.tab, activity: o.activity, task: o.task, attemptNo: o.attemptNo || 1, startTs: new Date().toISOString() };
+    return trialId;
+  }
+  function trialState(trialId, state) {
+    const tr = trials[trialId]; if (!tr) return;
+    if (tr.debTimer) clearTimeout(tr.debTimer);
+    tr.debTimer = setTimeout(() => safe(() => {
+      tr.points.push({ t: Date.now(), state });
+      tr.points = coalesce(tr.points);
+      enqueue({ _t: 'events', eventId: uuid(), trialId, tab: tr.meta.tab, eventType: 'trial_state', payload: JSON.stringify(state) });
+    }), LOG_CFG.debounceMs);
+  }
+  function endTrial(trialId, o) {
+    const tr = trials[trialId]; if (!tr) return;
+    if (tr.debTimer) clearTimeout(tr.debTimer);
+    enqueue({ _t: 'trials', trialId, tab: tr.meta.tab, activityId: tr.meta.activity, taskId: tr.meta.task,
+      attemptNo: tr.meta.attemptNo, startTs: tr.meta.startTs, endTs: new Date().toISOString(),
+      outcome: o.outcome, trajectory: tr.points, finalState: o.finalState || null, triggerRef: o.triggerRef || '' });
+    delete trials[trialId];
+  }
+
+  return { _pure: { decideBatch, applyOverflow, coalesce }, _q: () => queue, enqueue, flush,
+    startTrial, trialState, endTrial, _uuid: uuid };
 })();
 
 // ━━━━━━ UTILS ━━━━━━
