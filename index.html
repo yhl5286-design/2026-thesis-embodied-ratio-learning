@@ -507,6 +507,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .col-task-q{flex:1;font-size:.85rem;font-weight:700;color:var(--navy)}
 .col-task-target{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700}
 .col-task-swatch{width:30px;height:30px;border-radius:7px;border:2px solid #fff;box-shadow:0 0 0 1px #ccc}
+#lab-sound.snd-blind .gl-pct.gl-ml{display:none !important}
 </style>
 </head>
 <body>
@@ -732,6 +733,12 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 <!-- ════════ 2. SOUND LAB ════════ -->
 <div class="lab" id="lab-sound">
   <div id="sndS1">
+    <div class="col-mode-bar">
+      <span class="col-mode-hint">🎧 숫자 대신 귀로 — 물의 양을 바꾸며 소리가 어떻게 변하는지 들어 보세요.</span>
+      <button class="col-mode-toggle" id="sndModeToggle" onclick="toggleSndBlind()" title="mL 보기 / 감추기">
+        <span class="pip"></span><span>🔢 숫자 보기</span>
+      </button>
+    </div>
     <div class="sndS1-layout">
       <div class="sndS1-col">
         <div class="stitle"><span class="badge" style="background:#E8F8F5;color:#1ABC9C">소리 탐험</span> 슬라이더로 물의 양을 바꾸며 소리 변화를 느껴 보세요</div>
@@ -740,18 +747,20 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
           <button class="act-btn" onclick="glS1Reset()">&#x1F504; 초기화</button>
         </div>
         <div class="task-bar task-bar-teal">
-          <div style="flex:1"><div class="task-title">탐험 미션</div><div class="task-desc" id="gl1Desc">슬라이더를 움직여 보세요. 물이 많을수록 소리가 어떻게 달라지나요?</div></div>
+          <div style="flex:1"><div class="task-title">탐험 미션</div><div class="task-desc" id="gl1Desc">물을 적게도, 많게도 — 골고루 움직여 소리가 어떻게 달라지는지 들어 보세요.</div></div>
         </div>
         <div id="gl1FB"></div>
+        <div id="sndLockHint" class="inst-tip">🔒 소리를 <b>골고루</b>(낮은音·높은音) 들어보면 <b>도레미파솔라시도 만들기</b>가 열려요.</div>
       </div>
-      <div class="sndS1-col">
-        <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">도레미 만들기</span> 세 컵의 물 양을 맞춰 도·레·미 세 음을 완성해요</div>
+      <div class="sndS1-col" id="sndMakeWrap" style="display:none">
+        <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">도레미파솔라시도 만들기</span> 여덟 컵의 물 양(칸)을 맞춰 음계를 완성해요</div>
         <div class="gl-cups-row" id="glDoremiRow"></div>
-        <div style="text-align:center;display:flex;gap:10px;justify-content:center">
+        <div style="text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
           <button class="act-btn" onclick="glDoremiReset()">&#x1F504; 초기화</button>
+          <button class="act-btn" id="glDoremiPlayAllBtn" onclick="glDoremiPlayScale()" disabled style="background:var(--purple);color:#fff;border:none">🎶 전체 연주</button>
         </div>
         <div class="task-bar" style="background:var(--purple-light);border-color:var(--purple)">
-          <div style="flex:1"><div class="task-title" style="color:var(--purple)">만들기 미션</div><div class="task-desc" id="glDoremiDesc">컵마다 라벨에 적힌 음(도·레·미)이 되도록 슬라이더로 물 양을 조절해요. 맞으면 컵 둘레가 초록색으로 빛나요!</div></div>
+          <div style="flex:1"><div class="task-title" style="color:var(--purple)">만들기 미션</div><div class="task-desc" id="glDoremiDesc">각 컵의 칸을 맞춰 도레미파솔라시도를 완성하세요! (0/8 완성)</div></div>
         </div>
         <div id="glDoremiFB"></div>
       </div>
@@ -1190,7 +1199,10 @@ function switchTab(t){
   $('lab-'+t).classList.add('active');
   if(snd.playing)stopSnd();
   if(t!=='sound'&&t!=='instrument')glStopAll();
-  if(t==='sound'&&!$('gl1Row').children.length){glBuildS1();glBuildDoremi();}
+  if(t==='sound'){
+    if(!$('gl1Row').children.length){glBuildS1();glBuildDoremi();}
+    if(!gl.exploreTrial)gl.exploreTrial=Logger.startTrial({tab:'sound',activity:'sound.explore',task:'explore'});
+  }
   if(t==='instrument'&&!$('pfInst').children.length){initInst();instSet('panflute');}
   if(t==='harmony'){buildPiano();stopWaveAnim()};
   if(t==='shadow'){shadDraw()}
@@ -1200,16 +1212,16 @@ function switchTab(t){
 const gl={
   stage:1,
   heights:[50,50,75],
-  h2:[0,0,0,0,0,0,0,0],
-  tuned:[false,false,false,false,false,false,false,false],
-  doremi:[0,0,0],
-  doremiTuned:[false,false,false],
+  doremi:[0,0,0,0,0,0,0,0],
+  doremiTuned:[false,false,false,false,false,false,false,false],
+  doremiTrial:[null,null,null,null,null,null,null,null],
+  doremiAttempt:[0,0,0,0,0,0,0,0],
+  lowSeen:false, highSeen:false, exploreTrial:null, makeUnlocked:false, scaleDone:false,
   ctx:null,comp:null,
   oscs:new Array(8).fill(null),
   gains:new Array(8).fill(null),
   hist:[],s1int:0
 };
-const DOREMI_LABELS=['도','레','미'];
 const SCALE_NOTES=['도','레','미','파','솔','라','시','도↑'];
 const SCALE_FREQ=[261.63,293.66,329.63,349.23,392.00,440.00,493.88,523.25];
 const SCALE_TGTS=[80,69,59,54,42,31,20,13];
@@ -1228,7 +1240,6 @@ function glFreq(h){
   const f=Math.pow(2,logMax-(h/100)*(logMax-logMin));
   return PENTA.reduce((a,b)=>Math.abs(b-f)<Math.abs(a-f)?b:a);
 }
-function glS2FreqRaw(h){return 220+(1-h/100)*(900-220)}
 function glPlayStopOne(i){
   const o=gl.oscs[i],g=gl.gains[i],o2=gl['o2_'+i];
   if(g){try{g.gain.linearRampToValueAtTime(0,gl.ctx.currentTime+.08)}catch(e){}}
@@ -1269,17 +1280,25 @@ function glUpdateCup(i){
   const p=$('gl1P'+i);if(p)p.textContent=gl.heights[i]+'%';
   if(gl.oscs[i]&&gl.oscs[i].frequency)gl.oscs[i].frequency.setTargetAtTime(glFreq(gl.heights[i]),gl.ctx.currentTime,.02);
 }
-function glReset(){glStopAll();gl.heights=[50,50,75];gl.h2=[0,0,0,0,0,0,0,0];gl.tuned.fill(false);gl.s1int=0;glS1Reset();}
+function glReset(){glStopAll();gl.heights=[50,50,75];gl.doremi.fill(0);gl.doremiTuned.fill(false);gl.s1int=0;gl.lowSeen=false;gl.highSeen=false;glS1Reset();}
 // ── Stage 1 ──
 const GL_MAX_ML=200; // 컵 최대 용량(mL) — % × 2 = mL
 function glS1Ml(pct){return Math.round(pct*GL_MAX_ML/100)}
+let sndBlind=true;
+function toggleSndBlind(){
+  sndBlind=!sndBlind;
+  const lab=$('lab-sound');
+  if(sndBlind){lab.classList.add('snd-blind');$('sndModeToggle').classList.remove('on');}
+  else{lab.classList.remove('snd-blind');$('sndModeToggle').classList.add('on');}
+  Logger.event('blind_toggle',{tab:'sound',blind:sndBlind});
+}
 function glBuildS1(){
   $('gl1Row').innerHTML=`
     <div class="gl-cup-unit" id="gl1C0">
       <div class="gl-cup-vis" id="gl1V0" onclick="glPlayBrief(0,glFreq(gl.heights[0]),500)">
         <div class="gl-water" id="gl1W0" style="height:${gl.heights[0]}%"></div>
       </div>
-      <div class="gl-pct" id="gl1P0">${glS1Ml(gl.heights[0])} mL</div>
+      <div class="gl-pct gl-ml" id="gl1P0">${glS1Ml(gl.heights[0])} mL</div>
       <input type="range" class="gl-slider" min="5" max="95" value="${gl.heights[0]}" oninput="glS1Move(0,+this.value)" id="gl1Sl0">
       <button class="gl-play-mini"
         onmousedown="glPlayHold(0,glFreq(gl.heights[0]))" onmouseup="glPlayStopOne(0)"
@@ -1292,16 +1311,30 @@ function glS1Move(i,val){
   $('gl1P0').textContent=glS1Ml(val)+' mL';
   glPlayBrief(0,glFreq(val),400);
   gl.hist.push({h:val,t:Date.now()});
+  if(gl.exploreTrial)Logger.trialState(gl.exploreTrial,{height:val,freq:Math.round(glFreq(val))});
   gl.s1int++;
-  if(gl.s1int===5)fb('gl1FB','hint','물이 많을수록 소리가 낮아지는 것이 느껴지나요? 물이 적으면 소리가 높아요!');
-  if(gl.s1int===12)setTimeout(()=>{fb('gl1FB','success','잘 탐험했어요! 2단계에서 도레미를 만들어 볼까요?');glS1ShowReveal()},500);
+  if(val<=30)gl.lowSeen=true;
+  if(val>=70)gl.highSeen=true;
+  if(gl.s1int===4)fb('gl1FB','hint','물이 많을수록 소리가 낮아지고, 적을수록 높아져요. 낮은音·높은音 모두 들어볼까요?');
+  if(!gl.makeUnlocked && ((gl.lowSeen&&gl.highSeen) || gl.s1int>=8)){
+    gl.makeUnlocked=true;
+    fb('gl1FB','success','잘 탐험했어요! 이제 도레미파솔라시도를 만들어 볼까요? 🎶');
+    glUnlockMaking();
+  }
 }
 function glS1Reset(){
-  glStopAll();gl.heights[0]=50;gl.s1int=0;$('gl1FB').innerHTML='';$('glReveal').style.display='none';
+  glStopAll();gl.heights[0]=50;gl.s1int=0;gl.lowSeen=false;gl.highSeen=false;gl.makeUnlocked=false;
+  $('gl1FB').innerHTML='';
+  const rv=$('glReveal');if(rv)rv.style.display='none';
+  const wrap=$('sndMakeWrap');if(wrap)wrap.style.display='none';
+  const lock=$('sndLockHint');if(lock)lock.style.display='';
   $('gl1W0').style.height='50%';$('gl1P0').textContent=glS1Ml(50)+' mL';$('gl1Sl0').value=50;
 }
-function glS1ShowReveal(){
-  const rv=$('glReveal');if(!rv)return;rv.style.display='block';
+function glUnlockMaking(){
+  const wrap=$('sndMakeWrap');if(wrap)wrap.style.display='';
+  const lock=$('sndLockHint');if(lock)lock.style.display='none';
+  const rv=$('glReveal');if(rv)rv.style.display='block';
+  if(gl.exploreTrial){Logger.endTrial(gl.exploreTrial,{outcome:'open',finalState:{lowSeen:gl.lowSeen,highSeen:gl.highSeen,count:gl.s1int}});gl.exploreTrial=null;}
 }
 // ── 도-레-미 만들기 (Stage 1 보조 활동) — 칸(셀) 클릭 방식 ──
 // 도=8칸, 레=7칸, 미=6칸 (SCALE_CELLS[0..2]). 매칭 시 SCALE_FREQ로 재생, 그 외 셀 수는 가장 가까운 SCALE_FREQ로.
@@ -1316,7 +1349,7 @@ function glDoremiFreqFromCells(n){
 }
 function glBuildDoremi(){
   const row=$('glDoremiRow');if(!row)return;
-  row.innerHTML=DOREMI_LABELS.map((label,i)=>{
+  row.innerHTML=SCALE_NOTES.map((label,i)=>{
     const cells=Array.from({length:GL_MAX_CELLS},(_,j)=>{
       const level=GL_MAX_CELLS-j;
       return `<div class="gl-cell" id="glDRCell${i}_${j}" onclick="glDoremiSetCells(${i},${level})"></div>`;
@@ -1328,13 +1361,18 @@ function glBuildDoremi(){
       <div class="gl-tune-tag" id="glDRT${i}">눌러서 채워요</div>
     </div>`;
   }).join('');
-  for(let i=0;i<3;i++)glDoremiUpdateDisplay(i);
+  for(let i=0;i<8;i++)glDoremiUpdateDisplay(i);
 }
 function glDoremiSetCells(i,n){
+  if(!gl.doremiTuned[i]&&!gl.doremiTrial[i]){
+    gl.doremiAttempt[i]=(gl.doremiAttempt[i]||0)+1;
+    gl.doremiTrial[i]=Logger.startTrial({tab:'sound',activity:'sound.scale',task:'note_'+i,attemptNo:gl.doremiAttempt[i]});
+  }
   gl.doremi[i]=n;
+  if(gl.doremiTrial[i])Logger.trialState(gl.doremiTrial[i],{cells:n,note:SCALE_NOTES[i]});
   glDoremiUpdateDisplay(i);
   const freq=glDoremiFreqFromCells(n);
-  if(freq)glPlayBrief(5+i,freq,450);
+  if(freq)glPlayBrief(i,freq,450);
 }
 function glDoremiUpdateDisplay(i){
   const n=gl.doremi[i];
@@ -1343,90 +1381,50 @@ function glDoremiUpdateDisplay(i){
     if(cell)cell.classList.toggle('filled',(GL_MAX_CELLS-1-j)<n);
   }
   const pct=$('glDRP'+i);if(pct)pct.textContent=n+'칸';
-  const target=SCALE_CELLS[i]; // 도=8, 레=7, 미=6
+  const target=SCALE_CELLS[i];
   const tuned=(n===target);
   $('glDR'+i).classList.toggle('tuned-unit',tuned);
   const tag=$('glDRT'+i);
   if(tag){
-    if(tuned){tag.textContent='✓ '+DOREMI_LABELS[i]+'!';tag.className='gl-tune-tag ok';}
+    if(tuned){tag.textContent='✓ '+SCALE_NOTES[i]+'!';tag.className='gl-tune-tag ok';}
     else if(n===0){tag.textContent='눌러서 채워요';tag.className='gl-tune-tag';}
     else if(n<target){tag.textContent='↑ 칸을 더 채워요';tag.className='gl-tune-tag';}
     else{tag.textContent='↓ 칸을 줄여요';tag.className='gl-tune-tag';}
   }
   const wasTuned=gl.doremiTuned[i];
   gl.doremiTuned[i]=tuned;
-  if(tuned&&!wasTuned)boom(DOREMI_LABELS[i]+' 완성!','var(--teal)');
-  if(gl.doremiTuned.every(t=>t))fb('glDoremiFB','success','🎉 도-레-미 세 음 모두 완성! 세 컵의 칸 수 차이를 잘 보세요.');
+  if(tuned&&!wasTuned)boom(SCALE_NOTES[i]+' 완성!','var(--teal)');
+  if(tuned&&!wasTuned&&gl.doremiTrial[i]){
+    Logger.endTrial(gl.doremiTrial[i],{outcome:'correct',finalState:{cells:n,note:SCALE_NOTES[i]}});
+    gl.doremiTrial[i]=null;
+  }
+  const done=gl.doremiTuned.filter(Boolean).length;
+  const desc=$('glDoremiDesc');if(desc)desc.textContent=`각 컵의 칸을 맞춰 도레미파솔라시도를 완성하세요! (${done}/8 완성)`;
+  const btn=$('glDoremiPlayAllBtn');if(btn)btn.disabled=(done!==8);
+  if(done===8){fb('glDoremiFB','success','🎉 도레미파솔라시도 완성! 전체 연주를 들어 보세요 🎶');if(!gl.scaleDone){gl.scaleDone=true;Logger.event('scale_complete',{tab:'sound'});}}
 }
 function glDoremiReset(){
-  for(let i=0;i<3;i++){gl.doremi[i]=0;gl.doremiTuned[i]=false;}
+  glStopAll();
+  for(let i=0;i<8;i++){gl.doremi[i]=0;gl.doremiTuned[i]=false;gl.doremiTrial[i]=null;}
+  gl.scaleDone=false;
   $('glDoremiFB').innerHTML='';
+  const btn=$('glDoremiPlayAllBtn');if(btn)btn.disabled=true;
   glBuildDoremi();
 }
-// ── Stage 2 ──
-const SCALE_CELLS=[8,7,6,5,4,3,2,1]; // 도→도↑: cells needed (out of 10)
-const GL_MAX_CELLS=10;
-function glBuildS2(){
-  $('gl2Row').innerHTML=SCALE_NOTES.map((note,i)=>{
-    const cells=Array.from({length:GL_MAX_CELLS},(_,j)=>{
-      const level=GL_MAX_CELLS-j; // clicking this row fills to 'level' cells
-      return `<div class="gl-cell" id="gl2Cell${i}_${j}" onclick="glS2SetCells(${i},${level})"></div>`;
-    }).join('');
-    return `<div class="gl-cup-unit" id="gl2C${i}">
-      <div class="gl-note">${note}</div>
-      <div class="gl-cell-cup" id="gl2CC${i}">${cells}</div>
-      <div class="gl-pct" id="gl2P${i}">0칸</div>
-      <div class="gl-tune-tag" id="gl2T${i}">눌러서 채워요</div>
-    </div>`;
-  }).join('');
-}
-function glS2SetCells(i,n){
-  n=Math.max(0,Math.min(GL_MAX_CELLS,n));
-  gl.h2[i]=n;
-  for(let j=0;j<GL_MAX_CELLS;j++){
-    const cell=document.getElementById('gl2Cell'+i+'_'+j);
-    if(cell)cell.classList.toggle('filled',GL_MAX_CELLS-j<=n);
-  }
-  $('gl2P'+i).textContent=n+'칸';
-  const tgt=SCALE_CELLS[i],was=gl.tuned[i];
-  gl.tuned[i]=(n===tgt);
-  const freq=gl.tuned[i]?SCALE_FREQ[i]:(n===0?null:glFreq(n/GL_MAX_CELLS*100));
-  if(freq)glPlayBrief(i,freq,450);
-  const tag=$('gl2T'+i),cup=$('gl2C'+i);
-  if(cup)cup.classList.toggle('tuned-unit',gl.tuned[i]);
-  if(tag){
-    if(gl.tuned[i]){tag.textContent='✓ '+SCALE_NOTES[i]+'!';tag.className='gl-tune-tag ok';if(!was)boom(SCALE_NOTES[i]+'!','var(--teal)');}
-    else if(n===0){tag.textContent='눌러서 채워요';tag.className='gl-tune-tag';}
-    else if(n<tgt){tag.textContent='↑ 칸을 더 채워요';tag.className='gl-tune-tag';}
-    else{tag.textContent='↓ 칸이 너무 많아요';tag.className='gl-tune-tag';}
-  }
-  glS2CheckAll();
-}
-function glS2CheckAll(){
-  const n=gl.tuned.filter(Boolean).length;
-  $('gl2Desc').textContent=`각 컵에 칸을 세어 도레미파솔라시도를 완성하세요! (${n}/8 완성)`;
-  if(n===8){$('gl2PlayAllBtn').disabled=false;fb('gl2FB','success','완벽해요! 도레미파솔라시도가 완성됐어요! 연주해 볼까요? 🎶');boom('도레미 완성! 🎶','var(--teal)')}
-}
-function glS2PlayScale(){
+function glDoremiPlayScale(){
   glStopAll();glInitAud();
   const play=(i)=>{
     if(i>=8)return;
     glPlayHold(i,SCALE_FREQ[i]);
-    const cup=$('gl2CC'+i);if(cup)cup.style.filter='brightness(1.3)';
+    const cup=$('glDRCC'+i);if(cup)cup.style.filter='brightness(1.3)';
     setTimeout(()=>{glPlayStopOne(i);if(cup)cup.style.filter='';setTimeout(()=>play(i+1),150)},550);
   };
   play(0);
 }
-function glS2Reset(){
-  glStopAll();gl.h2=[0,0,0,0,0,0,0,0];gl.tuned.fill(false);
-  $('gl2PlayAllBtn').disabled=true;$('gl2FB').innerHTML='';
-  $('gl2Desc').textContent='각 컵에 칸을 세어 도레미파솔라시도를 완성하세요! (0/8 완성)';
-  for(let i=0;i<8;i++){
-    for(let j=0;j<GL_MAX_CELLS;j++){const c=document.getElementById('gl2Cell'+i+'_'+j);if(c)c.classList.remove('filled');}
-    $('gl2P'+i).textContent='0칸';const t=$('gl2T'+i);if(t){t.textContent='눌러서 채워요';t.className='gl-tune-tag';}
-    const cup=$('gl2C'+i);if(cup)cup.classList.remove('tuned-unit');
-  }
-}
+// ── Stage 2 ──
+const SCALE_CELLS=[8,7,6,5,4,3,2,1]; // 도→도↑: cells needed (out of 10)
+const GL_MAX_CELLS=10;
+
 
 // ━━━━━━ 1. COLOR LAB ━━━━━━
 const col={r:0,y:0,b:0,hist:[],recipes:[],interactions:0,dragLog:[],strategy:'explore',blind:true,discovered:false,
@@ -2747,7 +2745,7 @@ function shadDraw(){
 }
 
 // ━━━━━━ INIT ━━━━━━
-Logger.init();bootAuth();bldWv();updColor();buildBeakerMarks();glBuildS1();glBuildDoremi();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();
+Logger.init();bootAuth();bldWv();updColor();buildBeakerMarks();glBuildS1();glBuildDoremi();$('lab-sound').classList.add('snd-blind');if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();
 </script>
 </body>
 </html>
