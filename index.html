@@ -1282,13 +1282,21 @@ function glReset(){glStopAll();gl.heights=[50,50,75];gl.doremi.fill(0);gl.doremi
 // ── Stage 1 ──
 const GL_MAX_ML=200; // 컵 최대 용량(mL) — % × 2 = mL
 function glS1Ml(pct){return Math.round(pct*GL_MAX_ML/100)}
+let sndBlind=true;
+function toggleSndBlind(){
+  sndBlind=!sndBlind;
+  const lab=$('lab-sound');
+  if(sndBlind){lab.classList.add('snd-blind');$('sndModeToggle').classList.remove('on');}
+  else{lab.classList.remove('snd-blind');$('sndModeToggle').classList.add('on');}
+  Logger.event('blind_toggle',{tab:'sound',blind:sndBlind});
+}
 function glBuildS1(){
   $('gl1Row').innerHTML=`
     <div class="gl-cup-unit" id="gl1C0">
       <div class="gl-cup-vis" id="gl1V0" onclick="glPlayBrief(0,glFreq(gl.heights[0]),500)">
         <div class="gl-water" id="gl1W0" style="height:${gl.heights[0]}%"></div>
       </div>
-      <div class="gl-pct" id="gl1P0">${glS1Ml(gl.heights[0])} mL</div>
+      <div class="gl-pct gl-ml" id="gl1P0">${glS1Ml(gl.heights[0])} mL</div>
       <input type="range" class="gl-slider" min="5" max="95" value="${gl.heights[0]}" oninput="glS1Move(0,+this.value)" id="gl1Sl0">
       <button class="gl-play-mini"
         onmousedown="glPlayHold(0,glFreq(gl.heights[0]))" onmouseup="glPlayStopOne(0)"
@@ -2711,7 +2719,7 @@ function shadDraw(){
 }
 
 // ━━━━━━ INIT ━━━━━━
-Logger.init();bootAuth();bldWv();updColor();buildBeakerMarks();glBuildS1();glBuildDoremi();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();
+Logger.init();bootAuth();bldWv();updColor();buildBeakerMarks();glBuildS1();glBuildDoremi();$('lab-sound').classList.add('snd-blind');if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();
 </script>
 </body>
 </html>
