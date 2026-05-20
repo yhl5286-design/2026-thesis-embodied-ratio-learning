@@ -1310,15 +1310,28 @@ function glS1Move(i,val){
   glPlayBrief(0,glFreq(val),400);
   gl.hist.push({h:val,t:Date.now()});
   gl.s1int++;
-  if(gl.s1int===5)fb('gl1FB','hint','물이 많을수록 소리가 낮아지는 것이 느껴지나요? 물이 적으면 소리가 높아요!');
-  if(gl.s1int===12)setTimeout(()=>{fb('gl1FB','success','잘 탐험했어요! 2단계에서 도레미를 만들어 볼까요?');glS1ShowReveal()},500);
+  if(val<=30)gl.lowSeen=true;
+  if(val>=70)gl.highSeen=true;
+  if(gl.s1int===4)fb('gl1FB','hint','물이 많을수록 소리가 낮아지고, 적을수록 높아져요. 낮은音·높은音 모두 들어볼까요?');
+  if(!gl.makeUnlocked && ((gl.lowSeen&&gl.highSeen) || gl.s1int>=8)){
+    gl.makeUnlocked=true;
+    fb('gl1FB','success','잘 탐험했어요! 이제 도레미파솔라시도를 만들어 볼까요? 🎶');
+    glUnlockMaking();
+  }
 }
 function glS1Reset(){
-  glStopAll();gl.heights[0]=50;gl.s1int=0;$('gl1FB').innerHTML='';$('glReveal').style.display='none';
+  glStopAll();gl.heights[0]=50;gl.s1int=0;gl.lowSeen=false;gl.highSeen=false;gl.makeUnlocked=false;
+  $('gl1FB').innerHTML='';
+  const rv=$('glReveal');if(rv)rv.style.display='none';
+  const wrap=$('sndMakeWrap');if(wrap)wrap.style.display='none';
+  const lock=$('sndLockHint');if(lock)lock.style.display='';
   $('gl1W0').style.height='50%';$('gl1P0').textContent=glS1Ml(50)+' mL';$('gl1Sl0').value=50;
 }
-function glS1ShowReveal(){
-  const rv=$('glReveal');if(!rv)return;rv.style.display='block';
+function glUnlockMaking(){
+  const wrap=$('sndMakeWrap');if(wrap)wrap.style.display='';
+  const lock=$('sndLockHint');if(lock)lock.style.display='none';
+  const rv=$('glReveal');if(rv)rv.style.display='block';
+  if(gl.exploreTrial){Logger.endTrial(gl.exploreTrial,{outcome:'open',finalState:{lowSeen:gl.lowSeen,highSeen:gl.highSeen,count:gl.s1int}});gl.exploreTrial=null;}
 }
 // ── 도-레-미 만들기 (Stage 1 보조 활동) — 칸(셀) 클릭 방식 ──
 // 도=8칸, 레=7칸, 미=6칸 (SCALE_CELLS[0..2]). 매칭 시 SCALE_FREQ로 재생, 그 외 셀 수는 가장 가까운 SCALE_FREQ로.
