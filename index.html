@@ -1161,7 +1161,35 @@ const Logger = (function () {
     });
   }
 
-  return { _pure: { decideBatch, applyOverflow, coalesce }, _q: () => queue, enqueue, _uuid: uuid };
+  let retryDelay = 1000;
+  function flush(useBeacon) {
+    safe(() => {
+      if (!queue.length || !LOG_CFG.endpoint) return;
+      if (sending && !useBeacon) return;
+      const batch = queue.slice(0);
+      const body = JSON.stringify({ token: LOG_CFG.token, records: batch });
+      lastSend = Date.now();
+      if (useBeacon && navigator.sendBeacon) {
+        const ok = navigator.sendBeacon(LOG_CFG.endpoint, new Blob([body], { type: 'text/plain' }));
+        if (ok) { queue = []; backup(); }
+        return;
+      }
+      sending = true;
+      fetch(LOG_CFG.endpoint, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body })
+        .then(r => r.json())
+        .then(() => { queue.splice(0, batch.length); backup(); sending = false; retryDelay = 1000; })
+        .catch(() => {
+          sending = false;
+          retryDelay = Math.min(retryDelay * 2, 30000);
+          setTimeout(() => flush(), retryDelay); // 큐는 그대로 → 재전송
+        });
+    });
+  }
+  setInterval(() => flush(), LOG_CFG.batchMs);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(true); });
+  window.addEventListener('pagehide', () => flush(true));
+
+  return { _pure: { decideBatch, applyOverflow, coalesce }, _q: () => queue, enqueue, flush, _uuid: uuid };
 })();
 
 // ━━━━━━ UTILS ━━━━━━
