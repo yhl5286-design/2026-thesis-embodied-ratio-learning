@@ -1316,7 +1316,7 @@ function glDoremiFreqFromCells(n){
 }
 function glBuildDoremi(){
   const row=$('glDoremiRow');if(!row)return;
-  row.innerHTML=DOREMI_LABELS.map((label,i)=>{
+  row.innerHTML=SCALE_NOTES.map((label,i)=>{
     const cells=Array.from({length:GL_MAX_CELLS},(_,j)=>{
       const level=GL_MAX_CELLS-j;
       return `<div class="gl-cell" id="glDRCell${i}_${j}" onclick="glDoremiSetCells(${i},${level})"></div>`;
@@ -1328,13 +1328,13 @@ function glBuildDoremi(){
       <div class="gl-tune-tag" id="glDRT${i}">눌러서 채워요</div>
     </div>`;
   }).join('');
-  for(let i=0;i<3;i++)glDoremiUpdateDisplay(i);
+  for(let i=0;i<8;i++)glDoremiUpdateDisplay(i);
 }
 function glDoremiSetCells(i,n){
   gl.doremi[i]=n;
   glDoremiUpdateDisplay(i);
   const freq=glDoremiFreqFromCells(n);
-  if(freq)glPlayBrief(5+i,freq,450);
+  if(freq)glPlayBrief(i,freq,450);
 }
 function glDoremiUpdateDisplay(i){
   const n=gl.doremi[i];
@@ -1343,25 +1343,40 @@ function glDoremiUpdateDisplay(i){
     if(cell)cell.classList.toggle('filled',(GL_MAX_CELLS-1-j)<n);
   }
   const pct=$('glDRP'+i);if(pct)pct.textContent=n+'칸';
-  const target=SCALE_CELLS[i]; // 도=8, 레=7, 미=6
+  const target=SCALE_CELLS[i];
   const tuned=(n===target);
   $('glDR'+i).classList.toggle('tuned-unit',tuned);
   const tag=$('glDRT'+i);
   if(tag){
-    if(tuned){tag.textContent='✓ '+DOREMI_LABELS[i]+'!';tag.className='gl-tune-tag ok';}
+    if(tuned){tag.textContent='✓ '+SCALE_NOTES[i]+'!';tag.className='gl-tune-tag ok';}
     else if(n===0){tag.textContent='눌러서 채워요';tag.className='gl-tune-tag';}
     else if(n<target){tag.textContent='↑ 칸을 더 채워요';tag.className='gl-tune-tag';}
     else{tag.textContent='↓ 칸을 줄여요';tag.className='gl-tune-tag';}
   }
   const wasTuned=gl.doremiTuned[i];
   gl.doremiTuned[i]=tuned;
-  if(tuned&&!wasTuned)boom(DOREMI_LABELS[i]+' 완성!','var(--teal)');
-  if(gl.doremiTuned.every(t=>t))fb('glDoremiFB','success','🎉 도-레-미 세 음 모두 완성! 세 컵의 칸 수 차이를 잘 보세요.');
+  if(tuned&&!wasTuned)boom(SCALE_NOTES[i]+' 완성!','var(--teal)');
+  const done=gl.doremiTuned.filter(Boolean).length;
+  const desc=$('glDoremiDesc');if(desc)desc.textContent=`각 컵의 칸을 맞춰 도레미파솔라시도를 완성하세요! (${done}/8 완성)`;
+  const btn=$('glDoremiPlayAllBtn');if(btn)btn.disabled=(done!==8);
+  if(done===8)fb('glDoremiFB','success','🎉 도레미파솔라시도 완성! 전체 연주를 들어 보세요 🎶');
 }
 function glDoremiReset(){
-  for(let i=0;i<3;i++){gl.doremi[i]=0;gl.doremiTuned[i]=false;}
+  glStopAll();
+  for(let i=0;i<8;i++){gl.doremi[i]=0;gl.doremiTuned[i]=false;}
   $('glDoremiFB').innerHTML='';
+  const btn=$('glDoremiPlayAllBtn');if(btn)btn.disabled=true;
   glBuildDoremi();
+}
+function glDoremiPlayScale(){
+  glStopAll();glInitAud();
+  const play=(i)=>{
+    if(i>=8)return;
+    glPlayHold(i,SCALE_FREQ[i]);
+    const cup=$('glDRCC'+i);if(cup)cup.style.filter='brightness(1.3)';
+    setTimeout(()=>{glPlayStopOne(i);if(cup)cup.style.filter='';setTimeout(()=>play(i+1),150)},550);
+  };
+  play(0);
 }
 // ── Stage 2 ──
 const SCALE_CELLS=[8,7,6,5,4,3,2,1]; // 도→도↑: cells needed (out of 10)
