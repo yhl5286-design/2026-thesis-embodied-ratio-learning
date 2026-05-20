@@ -1215,8 +1215,24 @@ const Logger = (function () {
     delete trials[trialId];
   }
 
+  function setUser(u) { user = { code: u.code, name: u.name }; }
+  function startSession(meta) {
+    sessionId = uuid(); seq = 0;
+    enqueue({ _t: 'sessions', startTs: new Date().toISOString(), endTs: '',
+      userAgent: navigator.userAgent, screen: screen.width + 'x' + screen.height,
+      lang: navigator.language, appVersion: LOG_CFG.appVersion });
+    enqueue({ _t: 'events', eventId: uuid(), eventType: meta && meta.resume ? 'resume' : 'login', payload: '{}' });
+  }
+  function event(type, payload, extra) {
+    enqueue(Object.assign({ _t: 'events', eventId: uuid(), eventType: type, payload: JSON.stringify(payload || {}) }, extra || {}));
+  }
+  function init(cfg) { Object.assign(LOG_CFG, cfg || {}); restore();
+    window.addEventListener('error', e => safe(() => event('client_error', { msg: String(e.message), src: e.filename, line: e.lineno })));
+    setInterval(() => { if (sessionId) event('heartbeat', {}); }, 120000);
+  }
+
   return { _pure: { decideBatch, applyOverflow, coalesce }, _q: () => queue, enqueue, flush,
-    startTrial, trialState, endTrial, _uuid: uuid };
+    startTrial, trialState, endTrial, setUser, startSession, event, init, _uuid: uuid };
 })();
 
 // ━━━━━━ UTILS ━━━━━━
@@ -3409,7 +3425,7 @@ function shadDraw(){
 }
 
 // ━━━━━━ INIT ━━━━━━
-bldWv();updColor();buildBeakerMarks();glBuildS1();glBuildDoremi();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();galBuild('sim');galBuild('art');
+Logger.init();bldWv();updColor();buildBeakerMarks();glBuildS1();glBuildDoremi();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();galBuild('sim');galBuild('art');
 </script>
 </body>
 </html>
