@@ -508,6 +508,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .col-task-target{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700}
 .col-task-swatch{width:30px;height:30px;border-radius:7px;border:2px solid #fff;box-shadow:0 0 0 1px #ccc}
 #lab-sound.snd-blind .gl-pct.gl-ml{display:none !important}
+#inst-string.geo-blind .geo-num{display:none !important}
+.geo-readout{text-align:center;font-size:.85rem;font-weight:800;color:var(--red);margin:6px 0}
 </style>
 </head>
 <body>
@@ -817,6 +819,12 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     <!-- 현악기 (거문고) -->
     <div id="inst-string" style="display:none">
       <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">거문고</span> 안족을 움직여 현의 울리는 길이를 바꿔요</div>
+      <div class="col-mode-bar">
+        <span class="col-mode-hint">🎵 안족을 움직여 소리가 어떻게 변하는지 먼저 느껴 보세요.</span>
+        <button class="col-mode-toggle" id="geoModeToggle" onclick="toggleGeoRatio()" title="길이·비율 보기 / 감추기">
+          <span class="pip"></span><span>📏 길이·비율 보기</span>
+        </button>
+      </div>
       <div class="geomungo-wrap">
         <canvas id="strCanvas" width="640" height="200"></canvas>
       </div>
@@ -828,6 +836,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
           <button class="act-btn" style="margin-top:6px;font-size:.78rem;padding:6px 16px" onclick="strPlayOne('A')">▶ 듣기</button>
         </div>
       </div>
+      <div class="geo-readout geo-num" id="geoReadout">현 길이 —</div>
     </div>
 </div>
 
