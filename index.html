@@ -2110,6 +2110,7 @@ function stringNote(ctx,freq,t,gain=0.18){
   lfo.start(t+0.05);lfo.stop(t+dur);
 }
 
+const strVib={amp:0,phase:0,raf:0};
 function strDrawCanvas(){
   const cv=$('strCanvas');if(!cv)return;
   const ctx=cv.getContext('2d');
@@ -2152,9 +2153,9 @@ function strDrawCanvas(){
     if(len<STR_MIN||len>STR_MAX)return;
     const p=(len-STR_MIN)/(STR_MAX-STR_MIN);
     const mx=nutX+p*(bridgeX-nutX);
-    ctx.fillStyle='rgba(255,200,60,.55)';
+    ctx.fillStyle='rgba(255,200,60,.30)';
     ctx.beginPath();ctx.arc(mx,by+bh-6,3,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,210,80,.9)';
+    ctx.fillStyle='rgba(255,210,80,.5)';
     ctx.font='bold 9px sans-serif';ctx.textAlign='center';
     ctx.fillText(XYLO_NAMES[i],mx,by+bh+14);
   });
@@ -2163,21 +2164,31 @@ function strDrawCanvas(){
   ctx.strokeStyle='rgba(120,80,30,.4)';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(nutX,strAY);ctx.lineTo(bridgeX,strAY);ctx.stroke();
 
-  // 현 울리는 구간 (빨강, 진하게)
+  // 현 울리는 구간 (빨강) — 진동 시 사인 곡선
   ctx.strokeStyle='#E74C3C';ctx.lineWidth=3;
-  ctx.beginPath();ctx.moveTo(nutX,strAY);ctx.lineTo(anjokAX,strAY);ctx.stroke();
+  ctx.beginPath();
+  if(strVib.amp>0.2){
+    const seg=anjokAX-nutX;
+    for(let x=nutX;x<=anjokAX;x+=3){
+      const u=(x-nutX)/Math.max(1,seg);
+      const y=strAY+strVib.amp*Math.sin(u*Math.PI)*Math.sin(u*Math.PI*6+strVib.phase);
+      if(x===nutX)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+  }else{
+    ctx.moveTo(nutX,strAY);ctx.lineTo(anjokAX,strAY);
+  }
+  ctx.stroke();
   ctx.strokeStyle='rgba(180,60,40,.25)';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(anjokAX,strAY);ctx.lineTo(bridgeX,strAY);ctx.stroke();
 
-  // 안족 (빨강 삼각형)
+  // 안족 (더 크고 또렷한 손잡이)
   ctx.fillStyle='#C0392B';
-  ctx.beginPath();ctx.moveTo(anjokAX-7,strAY-14);ctx.lineTo(anjokAX+7,strAY-14);ctx.lineTo(anjokAX,strAY+4);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(anjokAX-11,strAY-22);ctx.lineTo(anjokAX+11,strAY-22);ctx.lineTo(anjokAX,strAY+6);ctx.closePath();ctx.fill();
   ctx.fillStyle='#E74C3C';
-  ctx.beginPath();ctx.moveTo(anjokAX-5,strAY-12);ctx.lineTo(anjokAX+5,strAY-12);ctx.lineTo(anjokAX,strAY+2);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(anjokAX-8,strAY-19);ctx.lineTo(anjokAX+8,strAY-19);ctx.lineTo(anjokAX,strAY+2);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(anjokAX,strAY-13,2.5,0,Math.PI*2);ctx.fill();
 
-  // 길이 표시
-  ctx.fillStyle='rgba(231,76,60,.9)';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
-  ctx.fillText('현 길이: '+(strLenA).toFixed(1)+'cm',nutX+2,strAY-18);
 }
 
 function roundRectPath(ctx,x,y,w,h,r){
