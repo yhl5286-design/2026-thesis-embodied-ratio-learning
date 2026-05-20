@@ -832,7 +832,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
         <div class="str-info-card" style="border-color:var(--red)">
           <div class="str-info-label" style="color:var(--red)">현</div>
           <div class="str-info-note" style="color:var(--red)" id="strNameA">도</div>
-          <div class="str-info-hz" id="strHzA">262 Hz</div>
+          <div class="str-info-hz geo-num" id="strHzA">262 Hz</div>
           <button class="act-btn" style="margin-top:6px;font-size:.78rem;padding:6px 16px" onclick="strPlayOne('A')">▶ 듣기</button>
         </div>
       </div>
@@ -2191,6 +2191,18 @@ function strDrawCanvas(){
 
 }
 
+function strVibrate(){
+  strVib.amp=7;
+  if(strVib.raf)return;
+  const step=()=>{
+    strVib.amp*=0.86; strVib.phase+=0.9;
+    strDrawCanvas();
+    if(strVib.amp>0.3){strVib.raf=requestAnimationFrame(step);}
+    else{strVib.amp=0;strVib.raf=0;strDrawCanvas();}
+  };
+  strVib.raf=requestAnimationFrame(step);
+}
+
 function roundRectPath(ctx,x,y,w,h,r){
   ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);
   ctx.lineTo(x+w,y+h-r);ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
@@ -2238,6 +2250,26 @@ function strShowNote(){
   const nn=nearestNote(freq);
   const nameEl=$('strNameA');if(nameEl)nameEl.textContent=nn.name;
   const hzEl=$('strHzA');if(hzEl)hzEl.textContent=freq.toFixed(0)+' Hz';
+  geoUpdateReadout();
+}
+
+function geoRatioStr(len){
+  const a=Math.round(len),b=60,g=gcd(a,b)||1;
+  return (a/g)+' : '+(b/g);
+}
+function geoUpdateReadout(){
+  const el=$('geoReadout');if(!el)return;
+  const len=strLenA, hz=Math.round(strFreqFromLen(len));
+  el.textContent=`현 길이 ${len.toFixed(1)}cm · 도 길이의 비 ${geoRatioStr(len)} · ${hz}Hz`;
+}
+
+let geoBlind=true;
+function toggleGeoRatio(){
+  geoBlind=!geoBlind;
+  const wrap=$('inst-string');
+  if(geoBlind){wrap.classList.add('geo-blind');$('geoModeToggle').classList.remove('on');}
+  else{wrap.classList.remove('geo-blind');$('geoModeToggle').classList.add('on');geoUpdateReadout();}
+  Logger.event('blind_toggle',{tab:'instrument',inst:'geomungo',blind:geoBlind});
 }
 
 function strPlayOne(){
@@ -2248,6 +2280,8 @@ function initInst(){
   pfBuild();buildPfUI();pfSelect(pfSel);
   strShowNote();
   strInitCanvas();strDrawCanvas();
+  $('inst-string').classList.add('geo-blind');
+  geoUpdateReadout();
 }
 
 // ━━━━━━ 2.5 HARMONY ROOM (화음 감상실) ━━━━━━
