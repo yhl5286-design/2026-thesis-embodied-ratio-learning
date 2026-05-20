@@ -1229,7 +1229,6 @@ function glFreq(h){
   const f=Math.pow(2,logMax-(h/100)*(logMax-logMin));
   return PENTA.reduce((a,b)=>Math.abs(b-f)<Math.abs(a-f)?b:a);
 }
-function glS2FreqRaw(h){return 220+(1-h/100)*(900-220)}
 function glPlayStopOne(i){
   const o=gl.oscs[i],g=gl.gains[i],o2=gl['o2_'+i];
   if(g){try{g.gain.linearRampToValueAtTime(0,gl.ctx.currentTime+.08)}catch(e){}}
