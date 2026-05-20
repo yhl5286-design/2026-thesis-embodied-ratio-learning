@@ -224,7 +224,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .replay-btn{padding:4px 12px;border-radius:100px;border:1px solid var(--purple);background:var(--purple-light);color:var(--purple);font-family:var(--font);font-size:.68rem;font-weight:700;cursor:pointer;transition:all .2s}
 .replay-btn:hover{background:var(--purple);color:#fff}
 
-/* ─── 2단계: 악기 만들기 ─── */
+/* ─── 단계 선택 바 (그림자 탭 공용) ─── */
 .snd-stage-bar{display:flex;gap:0;border-bottom:3px solid #EDE0F8;margin-bottom:22px}
 .snd-stage-btn{padding:9px 22px;background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-3px;font-family:var(--font);font-size:.9rem;font-weight:700;cursor:pointer;color:var(--text-sub);border-radius:6px 6px 0 0;transition:all .2s}
 .snd-stage-btn.active{color:var(--purple);border-bottom-color:var(--purple);background:var(--purple-light)}
@@ -534,8 +534,9 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('color')">&#x1f3a8; 색상 실험실</button>
-  <button class="tab-btn" onclick="switchTab('sound')">&#x1f3b5; 악기 만들기</button>
-  <button class="tab-btn" onclick="switchTab('harmony')">&#x1f3b9; 화음 감상실</button>
+  <button class="tab-btn" onclick="switchTab('sound')">&#x1f3b5; 소리 탐험실</button>
+  <button class="tab-btn" onclick="switchTab('instrument')">&#x1f3b9; 악기 제작실</button>
+  <button class="tab-btn" onclick="switchTab('harmony')">&#x1f3bc; 화음 감상실</button>
   <button class="tab-btn" onclick="switchTab('shadow')">&#x1F31F; 그림자와 비율</button>
 </div>
 
@@ -721,10 +722,6 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 
 <!-- ════════ 2. SOUND LAB ════════ -->
 <div class="lab" id="lab-sound">
-  <div class="snd-stage-bar">
-    <button class="snd-stage-btn active" id="sndStageBtn1" onclick="sndStage(1)">1단계: 소리 탐험</button>
-    <button class="snd-stage-btn" id="sndStageBtn2" onclick="sndStage(2)">2단계: 악기 만들기</button>
-  </div>
   <div id="sndS1">
     <div class="sndS1-layout">
       <div class="sndS1-col">
@@ -751,10 +748,11 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
       </div>
     </div>
     <div class="glass-reveal" id="glReveal" style="display:none">
-      <button class="act-btn" onclick="sndStage(2);instSet('panflute')" style="background:var(--teal);color:#fff;border:none;padding:12px 24px;font-size:1rem">다음: 악기 만들기 &#x2192;</button>
+      <button class="act-btn" onclick="switchTab('instrument');instSet('panflute')" style="background:var(--teal);color:#fff;border:none;padding:12px 24px;font-size:1rem">다음: 악기 제작실 &#x2192;</button>
     </div>
   </div>
-  <div id="sndS2" style="display:none">
+</div>
+<div class="lab" id="lab-instrument">
     <div class="inst-tabs">
       <button class="inst-tab-btn active" id="instBtn-panflute" onclick="instSet('panflute')">&#x1F3B5; 팬플룻</button>
       <button class="inst-tab-btn" id="instBtn-string" onclick="instSet('string')">&#x1F3B8; 현악기</button>
@@ -813,7 +811,6 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
         </div>
       </div>
     </div>
-  </div>
 </div>
 
 <!-- ════════ 화음 감상실 ════════ -->
@@ -1170,7 +1167,7 @@ function bootAuth() {
   if (saved && CODE_RE.test(saved.code)) { applyUser(saved.code, saved.name); Logger.startSession({ resume: true }); }
   else showLogin();
 }
-const ALL_TABS=['color','sound','harmony','shadow'];
+const ALL_TABS=['color','sound','instrument','harmony','shadow'];
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
@@ -1178,8 +1175,9 @@ function switchTab(t){
   document.querySelectorAll('.lab').forEach(l=>l.classList.remove('active'));
   $('lab-'+t).classList.add('active');
   if(snd.playing)stopSnd();
-  if(t!=='sound')glStopAll();
-  if(t==='sound'&&!$('gl1Row').children.length)glBuildS1();
+  if(t!=='sound'&&t!=='instrument')glStopAll();
+  if(t==='sound'&&!$('gl1Row').children.length){glBuildS1();glBuildDoremi();}
+  if(t==='instrument'&&!$('pfInst').children.length){initInst();instSet('panflute');}
   if(t==='harmony'){buildPiano();stopWaveAnim()};
   if(t==='shadow'){shadDraw()}
 }
@@ -1802,14 +1800,6 @@ function updateNoteMarkers(cid,curLen){
     t.classList.toggle('on',diff<0.6);
     t.classList.toggle('near',diff<2.8&&diff>=0.6);
   });
-}
-
-function sndStage(n){
-  $('sndS1').style.display=n===1?'':'none';
-  $('sndS2').style.display=n===2?'':'none';
-  $('sndStageBtn1').classList.toggle('active',n===1);
-  $('sndStageBtn2').classList.toggle('active',n===2);
-  if(n===2)initInst();
 }
 
 function harmStage(n){buildPiano();stopWaveAnim();}
