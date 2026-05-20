@@ -1107,6 +1107,63 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 <div id="reflectionContainer"></div>
 
 <script>
+/* ===== RatioSense Logger (microgenetic trial logging) ===== */
+const LOG_CFG = {
+  endpoint: '',           // 배포 후 Apps Script 웹 앱 URL로 교체
+  token: 'ratiosense-2026',
+  appVersion: 'dev',
+  batchSize: 10, batchMs: 5000, debounceMs: 400,
+  maxQueue: 500, lsKey: 'rs_logq', sessKey: 'rs_sess'
+};
+const Logger = (function () {
+  //__LOGGER_PURE_START__
+  function decideBatch(queueLen, msSinceLast, cfg) {
+    if (queueLen <= 0) return false;
+    return queueLen >= cfg.batchSize || msSinceLast >= cfg.batchMs;
+  }
+  function applyOverflow(queue, max) {
+    let dropped = 0;
+    while (queue.length > max) { queue.shift(); dropped++; }
+    return dropped;
+  }
+  function coalesce(points) {
+    const out = [];
+    for (const p of points) {
+      const last = out[out.length - 1];
+      if (last && JSON.stringify(last.state) === JSON.stringify(p.state)) out[out.length - 1] = p;
+      else out.push(p);
+    }
+    return out;
+  }
+  //__LOGGER_PURE_END__
+
+  let queue = [], seq = 0, sessionId = null, user = { code: '', name: '' };
+  let lastSend = Date.now(), sending = false, droppedTotal = 0;
+  const trials = {}; // trialId -> {points, debTimer, lastState}
+
+  function safe(fn) { try { return fn(); } catch (e) { /* 로깅은 절대 앱을 멈추지 않음 */ } }
+  function uuid() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function backup() { safe(() => localStorage.setItem(LOG_CFG.lsKey, JSON.stringify(queue))); }
+  function restore() { safe(() => { const s = localStorage.getItem(LOG_CFG.lsKey); if (s) queue = JSON.parse(s) || []; }); }
+
+  function enqueue(rec) {
+    safe(() => {
+      rec.schemaVersion = '1';
+      rec.sessionId = sessionId;
+      rec.userCode = user.code;
+      rec.userName = user.name;
+      rec.seq = ++seq;
+      rec.clientTs = new Date().toISOString();
+      queue.push(rec);
+      droppedTotal += applyOverflow(queue, LOG_CFG.maxQueue);
+      backup();
+      if (decideBatch(queue.length, Date.now() - lastSend, LOG_CFG)) flush();
+    });
+  }
+
+  return { _pure: { decideBatch, applyOverflow, coalesce }, _q: () => queue, enqueue, _uuid: uuid };
+})();
+
 // ━━━━━━ UTILS ━━━━━━
 function gcd(a,b){return b===0?a:gcd(b,a%b)}
 function simplify(a,b){const g=gcd(a,b);return[a/g,b/g]}
