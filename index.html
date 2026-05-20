@@ -1448,9 +1448,11 @@ function toggleBlindMode(){
   const lab=$('lab-color');
   if(col.blind){lab.classList.add('col-blind');$('colModeToggle').classList.remove('on');}
   else{lab.classList.remove('col-blind');$('colModeToggle').classList.add('on');$('discBanner').classList.remove('show');}
+  Logger.event('blind_toggle',{tab:'color',blind:col.blind});
 }
 function revealRatios(){
   col.discovered=true;
+  Logger.event('reveal',{tab:'color',task:col.task?col.task.id:null},{trialId:col.trialId,tab:'color'});
   if(col.blind){toggleBlindMode();}
   $('discBanner').classList.remove('show');
   boom('비밀 발견!','var(--teal)');
@@ -1496,6 +1498,7 @@ function pourColor(c,ml){
   d.style.left=c==='r'?'25%':c==='y'?'50%':'75%';d.style.top='0';
   $('beaker').appendChild(d);setTimeout(()=>d.remove(),600);
   updColor();checkStrategy();
+  if(col.trialId)Logger.trialState(col.trialId,{r:col.r,y:col.y,b:col.b,ratio:normRatio(col.r,col.y,col.b)});
 }
 function undoDrop(){if(!col.hist.length)return;const last=col.hist.pop();col[last.c]-=last.d;if(col[last.c]<0)col[last.c]=0;updColor()}
 function clearBeaker(){col.r=0;col.y=0;col.b=0;col.hist=[];updColor()}
@@ -1542,6 +1545,11 @@ function saveRecipe(){
   const sameRatioDiffAmount=m.length>=2&&new Set(m.map(x=>`${x.r}-${x.y}-${x.b}`)).size>=2;
   if(sameRatioDiffAmount){
     boom('같은 색!','var(--teal)');
+    if(col.task&&col.trialId){
+      const correct=(normRatio(col.r,col.y,col.b)===colTargetRatio());
+      Logger.endTrial(col.trialId,{outcome:correct?'correct':'wrong',finalState:{r:col.r,y:col.y,b:col.b,ratio:normRatio(col.r,col.y,col.b)}});
+      col.trialId=Logger.startTrial({tab:'color',activity:'color.equalize',task:col.task.id,attemptNo:(col.attempts[col.task.id]=(col.attempts[col.task.id]||1)+1)});
+    }
     if(col.blind&&!col.discovered){$('discBanner').classList.add('show');}
     else{fb('cFB','success','같은 색을 다른 양으로 만들었어요!')}
   }
