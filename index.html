@@ -1199,7 +1199,10 @@ function switchTab(t){
   $('lab-'+t).classList.add('active');
   if(snd.playing)stopSnd();
   if(t!=='sound'&&t!=='instrument')glStopAll();
-  if(t==='sound'&&!$('gl1Row').children.length){glBuildS1();glBuildDoremi();}
+  if(t==='sound'){
+    if(!$('gl1Row').children.length){glBuildS1();glBuildDoremi();}
+    if(!gl.exploreTrial)gl.exploreTrial=Logger.startTrial({tab:'sound',activity:'sound.explore',task:'explore'});
+  }
   if(t==='instrument'&&!$('pfInst').children.length){initInst();instSet('panflute');}
   if(t==='harmony'){buildPiano();stopWaveAnim()};
   if(t==='shadow'){shadDraw()}
@@ -1309,6 +1312,7 @@ function glS1Move(i,val){
   $('gl1P0').textContent=glS1Ml(val)+' mL';
   glPlayBrief(0,glFreq(val),400);
   gl.hist.push({h:val,t:Date.now()});
+  if(gl.exploreTrial)Logger.trialState(gl.exploreTrial,{height:val,freq:Math.round(glFreq(val))});
   gl.s1int++;
   if(val<=30)gl.lowSeen=true;
   if(val>=70)gl.highSeen=true;
@@ -1361,7 +1365,12 @@ function glBuildDoremi(){
   for(let i=0;i<8;i++)glDoremiUpdateDisplay(i);
 }
 function glDoremiSetCells(i,n){
+  if(!gl.doremiTuned[i]&&!gl.doremiTrial[i]){
+    gl.doremiAttempt[i]=(gl.doremiAttempt[i]||0)+1;
+    gl.doremiTrial[i]=Logger.startTrial({tab:'sound',activity:'sound.scale',task:'note_'+i,attemptNo:gl.doremiAttempt[i]});
+  }
   gl.doremi[i]=n;
+  if(gl.doremiTrial[i])Logger.trialState(gl.doremiTrial[i],{cells:n,note:SCALE_NOTES[i]});
   glDoremiUpdateDisplay(i);
   const freq=glDoremiFreqFromCells(n);
   if(freq)glPlayBrief(i,freq,450);
@@ -1386,14 +1395,19 @@ function glDoremiUpdateDisplay(i){
   const wasTuned=gl.doremiTuned[i];
   gl.doremiTuned[i]=tuned;
   if(tuned&&!wasTuned)boom(SCALE_NOTES[i]+' 완성!','var(--teal)');
+  if(tuned&&!wasTuned&&gl.doremiTrial[i]){
+    Logger.endTrial(gl.doremiTrial[i],{outcome:'correct',finalState:{cells:n,note:SCALE_NOTES[i]}});
+    gl.doremiTrial[i]=null;
+  }
   const done=gl.doremiTuned.filter(Boolean).length;
   const desc=$('glDoremiDesc');if(desc)desc.textContent=`각 컵의 칸을 맞춰 도레미파솔라시도를 완성하세요! (${done}/8 완성)`;
   const btn=$('glDoremiPlayAllBtn');if(btn)btn.disabled=(done!==8);
-  if(done===8)fb('glDoremiFB','success','🎉 도레미파솔라시도 완성! 전체 연주를 들어 보세요 🎶');
+  if(done===8){fb('glDoremiFB','success','🎉 도레미파솔라시도 완성! 전체 연주를 들어 보세요 🎶');if(!gl.scaleDone){gl.scaleDone=true;Logger.event('scale_complete',{tab:'sound'});}}
 }
 function glDoremiReset(){
   glStopAll();
-  for(let i=0;i<8;i++){gl.doremi[i]=0;gl.doremiTuned[i]=false;}
+  for(let i=0;i<8;i++){gl.doremi[i]=0;gl.doremiTuned[i]=false;gl.doremiTrial[i]=null;}
+  gl.scaleDone=false;
   $('glDoremiFB').innerHTML='';
   const btn=$('glDoremiPlayAllBtn');if(btn)btn.disabled=true;
   glBuildDoremi();
