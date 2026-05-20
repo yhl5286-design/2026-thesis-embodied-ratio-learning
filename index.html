@@ -503,6 +503,10 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .login-consent{font-size:.68rem;color:var(--text-sub);margin-top:12px;line-height:1.4}
 .user-chip{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--text-sub)}
 .user-chip button{font-size:.7rem;padding:4px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer}
+.col-task-bar{display:flex;align-items:center;gap:14px;background:var(--teal-light);border:2px solid var(--teal);border-radius:12px;padding:10px 14px;margin-bottom:12px;flex-wrap:wrap}
+.col-task-q{flex:1;font-size:.85rem;font-weight:700;color:var(--navy)}
+.col-task-target{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700}
+.col-task-swatch{width:30px;height:30px;border-radius:7px;border:2px solid #fff;box-shadow:0 0 0 1px #ccc}
 </style>
 </head>
 <body>
@@ -550,6 +554,11 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
       <span class="pip"></span>
       <span>🔢 숫자 보기</span>
     </button>
+  </div>
+  <div class="col-task-bar" id="colTaskBar" style="display:none">
+    <div class="col-task-q">미션: 아래 <b>기준 색</b>과 똑같은 색을 <b>다른 양</b>으로 만들어 보세요.</div>
+    <div class="col-task-target"><span>기준 색</span><span class="col-task-swatch" id="colTaskSwatch"></span></div>
+    <button class="act-btn" onclick="colTaskNext()">다른 미션 →</button>
   </div>
   <div class="discovery-banner" id="discBanner">
     <div class="discovery-banner-q">✨ 같은 색을 다른 양으로 만들었네요! 왜 같은 색일까요?</div>
@@ -1415,7 +1424,25 @@ function glS2Reset(){
 }
 
 // ━━━━━━ 1. COLOR LAB ━━━━━━
-const col={r:0,y:0,b:0,hist:[],recipes:[],interactions:0,dragLog:[],strategy:'explore',blind:true,discovered:false};
+const col={r:0,y:0,b:0,hist:[],recipes:[],interactions:0,dragLog:[],strategy:'explore',blind:true,discovered:false,
+  task:null,trialId:null,attempts:{}};
+const COLOR_TASKS=[
+  {id:'t_r2b3', label:'빨강:파랑 = 2:3', ryb:{r:2,y:0,b:3}},
+  {id:'t_r1b2', label:'빨강:파랑 = 1:2', ryb:{r:1,y:0,b:2}},
+  {id:'t_r3y1', label:'빨강:노랑 = 3:1', ryb:{r:3,y:1,b:0}},
+  {id:'t_r2y3', label:'빨강:노랑 = 2:3', ryb:{r:2,y:3,b:0}}
+];
+let colTaskIdx=-1;
+function colTaskStart(idx){
+  colTaskIdx=idx; const t=COLOR_TASKS[idx]; col.task=t;
+  $('colTaskBar').style.display='flex';
+  $('colTaskSwatch').style.background=rs(ryb2rgb(t.ryb.r,t.ryb.y,t.ryb.b));
+  col.attempts[t.id]=(col.attempts[t.id]||0)+1;
+  col.trialId=Logger.startTrial({tab:'color',activity:'color.equalize',task:t.id,attemptNo:col.attempts[t.id]});
+  clearBeaker();
+}
+function colTaskNext(){ colTaskStart((colTaskIdx+1)%COLOR_TASKS.length); }
+function colTargetRatio(){ const t=col.task; if(!t)return null; const v=t.ryb; const g=gcd(gcd(v.r||0,v.y||0),v.b||0)||1; return `${v.r/g}:${v.y/g}:${v.b/g}`; }
 function toggleBlindMode(){
   col.blind=!col.blind;
   const lab=$('lab-color');
