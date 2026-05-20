@@ -1279,6 +1279,37 @@ function boom(msg,clr){
   for(let i=0;i<14;i++){const s=document.createElement('div');s.className='sparkle';s.style.background=['var(--red)','var(--yellow)','var(--blue)','var(--teal)','var(--purple)','var(--gold)'][i%6];s.style.setProperty('--tx',(Math.random()-.5)*300+'px');s.style.setProperty('--ty',(Math.random()-.5)*300+'px');s.style.left='50%';s.style.top='50%';o.appendChild(s)}
   setTimeout(()=>o.innerHTML='',1200);
 }
+const CODE_RE = /^\d{1,2}-\d{1,2}-\d{1,2}$/;   // 학년-반-번호
+function showLogin() { $('loginOverlay').style.display = 'flex'; $('loginCode').focus(); }
+function hideLogin() { $('loginOverlay').style.display = 'none'; }
+function applyUser(code, name) {
+  Logger.setUser({ code, name });
+  $('userChipName').textContent = name + ' (' + code + ')';
+  $('userChip').style.display = 'flex';
+}
+function doLogin() {
+  const code = $('loginCode').value.trim(), name = $('loginName').value.trim();
+  if (!CODE_RE.test(code)) { $('loginErr').textContent = '코드 형식이 달라요. 예: 6-3-12'; return; }
+  if (name.length < 1) { $('loginErr').textContent = '이름을 적어 주세요.'; return; }
+  $('loginErr').textContent = '';
+  try { localStorage.setItem(LOG_CFG.sessKey, JSON.stringify({ code, name, ts: Date.now() })); } catch (e) {}
+  applyUser(code, name);
+  Logger.startSession();
+  hideLogin();
+}
+function logoutUser() {
+  try { localStorage.removeItem(LOG_CFG.sessKey); } catch (e) {}
+  Logger.event('logout', {});
+  Logger.flush(true);
+  $('userChip').style.display = 'none';
+  showLogin();
+}
+function bootAuth() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LOG_CFG.sessKey) || 'null'); } catch (e) {}
+  if (saved && CODE_RE.test(saved.code)) { applyUser(saved.code, saved.name); Logger.startSession({ resume: true }); }
+  else showLogin();
+}
 const ALL_TABS=['color','sound','harmony','similarity','masterpiece','shadow'];
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
@@ -3459,7 +3490,7 @@ function shadDraw(){
 }
 
 // ━━━━━━ INIT ━━━━━━
-Logger.init();bldWv();updColor();buildBeakerMarks();glBuildS1();glBuildDoremi();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();galBuild('sim');galBuild('art');
+Logger.init();bootAuth();bldWv();updColor();buildBeakerMarks();glBuildS1();glBuildDoremi();if($('mapCanvas'))drawMap();buildPiano();updatePianoInfo();galBuild('sim');galBuild('art');
 </script>
 </body>
 </html>
