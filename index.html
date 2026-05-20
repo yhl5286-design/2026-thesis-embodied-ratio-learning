@@ -1215,6 +1215,7 @@ function switchTab(t){
   if(t==='instrument'&&!$('pfInst').children.length){initInst();instSet('panflute');}
   if(t==='harmony'){buildPiano();stopWaveAnim()};
   if(t==='shadow'){shadDraw()}
+  if(t!=='instrument'&&geomungoTrial){Logger.endTrial(geomungoTrial,{outcome:'open',finalState:{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA))}});geomungoTrial=null;}
 }
 
 // ━━━━━━ 1.5 GLASS CUP SOUND EXPLORATION ━━━━━━
@@ -1856,6 +1857,11 @@ function instSet(name){
     $('inst-'+k).style.display=k===name?'':'none';
     $('instBtn-'+k).classList.toggle('active',k===name);
   });
+  if(name==='string'){
+    if(!geomungoTrial)geomungoTrial=Logger.startTrial({tab:'instrument',activity:'geomungo.play',task:'play'});
+  }else{
+    if(geomungoTrial){Logger.endTrial(geomungoTrial,{outcome:'open',finalState:{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA))}});geomungoTrial=null;}
+  }
 }
 
 // ── Pan Flute ──
@@ -2055,6 +2061,7 @@ function pfPlaySel(){
 
 // ── String Instrument (거문고) ──
 let strLenA=60,strLenB=40.1; // 도(60cm≈262Hz) : 솔(40.1cm≈392Hz) → 3:2 완전5도
+let geomungoTrial=null;
 let strDragging=null; // 'A' or 'B' or null
 
 function stringNote(ctx,freq,t,gain=0.18){
@@ -2230,6 +2237,7 @@ function strInitCanvas(){
       const len=+lenFromX(mx).toFixed(1);
       strLenA=Math.max(STR_MIN,Math.min(STR_MAX,len));
       strShowNote();strVibrate();strDrawCanvas();
+      if(geomungoTrial)Logger.trialState(geomungoTrial,{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA)),ratioToDo:geoRatioStr(strLenA)});
       initAud();stringNote(snd.ctx,strFreqFromLen(strLenA),snd.ctx.currentTime,0.08);
     }
   });
@@ -2240,6 +2248,7 @@ function strInitCanvas(){
     const len=+lenFromX(mx).toFixed(1);
     strLenA=Math.max(STR_MIN,Math.min(STR_MAX,len));
     strShowNote();strVibrate();strDrawCanvas();
+    if(geomungoTrial)Logger.trialState(geomungoTrial,{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA)),ratioToDo:geoRatioStr(strLenA)});
     initAud();stringNote(snd.ctx,strFreqFromLen(strLenA),snd.ctx.currentTime,0.08);
   });
   cv.addEventListener('pointerup',()=>dragging=false);
