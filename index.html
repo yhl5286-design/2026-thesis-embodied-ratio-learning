@@ -508,6 +508,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .col-task-target{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700}
 .col-task-swatch{width:30px;height:30px;border-radius:7px;border:2px solid #fff;box-shadow:0 0 0 1px #ccc}
 #lab-sound.snd-blind .gl-pct.gl-ml{display:none !important}
+#inst-string.geo-blind .geo-num{display:none !important}
+.geo-readout{text-align:center;font-size:.85rem;font-weight:800;color:var(--red);margin:6px 0}
 </style>
 </head>
 <body>
@@ -817,6 +819,12 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     <!-- 현악기 (거문고) -->
     <div id="inst-string" style="display:none">
       <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">거문고</span> 안족을 움직여 현의 울리는 길이를 바꿔요</div>
+      <div class="col-mode-bar">
+        <span class="col-mode-hint">🎵 안족을 움직여 소리가 어떻게 변하는지 먼저 느껴 보세요.</span>
+        <button class="col-mode-toggle" id="geoModeToggle" onclick="toggleGeoRatio()" title="길이·비율 보기 / 감추기">
+          <span class="pip"></span><span>📏 길이·비율 보기</span>
+        </button>
+      </div>
       <div class="geomungo-wrap">
         <canvas id="strCanvas" width="640" height="200"></canvas>
       </div>
@@ -824,10 +832,11 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
         <div class="str-info-card" style="border-color:var(--red)">
           <div class="str-info-label" style="color:var(--red)">현</div>
           <div class="str-info-note" style="color:var(--red)" id="strNameA">도</div>
-          <div class="str-info-hz" id="strHzA">262 Hz</div>
+          <div class="str-info-hz geo-num" id="strHzA">262 Hz</div>
           <button class="act-btn" style="margin-top:6px;font-size:.78rem;padding:6px 16px" onclick="strPlayOne('A')">▶ 듣기</button>
         </div>
       </div>
+      <div class="geo-readout geo-num" id="geoReadout">현 길이 —</div>
     </div>
 </div>
 
@@ -1206,6 +1215,7 @@ function switchTab(t){
   if(t==='instrument'&&!$('pfInst').children.length){initInst();instSet('panflute');}
   if(t==='harmony'){buildPiano();stopWaveAnim()};
   if(t==='shadow'){shadDraw()}
+  if(t!=='instrument'&&geomungoTrial){Logger.endTrial(geomungoTrial,{outcome:'open',finalState:{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA))}});geomungoTrial=null;}
 }
 
 // ━━━━━━ 1.5 GLASS CUP SOUND EXPLORATION ━━━━━━
@@ -1847,6 +1857,11 @@ function instSet(name){
     $('inst-'+k).style.display=k===name?'':'none';
     $('instBtn-'+k).classList.toggle('active',k===name);
   });
+  if(name==='string'){
+    if(!geomungoTrial)geomungoTrial=Logger.startTrial({tab:'instrument',activity:'geomungo.play',task:'play'});
+  }else{
+    if(geomungoTrial){Logger.endTrial(geomungoTrial,{outcome:'open',finalState:{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA))}});geomungoTrial=null;}
+  }
 }
 
 // ── Pan Flute ──
@@ -2046,6 +2061,7 @@ function pfPlaySel(){
 
 // ── String Instrument (거문고) ──
 let strLenA=60,strLenB=40.1; // 도(60cm≈262Hz) : 솔(40.1cm≈392Hz) → 3:2 완전5도
+let geomungoTrial=null;
 let strDragging=null; // 'A' or 'B' or null
 
 function stringNote(ctx,freq,t,gain=0.18){
@@ -2101,6 +2117,7 @@ function stringNote(ctx,freq,t,gain=0.18){
   lfo.start(t+0.05);lfo.stop(t+dur);
 }
 
+const strVib={amp:0,phase:0,raf:0};
 function strDrawCanvas(){
   const cv=$('strCanvas');if(!cv)return;
   const ctx=cv.getContext('2d');
@@ -2143,9 +2160,9 @@ function strDrawCanvas(){
     if(len<STR_MIN||len>STR_MAX)return;
     const p=(len-STR_MIN)/(STR_MAX-STR_MIN);
     const mx=nutX+p*(bridgeX-nutX);
-    ctx.fillStyle='rgba(255,200,60,.55)';
+    ctx.fillStyle='rgba(255,200,60,.30)';
     ctx.beginPath();ctx.arc(mx,by+bh-6,3,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,210,80,.9)';
+    ctx.fillStyle='rgba(255,210,80,.5)';
     ctx.font='bold 9px sans-serif';ctx.textAlign='center';
     ctx.fillText(XYLO_NAMES[i],mx,by+bh+14);
   });
@@ -2154,21 +2171,43 @@ function strDrawCanvas(){
   ctx.strokeStyle='rgba(120,80,30,.4)';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(nutX,strAY);ctx.lineTo(bridgeX,strAY);ctx.stroke();
 
-  // 현 울리는 구간 (빨강, 진하게)
+  // 현 울리는 구간 (빨강) — 진동 시 사인 곡선
   ctx.strokeStyle='#E74C3C';ctx.lineWidth=3;
-  ctx.beginPath();ctx.moveTo(nutX,strAY);ctx.lineTo(anjokAX,strAY);ctx.stroke();
+  ctx.beginPath();
+  if(strVib.amp>0.2){
+    const seg=anjokAX-nutX;
+    for(let x=nutX;x<=anjokAX;x+=3){
+      const u=(x-nutX)/Math.max(1,seg);
+      const y=strAY+strVib.amp*Math.sin(u*Math.PI)*Math.sin(u*Math.PI*6+strVib.phase);
+      if(x===nutX)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+  }else{
+    ctx.moveTo(nutX,strAY);ctx.lineTo(anjokAX,strAY);
+  }
+  ctx.stroke();
   ctx.strokeStyle='rgba(180,60,40,.25)';ctx.lineWidth=2;
   ctx.beginPath();ctx.moveTo(anjokAX,strAY);ctx.lineTo(bridgeX,strAY);ctx.stroke();
 
-  // 안족 (빨강 삼각형)
+  // 안족 (더 크고 또렷한 손잡이)
   ctx.fillStyle='#C0392B';
-  ctx.beginPath();ctx.moveTo(anjokAX-7,strAY-14);ctx.lineTo(anjokAX+7,strAY-14);ctx.lineTo(anjokAX,strAY+4);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(anjokAX-11,strAY-22);ctx.lineTo(anjokAX+11,strAY-22);ctx.lineTo(anjokAX,strAY+6);ctx.closePath();ctx.fill();
   ctx.fillStyle='#E74C3C';
-  ctx.beginPath();ctx.moveTo(anjokAX-5,strAY-12);ctx.lineTo(anjokAX+5,strAY-12);ctx.lineTo(anjokAX,strAY+2);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(anjokAX-8,strAY-19);ctx.lineTo(anjokAX+8,strAY-19);ctx.lineTo(anjokAX,strAY+2);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(anjokAX,strAY-13,2.5,0,Math.PI*2);ctx.fill();
 
-  // 길이 표시
-  ctx.fillStyle='rgba(231,76,60,.9)';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
-  ctx.fillText('현 길이: '+(strLenA).toFixed(1)+'cm',nutX+2,strAY-18);
+}
+
+function strVibrate(){
+  strVib.amp=7;
+  if(strVib.raf)return;
+  const step=()=>{
+    strVib.amp*=0.86; strVib.phase+=0.9;
+    strDrawCanvas();
+    if(strVib.amp>0.3){strVib.raf=requestAnimationFrame(step);}
+    else{strVib.amp=0;strVib.raf=0;strDrawCanvas();}
+  };
+  strVib.raf=requestAnimationFrame(step);
 }
 
 function roundRectPath(ctx,x,y,w,h,r){
@@ -2191,7 +2230,16 @@ function strInitCanvas(){
     const my=(e.clientY-rect.top)*(cv.height/rect.height);
     const pA=(strLenA-STR_MIN)/(STR_MAX-STR_MIN);
     const anjokAX=nutX+pA*(bridgeX-nutX);
-    if(Math.abs(mx-anjokAX)<18&&Math.abs(my-strAY)<22){dragging=true;cv.setPointerCapture(e.pointerId);}
+    const onString=(mx>=nutX-12&&mx<=bridgeX+12&&Math.abs(my-strAY)<cv.height*0.42);
+    if((Math.abs(mx-anjokAX)<40&&Math.abs(my-strAY)<cv.height*0.42)||onString){
+      dragging=true;cv.setPointerCapture(e.pointerId);
+      if(navigator.vibrate)navigator.vibrate(20);
+      const len=+lenFromX(mx).toFixed(1);
+      strLenA=Math.max(STR_MIN,Math.min(STR_MAX,len));
+      strShowNote();strVibrate();strDrawCanvas();
+      if(geomungoTrial)Logger.trialState(geomungoTrial,{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA)),ratioToDo:geoRatioStr(strLenA)});
+      initAud();stringNote(snd.ctx,strFreqFromLen(strLenA),snd.ctx.currentTime,0.08);
+    }
   });
   cv.addEventListener('pointermove',e=>{
     if(!dragging)return;
@@ -2199,7 +2247,8 @@ function strInitCanvas(){
     const mx=(e.clientX-rect.left)*(cv.width/rect.width);
     const len=+lenFromX(mx).toFixed(1);
     strLenA=Math.max(STR_MIN,Math.min(STR_MAX,len));
-    strShowNote();strDrawCanvas();
+    strShowNote();strVibrate();strDrawCanvas();
+    if(geomungoTrial)Logger.trialState(geomungoTrial,{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA)),ratioToDo:geoRatioStr(strLenA)});
     initAud();stringNote(snd.ctx,strFreqFromLen(strLenA),snd.ctx.currentTime,0.08);
   });
   cv.addEventListener('pointerup',()=>dragging=false);
@@ -2210,6 +2259,26 @@ function strShowNote(){
   const nn=nearestNote(freq);
   const nameEl=$('strNameA');if(nameEl)nameEl.textContent=nn.name;
   const hzEl=$('strHzA');if(hzEl)hzEl.textContent=freq.toFixed(0)+' Hz';
+  geoUpdateReadout();
+}
+
+function geoRatioStr(len){
+  const a=Math.round(len),b=60,g=gcd(a,b)||1;
+  return (a/g)+' : '+(b/g);
+}
+function geoUpdateReadout(){
+  const el=$('geoReadout');if(!el)return;
+  const len=strLenA, hz=Math.round(strFreqFromLen(len));
+  el.textContent=`현 길이 ${len.toFixed(1)}cm · 도 길이의 비 ${geoRatioStr(len)} · ${hz}Hz`;
+}
+
+let geoBlind=true;
+function toggleGeoRatio(){
+  geoBlind=!geoBlind;
+  const wrap=$('inst-string');
+  if(geoBlind){wrap.classList.add('geo-blind');$('geoModeToggle').classList.remove('on');}
+  else{wrap.classList.remove('geo-blind');$('geoModeToggle').classList.add('on');geoUpdateReadout();}
+  Logger.event('blind_toggle',{tab:'instrument',inst:'geomungo',blind:geoBlind});
 }
 
 function strPlayOne(){
@@ -2220,6 +2289,8 @@ function initInst(){
   pfBuild();buildPfUI();pfSelect(pfSel);
   strShowNote();
   strInitCanvas();strDrawCanvas();
+  $('inst-string').classList.add('geo-blind');
+  geoUpdateReadout();
 }
 
 // ━━━━━━ 2.5 HARMONY ROOM (화음 감상실) ━━━━━━
