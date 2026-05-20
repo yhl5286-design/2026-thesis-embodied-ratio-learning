@@ -1200,10 +1200,11 @@ function switchTab(t){
 const gl={
   stage:1,
   heights:[50,50,75],
-  h2:[0,0,0,0,0,0,0,0],
-  tuned:[false,false,false,false,false,false,false,false],
-  doremi:[0,0,0],
-  doremiTuned:[false,false,false],
+  doremi:[0,0,0,0,0,0,0,0],
+  doremiTuned:[false,false,false,false,false,false,false,false],
+  doremiTrial:[null,null,null,null,null,null,null,null],
+  doremiAttempt:[0,0,0,0,0,0,0,0],
+  lowSeen:false, highSeen:false, exploreTrial:null, makeUnlocked:false, scaleDone:false,
   ctx:null,comp:null,
   oscs:new Array(8).fill(null),
   gains:new Array(8).fill(null),
@@ -1269,7 +1270,7 @@ function glUpdateCup(i){
   const p=$('gl1P'+i);if(p)p.textContent=gl.heights[i]+'%';
   if(gl.oscs[i]&&gl.oscs[i].frequency)gl.oscs[i].frequency.setTargetAtTime(glFreq(gl.heights[i]),gl.ctx.currentTime,.02);
 }
-function glReset(){glStopAll();gl.heights=[50,50,75];gl.h2=[0,0,0,0,0,0,0,0];gl.tuned.fill(false);gl.s1int=0;glS1Reset();}
+function glReset(){glStopAll();gl.heights=[50,50,75];gl.doremi.fill(0);gl.doremiTuned.fill(false);gl.s1int=0;gl.lowSeen=false;gl.highSeen=false;glS1Reset();}
 // ── Stage 1 ──
 const GL_MAX_ML=200; // 컵 최대 용량(mL) — % × 2 = mL
 function glS1Ml(pct){return Math.round(pct*GL_MAX_ML/100)}
@@ -1366,67 +1367,7 @@ function glDoremiReset(){
 // ── Stage 2 ──
 const SCALE_CELLS=[8,7,6,5,4,3,2,1]; // 도→도↑: cells needed (out of 10)
 const GL_MAX_CELLS=10;
-function glBuildS2(){
-  $('gl2Row').innerHTML=SCALE_NOTES.map((note,i)=>{
-    const cells=Array.from({length:GL_MAX_CELLS},(_,j)=>{
-      const level=GL_MAX_CELLS-j; // clicking this row fills to 'level' cells
-      return `<div class="gl-cell" id="gl2Cell${i}_${j}" onclick="glS2SetCells(${i},${level})"></div>`;
-    }).join('');
-    return `<div class="gl-cup-unit" id="gl2C${i}">
-      <div class="gl-note">${note}</div>
-      <div class="gl-cell-cup" id="gl2CC${i}">${cells}</div>
-      <div class="gl-pct" id="gl2P${i}">0칸</div>
-      <div class="gl-tune-tag" id="gl2T${i}">눌러서 채워요</div>
-    </div>`;
-  }).join('');
-}
-function glS2SetCells(i,n){
-  n=Math.max(0,Math.min(GL_MAX_CELLS,n));
-  gl.h2[i]=n;
-  for(let j=0;j<GL_MAX_CELLS;j++){
-    const cell=document.getElementById('gl2Cell'+i+'_'+j);
-    if(cell)cell.classList.toggle('filled',GL_MAX_CELLS-j<=n);
-  }
-  $('gl2P'+i).textContent=n+'칸';
-  const tgt=SCALE_CELLS[i],was=gl.tuned[i];
-  gl.tuned[i]=(n===tgt);
-  const freq=gl.tuned[i]?SCALE_FREQ[i]:(n===0?null:glFreq(n/GL_MAX_CELLS*100));
-  if(freq)glPlayBrief(i,freq,450);
-  const tag=$('gl2T'+i),cup=$('gl2C'+i);
-  if(cup)cup.classList.toggle('tuned-unit',gl.tuned[i]);
-  if(tag){
-    if(gl.tuned[i]){tag.textContent='✓ '+SCALE_NOTES[i]+'!';tag.className='gl-tune-tag ok';if(!was)boom(SCALE_NOTES[i]+'!','var(--teal)');}
-    else if(n===0){tag.textContent='눌러서 채워요';tag.className='gl-tune-tag';}
-    else if(n<tgt){tag.textContent='↑ 칸을 더 채워요';tag.className='gl-tune-tag';}
-    else{tag.textContent='↓ 칸이 너무 많아요';tag.className='gl-tune-tag';}
-  }
-  glS2CheckAll();
-}
-function glS2CheckAll(){
-  const n=gl.tuned.filter(Boolean).length;
-  $('gl2Desc').textContent=`각 컵에 칸을 세어 도레미파솔라시도를 완성하세요! (${n}/8 완성)`;
-  if(n===8){$('gl2PlayAllBtn').disabled=false;fb('gl2FB','success','완벽해요! 도레미파솔라시도가 완성됐어요! 연주해 볼까요? 🎶');boom('도레미 완성! 🎶','var(--teal)')}
-}
-function glS2PlayScale(){
-  glStopAll();glInitAud();
-  const play=(i)=>{
-    if(i>=8)return;
-    glPlayHold(i,SCALE_FREQ[i]);
-    const cup=$('gl2CC'+i);if(cup)cup.style.filter='brightness(1.3)';
-    setTimeout(()=>{glPlayStopOne(i);if(cup)cup.style.filter='';setTimeout(()=>play(i+1),150)},550);
-  };
-  play(0);
-}
-function glS2Reset(){
-  glStopAll();gl.h2=[0,0,0,0,0,0,0,0];gl.tuned.fill(false);
-  $('gl2PlayAllBtn').disabled=true;$('gl2FB').innerHTML='';
-  $('gl2Desc').textContent='각 컵에 칸을 세어 도레미파솔라시도를 완성하세요! (0/8 완성)';
-  for(let i=0;i<8;i++){
-    for(let j=0;j<GL_MAX_CELLS;j++){const c=document.getElementById('gl2Cell'+i+'_'+j);if(c)c.classList.remove('filled');}
-    $('gl2P'+i).textContent='0칸';const t=$('gl2T'+i);if(t){t.textContent='눌러서 채워요';t.className='gl-tune-tag';}
-    const cup=$('gl2C'+i);if(cup)cup.classList.remove('tuned-unit');
-  }
-}
+
 
 // ━━━━━━ 1. COLOR LAB ━━━━━━
 const col={r:0,y:0,b:0,hist:[],recipes:[],interactions:0,dragLog:[],strategy:'explore',blind:true,discovered:false,
