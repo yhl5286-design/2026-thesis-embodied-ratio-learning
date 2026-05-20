@@ -2211,7 +2211,15 @@ function strInitCanvas(){
     const my=(e.clientY-rect.top)*(cv.height/rect.height);
     const pA=(strLenA-STR_MIN)/(STR_MAX-STR_MIN);
     const anjokAX=nutX+pA*(bridgeX-nutX);
-    if(Math.abs(mx-anjokAX)<18&&Math.abs(my-strAY)<22){dragging=true;cv.setPointerCapture(e.pointerId);}
+    const onString=(mx>=nutX-12&&mx<=bridgeX+12&&Math.abs(my-strAY)<cv.height*0.42);
+    if((Math.abs(mx-anjokAX)<40&&Math.abs(my-strAY)<cv.height*0.42)||onString){
+      dragging=true;cv.setPointerCapture(e.pointerId);
+      if(navigator.vibrate)navigator.vibrate(20);
+      const len=+lenFromX(mx).toFixed(1);
+      strLenA=Math.max(STR_MIN,Math.min(STR_MAX,len));
+      strShowNote();strVibrate();strDrawCanvas();
+      initAud();stringNote(snd.ctx,strFreqFromLen(strLenA),snd.ctx.currentTime,0.08);
+    }
   });
   cv.addEventListener('pointermove',e=>{
     if(!dragging)return;
@@ -2219,7 +2227,7 @@ function strInitCanvas(){
     const mx=(e.clientX-rect.left)*(cv.width/rect.width);
     const len=+lenFromX(mx).toFixed(1);
     strLenA=Math.max(STR_MIN,Math.min(STR_MAX,len));
-    strShowNote();strDrawCanvas();
+    strShowNote();strVibrate();strDrawCanvas();
     initAud();stringNote(snd.ctx,strFreqFromLen(strLenA),snd.ctx.currentTime,0.08);
   });
   cv.addEventListener('pointerup',()=>dragging=false);
