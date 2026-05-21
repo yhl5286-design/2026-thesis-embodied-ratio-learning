@@ -1885,7 +1885,15 @@ function updateNoteMarkers(cid,curLen){
   });
 }
 
-function harmStage(n){buildPiano();stopWaveAnim();}
+function harmStage(n){
+  stopWaveAnim();
+  $('harmStageBtn1').classList.toggle('active',n===1);
+  $('harmStageBtn2').classList.toggle('active',n===2);
+  $('harmS2').style.display=n===1?'':'none';
+  $('harmStageTwo').style.display=n===2?'':'none';
+  if(n===1){buildPiano();updatePianoInfo();}
+  else{buildCmp2();updateCmp2Info();}
+}
 
 function instSet(name){
   ['panflute','string'].forEach(k=>{
@@ -2378,6 +2386,45 @@ function buildPiano(){
     });
     wrap.appendChild(el);
   }
+}
+let cmpA=2, cmpB=4; // 기본 미(2) vs 솔(4)
+function buildCmpRow(wrapId,selKey){
+  const wrap=$(wrapId);if(!wrap)return;wrap.innerHTML='';
+  const cur=(selKey==='A')?cmpA:cmpB;
+  for(let i=0;i<PKEYS.length;i++){
+    const k=PKEYS[i],freq=pianoFreq(i);
+    const el=document.createElement('div');
+    el.className='piano-key'+(i===cur?' pk-sel':'');
+    el.innerHTML=`<div class="pk-note" style="color:${k.color}">${k.name}</div><div class="pk-hz">${freq.toFixed(0)}Hz</div><div class="pk-ratio">${k.ratio[0]}:${k.ratio[1]}</div>`;
+    el.addEventListener('click',()=>{
+      pianoPlayNote(freq,.7);
+      el.classList.remove('pk-press');void el.offsetWidth;el.classList.add('pk-press');
+      if(selKey==='A')cmpA=i;else cmpB=i;
+      buildCmp2();updateCmp2Info();setWaveTwo(cmpA,cmpB);drawWaveAnim();
+    });
+    wrap.appendChild(el);
+  }
+}
+function buildCmp2(){buildCmpRow('pianoKeysA','A');buildCmpRow('pianoKeysB','B');}
+function cmp2PlayTogether(){const fa=pianoFreq(cmpA),fb=pianoFreq(cmpB);pianoPlayTwo(fa,fb,1.5);setWaveTwo(cmpA,cmpB);drawWaveAnim();}
+async function cmp2PlaySeq(){const fa=pianoFreq(cmpA),fb=pianoFreq(cmpB);pianoPlayNote(fa,.6);await new Promise(r=>setTimeout(r,700));pianoPlayNote(fb,.6);}
+function cmp2Ratio(){const A=PKEYS[cmpA].ratio,B=PKEYS[cmpB].ratio;return reduceRatio(A[0]*B[1],B[0]*A[1]);}
+function updateCmp2Info(){
+  const info=$('cmp2Info');if(!info)return;
+  const a=PKEYS[cmpA],b=PKEYS[cmpB],fa=pianoFreq(cmpA),fb=pianoFreq(cmpB);
+  const [r1,r2]=cmp2Ratio();const {stars,level}=rateRatio(r1,r2);
+  const starStr='★'.repeat(stars)+'☆'.repeat(5-stars);
+  if($('cmp2Leg1n'))$('cmp2Leg1n').textContent=a.name;
+  if($('cmp2Leg2n'))$('cmp2Leg2n').textContent=b.name;
+  if($('cmp2Leg1'))$('cmp2Leg1').style.background=a.color;
+  if($('cmp2Leg2'))$('cmp2Leg2').style.background=b.color;
+  info.innerHTML=`<div class="hi-title">${a.name} vs ${b.name}</div>
+    <div class="hi-ratio-big">${r1} : ${r2}</div>
+    <div class="star-rating">${starStr} ${level}</div>
+    <div class="hi-detail" style="margin-top:8px">
+      <strong>${a.name}:</strong> ${fa.toFixed(0)}Hz &nbsp; <strong>${b.name}:</strong> ${fb.toFixed(0)}Hz
+    </div>`;
+  if(harmBlind && !harmDiscovered && stars>=4){const bn=$('harmDiscBanner');if(bn)bn.classList.add('show');}
 }
 let harmBlind=true, harmDiscovered=false;
 function toggleHarmBlind(){
