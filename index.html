@@ -884,7 +884,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
             비율이 <strong>단순할수록</strong>(숫자가 작을수록) 두 파형이 <strong>자주 만나고</strong> 규칙적으로 반복돼요.<br>
             &#x2192; 그래서 <strong>잘 어울리는 소리</strong>가 됩니다!<br><br>
             예: <strong>도:솔 = 2:3</strong> → 도가 2번 진동할 때 솔이 3번 → 자주 만남 → 아주 잘 어울림!<br>
-            예: <strong>도:시 = 128:243</strong> → 거의 안 만남 → 잘 안 어울림
+            예: <strong>도:시 = 8:15</strong> → 거의 안 만남 → 잘 안 어울림
           </div>
         </div>
       </div>
@@ -2298,14 +2298,14 @@ const C4=261.63;
 const PKEYS=[
   {name:'도',en:'C',ratio:[1,1],color:'#E74C3C'},
   {name:'레',en:'D',ratio:[9,8],color:'#E67E22'},
-  {name:'미',en:'E',ratio:[81,64],color:'#F1C40F'},
+  {name:'미',en:'E',ratio:[5,4],color:'#F1C40F'},
   {name:'파',en:'F',ratio:[4,3],color:'#27AE60'},
   {name:'솔',en:'G',ratio:[3,2],color:'#2980B9'},
-  {name:'라',en:'A',ratio:[27,16],color:'#8E44AD'},
-  {name:'시',en:'B',ratio:[243,128],color:'#E74C3C'},
+  {name:'라',en:'A',ratio:[5,3],color:'#8E44AD'},
+  {name:'시',en:'B',ratio:[15,8],color:'#E74C3C'},
   {name:'높은도',en:'C5',ratio:[2,1],color:'#C0392B'},
 ];
-const INTERVALS={'1:1':'같은음','9:8':'장2도','81:64':'장3도','4:3':'완전4도','3:2':'완전5도','27:16':'장6도','243:128':'장7도','2:1':'옥타브'};
+const INTERVALS={'1:1':'같은음','9:8':'장2도','5:4':'장3도','4:3':'완전4도','3:2':'완전5도','5:3':'장6도','15:8':'장7도','2:1':'옥타브'};
 let pianoSel=4; // default: 솔
 let waveAnimId=null;
 
@@ -2357,23 +2357,16 @@ function revealHarmRatios(){
   $('harmDiscBanner').classList.remove('show');
   boom('비밀 발견!','var(--purple)');
 }
-// Consonance rating by musical interval category (Pythagorean ratios have complex sums
-// but thirds/sixths are still perceptually consonant — sum-based rating misclassifies them)
-const CONSONANCE={
-  '1:1':   {stars:5,level:'완벽한 어울림'},
-  '2:1':   {stars:5,level:'완벽한 어울림'},
-  '3:2':   {stars:5,level:'아주 잘 어울림'},
-  '4:3':   {stars:4,level:'잘 어울림'},
-  '81:64': {stars:4,level:'잘 어울림'},
-  '27:16': {stars:4,level:'잘 어울림'},
-  '9:8':   {stars:2,level:'약한 어울림'},
-  '243:128':{stars:1,level:'잘 안 어울림'},
-};
-function consonanceOf(rp,rq){
-  const c=CONSONANCE[`${rp}:${rq}`];
-  if(c)return c;
-  return {stars:3,level:'보통'};
+function rateRatio(a,b){
+  const m=Math.max(a,b);
+  if(m<=2) return {stars:5,level:'완벽한 어울림'};
+  if((a===2&&b===3)||(a===3&&b===2)) return {stars:5,level:'아주 잘 어울림'};
+  if(m<=6) return {stars:4,level:'잘 어울림'};
+  if(m<=10) return {stars:3,level:'보통'};
+  if(m<=16) return {stars:2,level:'약한 어울림'};
+  return {stars:1,level:'잘 안 어울림'};
 }
+function reduceRatio(p,q){const g=gcd(p,q)||1;return [p/g,q/g];}
 function updatePianoInfo(){
   const info=$('pianoInfo'),k=PKEYS[pianoSel],freq=pianoFreq(pianoSel);
   const rk=`${k.ratio[0]}:${k.ratio[1]}`,intv=INTERVALS[rk]||'';
