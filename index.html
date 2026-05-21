@@ -2371,7 +2371,8 @@ function updatePianoInfo(){
   const info=$('pianoInfo'),k=PKEYS[pianoSel],freq=pianoFreq(pianoSel);
   const rk=`${k.ratio[0]}:${k.ratio[1]}`,intv=INTERVALS[rk]||'';
   // Consonance analysis (interval-name based)
-  const {stars,level}=consonanceOf(k.ratio[0],k.ratio[1]);
+  const [cp,cq]=reduceRatio(k.ratio[0],k.ratio[1]);
+  const {stars,level}=rateRatio(cp,cq);
   const starStr='\u2605'.repeat(stars)+'\u2606'.repeat(5-stars);
   info.innerHTML=`<div class="hi-title">도 vs ${k.name}(${k.en})</div>
     <div class="hi-ratio-big">${k.ratio[0]} : ${k.ratio[1]}</div>
