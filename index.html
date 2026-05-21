@@ -1248,7 +1248,8 @@ function switchTab(t){
     if(!gl.exploreTrial)gl.exploreTrial=Logger.startTrial({tab:'sound',activity:'sound.explore',task:'explore'});
   }
   if(t==='instrument'&&!$('pfInst').children.length){initInst();instSet('panflute');}
-  if(t==='harmony'){buildPiano();stopWaveAnim()};
+  if(t==='harmony'){buildPiano();stopWaveAnim();if(!harmTrial)harmStartTrial(1);}
+  if(t!=='harmony')harmEndTrial();
   if(t==='shadow'){shadDraw()}
   if(t!=='instrument'&&geomungoTrial){Logger.endTrial(geomungoTrial,{outcome:'open',finalState:{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA))}});geomungoTrial=null;}
 }
@@ -1893,6 +1894,7 @@ function harmStage(n){
   $('harmStageTwo').style.display=n===2?'':'none';
   if(n===1){buildPiano();updatePianoInfo();}
   else{buildCmp2();updateCmp2Info();}
+  harmStartTrial(n);
 }
 
 function instSet(name){
@@ -2350,6 +2352,12 @@ const PKEYS=[
 ];
 const INTERVALS={'1:1':'같은음','9:8':'장2도','5:4':'장3도','4:3':'완전4도','3:2':'완전5도','5:3':'장6도','15:8':'장7도','2:1':'옥타브'};
 let pianoSel=4; // default: 솔
+let harmTrial=null;
+function harmEndTrial(){ if(harmTrial){Logger.endTrial(harmTrial,{outcome:'open'});harmTrial=null;} }
+function harmStartTrial(stage){
+  harmEndTrial();
+  harmTrial=Logger.startTrial({tab:'harmony',activity:stage===2?'harmony.compare2':'harmony.base',task:stage===2?'compare':'base'});
+}
 let waveAnimId=null;
 
 function pianoFreq(i){return C4*PKEYS[i].ratio[0]/PKEYS[i].ratio[1]}
@@ -2425,6 +2433,7 @@ function updateCmp2Info(){
       <strong>${a.name}:</strong> ${fa.toFixed(0)}Hz &nbsp; <strong>${b.name}:</strong> ${fb.toFixed(0)}Hz
     </div>`;
   if(harmBlind && !harmDiscovered && stars>=4){const bn=$('harmDiscBanner');if(bn)bn.classList.add('show');}
+  if(harmTrial)Logger.trialState(harmTrial,{a:a.name,b:b.name,ratio:r1+':'+r2,stars});
 }
 let harmBlind=true, harmDiscovered=false;
 function toggleHarmBlind(){
@@ -2432,6 +2441,7 @@ function toggleHarmBlind(){
   const lab=$('lab-harmony');
   if(harmBlind){lab.classList.add('harm-blind');$('harmModeToggle').classList.remove('on');}
   else{lab.classList.remove('harm-blind');$('harmModeToggle').classList.add('on');$('harmDiscBanner').classList.remove('show');}
+  Logger.event('blind_toggle',{tab:'harmony',blind:harmBlind});
 }
 function revealHarmRatios(){
   harmDiscovered=true;
@@ -2467,6 +2477,7 @@ function updatePianoInfo(){
   if(harmBlind && !harmDiscovered && stars>=4 && pianoSel!==0){
     const b=$('harmDiscBanner');if(b)b.classList.add('show');
   }
+  if(harmTrial){const [p,q]=reduceRatio(k.ratio[0],k.ratio[1]);Logger.trialState(harmTrial,{base:'도',other:k.name,ratio:p+':'+q,stars});}
 }
 function resetPiano(){pianoSel=4;buildPiano();updatePianoInfo();stopWaveAnim();$('waveCard').style.display='none';$('waveExplain').style.display='none'}
 
