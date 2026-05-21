@@ -2354,7 +2354,7 @@ function pianoPlayNote(freq,dur){
 function pianoPlayTwo(f1,f2,dur){pianoPlayNote(f1,dur);pianoPlayNote(f2,dur)}
 function pianoPlayTogether(){
   const f1=C4,f2=pianoFreq(pianoSel);
-  pianoPlayTwo(f1,f2,1.5);drawWaveAnim();
+  pianoPlayTwo(f1,f2,1.5);setWaveFromKey(pianoSel);drawWaveAnim();
 }
 async function pianoPlaySeq(){
   const f1=C4,f2=pianoFreq(pianoSel);
@@ -2373,7 +2373,7 @@ function buildPiano(){
     el.addEventListener('click',()=>{
       pianoPlayNote(freq,.7);
       el.classList.remove('pk-press');void el.offsetWidth;el.classList.add('pk-press');
-      if(i!==0){pianoSel=i;buildPiano();updatePianoInfo();drawWaveAnim()}
+      if(i!==0){pianoSel=i;buildPiano();updatePianoInfo();setWaveFromKey(pianoSel);drawWaveAnim()}
       else updatePianoInfo();
     });
     wrap.appendChild(el);
@@ -2425,92 +2425,90 @@ function resetPiano(){pianoSel=4;buildPiano();updatePianoInfo();stopWaveAnim();$
 
 // Wave animation
 function stopWaveAnim(){if(waveAnimId){cancelAnimationFrame(waveAnimId);waveAnimId=null}}
+let waveState=null; // {f1,f2,rp,rq,n1,n2,c1,c2,canvasId,explainId,cardId}
+function setWaveFromKey(i){
+  const k=PKEYS[i];
+  waveState={f1:1,f2:k.ratio[0]/k.ratio[1],rp:k.ratio[0],rq:k.ratio[1],
+    n1:'도',n2:k.name,c1:'#E74C3C',c2:k.color,
+    canvasId:'waveCanvas',explainId:'waveExplain',cardId:'waveCard'};
+}
+function setWaveTwo(iA,iB){
+  const fA=pianoFreq(iA),fB=pianoFreq(iB);
+  const loI=fA<=fB?iA:iB, hiI=fA<=fB?iB:iA;
+  const lo=Math.min(fA,fB), hi=Math.max(fA,fB);
+  const loR=PKEYS[loI].ratio, hiR=PKEYS[hiI].ratio;
+  const [rp,rq]=reduceRatio(hiR[0]*loR[1], hiR[1]*loR[0]); // 높은음 rp번 : 낮은음 rq번
+  waveState={f1:1,f2:hi/lo,rp,rq,
+    n1:PKEYS[loI].name,n2:PKEYS[hiI].name,c1:PKEYS[loI].color,c2:PKEYS[hiI].color,
+    canvasId:'waveCanvas2',explainId:'waveExplain2',cardId:'waveCard2'};
+}
 function drawWaveAnim(){
   stopWaveAnim();
-  const canvas=$('waveCanvas'),card=$('waveCard'),explEl=$('waveExplain');
+  if(!waveState)return;
+  const canvas=$(waveState.canvasId),card=$(waveState.cardId),explEl=$(waveState.explainId);
+  if(!canvas||!card||!explEl)return;
   card.style.display='block';explEl.style.display='block';
   const rect=canvas.parentElement.getBoundingClientRect();
   const dpr=2,H=180;
   canvas.width=rect.width*dpr;canvas.height=H*dpr;
   canvas.style.width=rect.width+'px';canvas.style.height=H+'px';
-
-  const k=PKEYS[pianoSel];
-  const f1=1,f2=k.ratio[0]/k.ratio[1];
+  const f1=waveState.f1,f2=waveState.f2,rp=waveState.rp,rq=waveState.rq;
   const cycles=4,startTime=performance.now();
   const P1=1500,P2=3000,TOTAL=15000;
-  const[rp,rq]=k.ratio;
   const periodW=(rq/cycles)*rect.width;
-
   function animate(now){
     const elapsed=now-startTime;
     const ctx=canvas.getContext('2d');
     ctx.setTransform(dpr,0,0,dpr,0,0);
     const W=rect.width,mid=H/2,amp=H*.18;
     ctx.clearRect(0,0,W,H);
-    // center line
     ctx.strokeStyle='#eee';ctx.lineWidth=1;ctx.setLineDash([4,4]);
     ctx.beginPath();ctx.moveTo(0,mid);ctx.lineTo(W,mid);ctx.stroke();ctx.setLineDash([]);
-
     const reveal1=Math.min(1,elapsed/P1);
     const reveal2=elapsed<P1?0:Math.min(1,(elapsed-P1)/(P2-P1));
     const flowPhase=elapsed<P2?0:((elapsed-P2)/600)*Math.PI*2;
     const flowing=elapsed>=P2;
-
-    // Repeat period highlight
     if(flowing&&periodW>20&&periodW<=W){
       ctx.fillStyle='rgba(142,68,173,.06)';ctx.fillRect(0,8,periodW,H-36);
       ctx.strokeStyle='rgba(142,68,173,.3)';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
       ctx.beginPath();ctx.moveTo(periodW,8);ctx.lineTo(periodW,H-28);ctx.stroke();ctx.setLineDash([]);
     }
-    // Wave 1 (도)
     const dw1=flowing?W:Math.floor(W*reveal1);
-    if(dw1>0){ctx.strokeStyle='#E74C3C';ctx.lineWidth=2.5;ctx.beginPath();
-      for(let x=0;x<=dw1;x++){const t=(x/W)*cycles*2*Math.PI-flowPhase*f1;const y=mid-amp*Math.sin(t);x===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke()}
-    // Wave 2
+    if(dw1>0){ctx.strokeStyle=waveState.c1;ctx.lineWidth=2.5;ctx.beginPath();
+      for(let x=0;x<=dw1;x++){const t=(x/W)*cycles*2*Math.PI*f1-flowPhase*f1;const y=mid-amp*Math.sin(t);x===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke()}
     const dw2=flowing?W:Math.floor(W*reveal2);
-    if(dw2>0){ctx.strokeStyle='#2980B9';ctx.lineWidth=2.5;ctx.beginPath();
+    if(dw2>0){ctx.strokeStyle=waveState.c2;ctx.lineWidth=2.5;ctx.beginPath();
       for(let x=0;x<=dw2;x++){const t=(x/W)*cycles*2*Math.PI*f2-flowPhase*f2;const y=mid-amp*Math.sin(t);x===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke()}
-    // Meeting points
     if(flowing){
       const meets=[];
       for(let x=0;x<W;x+=2){
-        const t1=(x/W)*cycles*2*Math.PI-flowPhase*f1;
+        const t1=(x/W)*cycles*2*Math.PI*f1-flowPhase*f1;
         const t2=(x/W)*cycles*2*Math.PI*f2-flowPhase*f2;
         if(Math.abs(Math.sin(t1))<.22&&Math.abs(Math.sin(t2))<.22){
           if(!meets.length||x-meets[meets.length-1]>15)meets.push(x)}
       }
       ctx.fillStyle='rgba(0,184,148,.3)';ctx.strokeStyle='#00B894';ctx.lineWidth=1.5;
       for(const mx of meets){ctx.beginPath();ctx.arc(mx,mid,5,0,Math.PI*2);ctx.fill();ctx.stroke()}
-      // Repeat bracket
       if(periodW>20&&periodW<=W){
         const by=H-22;ctx.strokeStyle='#7c6fe0';ctx.lineWidth=2;
         ctx.beginPath();ctx.moveTo(4,by);ctx.lineTo(4,by+12);ctx.lineTo(periodW-4,by+12);ctx.lineTo(periodW-4,by);ctx.stroke();
         ctx.font='bold 10px sans-serif';ctx.fillStyle='#7c6fe0';ctx.textAlign='center';
-        ctx.fillText(`도 ${rq}번 = ${k.name} ${rp}번 → 반복!`,periodW/2,by+11);ctx.textAlign='left';
+        ctx.fillText(`${waveState.n1} ${rq}번 = ${waveState.n2} ${rp}번 → 반복!`,periodW/2,by+11);ctx.textAlign='left';
       }
       ctx.font='bold 10px sans-serif';ctx.textAlign='right';ctx.fillStyle='#00B894';ctx.globalAlpha=.8;
       ctx.fillText(`만남점 ${meets.length}개`,W-8,16);ctx.textAlign='left';ctx.globalAlpha=1;
     }
-    // Labels
     ctx.font='bold 11px sans-serif';ctx.globalAlpha=.7;
-    if(reveal1>.1){ctx.fillStyle='#E74C3C';ctx.fillText('도',8,16)}
-    if(reveal2>.1){ctx.fillStyle='#2980B9';ctx.fillText(k.name,8,30)}
+    if(reveal1>.1){ctx.fillStyle=waveState.c1;ctx.fillText(waveState.n1,8,16)}
+    if(reveal2>.1){ctx.fillStyle=waveState.c2;ctx.fillText(waveState.n2,8,30)}
     ctx.globalAlpha=1;
     if(elapsed<TOTAL)waveAnimId=requestAnimationFrame(animate);
   }
   waveAnimId=requestAnimationFrame(animate);
-
-  // Update explanation (interval-name based, matches updatePianoInfo)
-  const cons=consonanceOf(rp,rq);
+  const cons=rateRatio(rp,rq);
   const starsTxt='⭐'.repeat(cons.stars)+'☆'.repeat(5-cons.stars);
-  let desc;
-  if(rp===1&&rq===1)desc='같은 음이에요! 파형이 완전히 겹쳐요.';
-  else if(rp===2&&rq===1)desc=`옥타브! ${k.name}이 도보다 정확히 2배 빨라요. 파형이 매우 규칙적으로 만나요.`;
-  else if(rp===3&&rq===2)desc=`도가 ${rq}번 진동할 때 ${k.name}은 ${rp}번 진동해요. 자주 만나서 아주 잘 어울려요!`;
-  else if(rp===4&&rq===3)desc=`도가 ${rq}번 진동할 때 ${k.name}은 ${rp}번 진동해요. 규칙적으로 만나서 잘 어울려요!`;
-  else if((rp===81&&rq===64)||(rp===27&&rq===16))desc=`피타고라스 ${INTERVALS[rp+':'+rq]}예요. 비는 복잡해 보이지만 음악적으로 잘 어울리는 음정이에요.`;
-  else if(rp===9&&rq===8)desc=`도가 ${rq}번 진동해야 ${k.name}이 ${rp}번 진동해요. 만남 간격이 넓어 어울림이 약해요.`;
-  else desc=`도가 ${rq}번이나 진동해야 ${k.name}이 ${rp}번 진동해요. 거의 안 만나서 규칙이 잘 안 보여요.`;
+  const desc = rp===rq ? '같은 음이에요! 파형이 완전히 겹쳐요.'
+    : `${waveState.n1}이 ${rq}번 진동할 때 ${waveState.n2}이 ${rp}번 진동해요. 비가 단순할수록 자주 만나 잘 어울려요.`;
   explEl.innerHTML=`<div style="font-size:1rem;margin-bottom:6px">${starsTxt} <strong>어울림 분석</strong></div>
     <div>${desc}</div>
     <div style="margin-top:8px;font-size:.78rem;color:var(--text-sub)">
