@@ -853,6 +853,10 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     <div class="discovery-banner-q">✨ 이 두 음이 잘 어울리네요! 왜 그럴까요?</div>
     <button class="discovery-banner-btn" onclick="revealHarmRatios()">👀 비밀 풀어보기 — 주파수·비율 보기</button>
   </div>
+  <div class="snd-stage-bar">
+    <button class="snd-stage-btn active" id="harmStageBtn1" onclick="harmStage(1)">1단계: 도와 비교</button>
+    <button class="snd-stage-btn" id="harmStageBtn2" onclick="harmStage(2)">2단계: 두 음 비교</button>
+  </div>
   <div id="harmS2">
     <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">화음 감상실</span> 기본음 '도'와 다른 음을 비교해 보세요</div>
     <div class="harmony-layout">
@@ -887,6 +891,37 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
             예: <strong>도:시 = 8:15</strong> → 거의 안 만남 → 잘 안 어울림
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  <div id="harmStageTwo" style="display:none">
+    <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">두 음 비교</span> 서로 다른 두 음(예: 미·솔)을 골라 어울림을 비교해요</div>
+    <div class="harmony-layout">
+      <div>
+        <div class="hi-detail" style="font-weight:700;margin:4px 0 2px">🎵 첫 번째 음</div>
+        <div class="piano-wrap" id="pianoKeysA"></div>
+        <div class="hi-detail" style="font-weight:700;margin:10px 0 2px">🎵 두 번째 음</div>
+        <div class="piano-wrap" id="pianoKeysB"></div>
+        <div class="harmony-btns">
+          <button class="hm-btn hm-btn-purple" onclick="cmp2PlayTogether()">&#x1F3B6; 함께 듣기</button>
+          <button class="hm-btn hm-btn-teal" onclick="cmp2PlaySeq()">&#x27A1; 순서대로 듣기</button>
+        </div>
+        <div class="harmony-info" id="cmp2Info">
+          <div class="hi-title">두 음을 골라 보세요!</div>
+          <div class="hi-detail">첫 음과 둘째 음을 선택하면<br>두 음의 비율과 어울림을 볼 수 있어요.</div>
+        </div>
+      </div>
+      <div>
+        <div class="stitle"><span class="badge" style="background:var(--teal-light);color:var(--teal)">파형</span> 두 소리의 파형을 비교해요</div>
+        <div class="wave-card" id="waveCard2" style="display:none">
+          <canvas class="wave-canvas" id="waveCanvas2" width="600" height="180"></canvas>
+          <div class="wave-legend">
+            <div class="wave-legend-item"><div class="wave-dot" id="cmp2Leg1" style="background:var(--coral)"></div> <span id="cmp2Leg1n">음1</span></div>
+            <div class="wave-legend-item"><div class="wave-dot" id="cmp2Leg2" style="background:var(--blue)"></div> <span id="cmp2Leg2n">음2</span></div>
+            <div class="wave-legend-item"><div class="wave-dot" style="background:var(--teal);width:8px;height:8px;border-radius:50%"></div> 만남점</div>
+          </div>
+        </div>
+        <div class="wave-explain" id="waveExplain2" style="display:none"></div>
       </div>
     </div>
   </div>
