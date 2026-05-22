@@ -509,6 +509,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .col-task-swatch{width:30px;height:30px;border-radius:7px;border:2px solid #fff;box-shadow:0 0 0 1px #ccc}
 #lab-sound.snd-blind .gl-pct.gl-ml{display:none !important}
 #inst-string.geo-blind .geo-num{display:none !important}
+#inst-panflute.pf-blind .pf-hz-disp,#inst-panflute.pf-blind .pf-cut-len-line{visibility:hidden}
+#lab-shadow.shad-blind .shad-ratio-display{visibility:hidden}
 .geo-readout{text-align:center;font-size:.85rem;font-weight:800;color:var(--red);margin:6px 0}
 </style>
 </head>
@@ -778,8 +780,14 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
       <button class="inst-tab-btn" id="instBtn-string" onclick="instSet('string')">&#x1F3B8; 현악기</button>
     </div>
     <!-- 팬플룻 -->
-    <div id="inst-panflute">
+    <div id="inst-panflute" class="pf-blind">
       <div class="stitle"><span class="badge" style="background:var(--purple-light);color:var(--purple)">팬플룻</span> 갈대 관을 잘라 도레미파솔라시를 만들어요</div>
+      <div class="col-mode-bar">
+        <span class="col-mode-hint">🎵 숫자 대신 귀로 — 눈금 색을 보고 잘라 음을 맞춰 보세요.</span>
+        <button class="col-mode-toggle" id="pfModeToggle" onclick="togglePfBlind()" title="숫자 보기 / 감추기">
+          <span class="pip"></span><span>🔢 숫자 보기</span>
+        </button>
+      </div>
       <!-- 완성된 팬플룻 악기 디스플레이 -->
       <div style="max-width:480px;margin:0 auto">
         <div class="pf-instruments" id="pfInst"></div>
@@ -800,7 +808,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
             </div>
           </div>
           <div class="pf-cut-info">
-            <span>현재 자를 위치: <strong id="pfCutLenDisp">50.0 cm</strong></span>
+            <span class="pf-cut-len-line">현재 자를 위치: <strong id="pfCutLenDisp">50.0 cm</strong></span>
             <span class="pf-cut-hint" id="pfCutHint"></span>
           </div>
         </div>
@@ -929,7 +937,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 
 
 <!-- ════════ 6. 그림자와 비율 ════════ -->
-<div class="lab" id="lab-shadow">
+<div class="lab shad-blind" id="lab-shadow">
   <div class="snd-stage-bar">
     <button class="snd-stage-btn active" id="shadStageBtn1" onclick="shadStage(1)">1단계: 그림자 탐험</button>
     <button class="snd-stage-btn" id="shadStageBtn2" onclick="shadStage(2)">2단계: 빛 조절 실험</button>
@@ -943,8 +951,9 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
           <label>☀️ 태양 위치</label>
           <input type="range" class="shad-angle-track" id="shadAngleSlider" min="30" max="80" value="45" oninput="shadSetAngle(+this.value)">
           <span class="shad-angle-val" id="shadAngleVal">45°</span>
-          <label style="margin-left:14px">숫자 보기</label>
-          <input type="checkbox" id="shadShowNums" checked onchange="shadDraw()" style="width:18px;height:18px;cursor:pointer;accent-color:#E67E22">
+          <button class="col-mode-toggle" id="shadModeToggle" style="margin-left:14px" onclick="toggleShadBlind()" title="숫자 보기 / 감추기">
+            <span class="pip"></span><span>🔢 숫자 보기</span>
+          </button>
         </div>
         <div class="shad-ratio-box">
           <div class="shad-ratio-hint">☀️ 같은 시각 — 모든 물체의 <strong>높이 : 그림자</strong> 비율은 항상 같아요!</div>
@@ -2798,13 +2807,30 @@ function shadCheck(){
     shadState.done[shadState.prob]=true;boom('정답!','#E67E22');shadRenderProb();
   }else{fb.className='shad-fb hint';fb.style.display='block';fb.textContent='💡 힌트: '+p.hint;}
 }
+let shadBlind=true;
+function toggleShadBlind(){
+  shadBlind=!shadBlind;
+  const lab=$('lab-shadow');
+  if(shadBlind){lab.classList.add('shad-blind');$('shadModeToggle').classList.remove('on');}
+  else{lab.classList.remove('shad-blind');$('shadModeToggle').classList.add('on');}
+  Logger.event('blind_toggle',{tab:'shadow',blind:shadBlind});
+  shadDraw();
+}
+let pfBlind=true;
+function togglePfBlind(){
+  pfBlind=!pfBlind;
+  const w=$('inst-panflute');
+  if(pfBlind){w.classList.add('pf-blind');$('pfModeToggle').classList.remove('on');}
+  else{w.classList.remove('pf-blind');$('pfModeToggle').classList.add('on');}
+  Logger.event('blind_toggle',{tab:'instrument',inst:'panflute',blind:pfBlind});
+}
 function shadDraw(){
   const cv=$('shadCanvas');if(!cv)return;
   const ctx=cv.getContext('2d');
   const W=cv.width,H=cv.height;
   const ang=Math.max(shadState.angle,20);
   const tan=Math.tan(ang*Math.PI/180);
-  const showNums=$('shadShowNums')?$('shadShowNums').checked:true;
+  const showNums=!shadBlind;
   const groundY=H*0.65;
   ctx.clearRect(0,0,W,H);
   // Sky
