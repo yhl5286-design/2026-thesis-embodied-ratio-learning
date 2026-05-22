@@ -701,6 +701,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
       <div style="display:flex;gap:8px;justify-content:center">
         <button class="act-btn" onclick="undoDrop()">&#x21A9; 되돌리기</button>
         <button class="act-btn" onclick="clearBeaker()">&#x1F5D1; 비커 비우기</button>
+        <button class="act-btn" onclick="colTone()" title="지금 색의 비율을 소리 높이로 들어보기">&#x1F50A; 색을 소리로</button>
       </div>
       <button class="save-btn" onclick="saveRecipe()">&#x1F4BE; 이 색 레시피 저장</button>
       <div id="cFB"></div>
@@ -1567,12 +1568,28 @@ function pourColor(c,ml){
   d.style.background={r:'var(--red)',y:'var(--yellow)',b:'var(--blue)'}[c];
   d.style.left=c==='r'?'25%':c==='y'?'50%':'75%';d.style.top='0';
   $('beaker').appendChild(d);setTimeout(()=>d.remove(),600);
-  updColor();checkStrategy();
+  updColor();checkStrategy();colTone();
   if(col.trialId)Logger.trialState(col.trialId,{r:col.r,y:col.y,b:col.b,ratio:normRatio(col.r,col.y,col.b)});
 }
 function undoDrop(){if(!col.hist.length)return;const last=col.hist.pop();col[last.c]-=last.d;if(col[last.c]<0)col[last.c]=0;updColor()}
 function clearBeaker(){col.r=0;col.y=0;col.b=0;col.hist=[];updColor()}
 function clearColorLog(){$('cLog').innerHTML=''}
+// 교차양상 청각 피드백(원리③): 첫 양수색 비율↑ = 음높이↑. 같은 비율=같은 음(청각적 등가 단서)
+function colTone(){
+  const t=col.r+col.y+col.b; if(t<=0)return;
+  try{ initAud(); }catch(e){ return; }
+  const ctx=snd.ctx; if(!ctx)return;
+  let p=0; for(const c of ['r','y','b']){ if(col[c]>0){ p=col[c]/t; break; } }
+  const freq=262*Math.pow(2,p); // 비율 0~1 → 도~도↑ 한 옥타브
+  const now=ctx.currentTime;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,now);
+  g.gain.exponentialRampToValueAtTime(0.16,now+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,now+0.45);
+  g.connect(ctx.destination);
+  const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=freq;
+  o.connect(g); o.start(now); o.stop(now+0.5);
+}
 function updColorVisual(){
   const{r,y,b}=col,t=r+y+b;
   $('cntR').textContent=r+' mL';
