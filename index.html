@@ -504,6 +504,13 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .strategy-tag{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:6px;display:inline-block}
 .strategy-add{background:#FEF9E7;color:#856404}
 .strategy-mul{background:var(--teal-light);color:var(--teal)}
+/* 가법 vs 곱셈 병렬 비교 (원리⑥ 발달 계열·갈등 유도) */
+.col-strategy-compare{margin:0 0 12px;padding:12px 14px;background:linear-gradient(135deg,#FFF9F0,#FEF3E2);border:1.5px solid #F0C36D;border-radius:12px;animation:fadeUp .3s}
+.strat-cmp-title{font-size:.8rem;font-weight:800;color:#8A5A00;margin-bottom:10px}
+.strat-cmp-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+.strat-cmp-item{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.7rem;font-weight:700;color:var(--text-sub);max-width:130px;text-align:center}
+.strat-cmp-sw{width:44px;height:44px;border-radius:10px;border:2px solid #fff;box-shadow:0 0 0 1px #ccc}
+.strat-cmp-arrow{font-size:1.1rem;font-weight:900;color:var(--text-sub)}
 .teacher-stat-box{background:#F8F9FA;border-radius:8px;padding:8px 14px;min-width:160px}
 .teacher-stat-lbl{font-size:.68rem;font-weight:700;color:var(--text-sub)}
 .teacher-stat-val{font-size:.9rem;font-weight:800;margin-top:2px}
@@ -582,6 +589,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     <div class="col-task-target"><span>기준 색</span><span class="col-task-swatch" id="colTaskSwatch"></span></div>
     <button class="act-btn" onclick="colTaskNext()">다른 미션 →</button>
   </div>
+  <div class="col-strategy-compare" id="colStratCompare" style="display:none"></div>
   <div class="discovery-banner" id="discBanner">
     <div class="discovery-banner-q">✨ 같은 색을 다른 양으로 만들었네요! 왜 같은 색일까요?</div>
     <button class="discovery-banner-btn" id="discRevealBtn" onclick="revealRatios()">👀 비밀 풀어보기 — 비 보기</button>
@@ -1748,6 +1756,27 @@ function checkStrategy(){
   if(el)el.innerHTML=strategy==='multiplicative'?
     '<span class="strategy-tag strategy-mul">&#x00D7; 배수적 전략</span>':
     '<span class="strategy-tag strategy-add">&#x2192; 가법적 전략</span>';
+  renderStrategyCompare();
+}
+// 가법 vs 곱셈 병렬 비교: 같은 수 더하기→색 변함, 같은 배 곱하기→색 그대로 (원리⑥, 숫자 없이 색만)
+function renderStrategyCompare(){
+  const el=$('colStratCompare'); if(!el)return;
+  const act=[]; for(const c of ['r','y','b']){ if(col[c]>0) act.push(c); }
+  if(act.length!==2){ el.style.display='none'; return; }
+  if(col[act[0]]===col[act[1]]){ el.style.display='none'; return; } // 1:1은 가법=곱셈, 갈등 없음
+  const cur=curRGB();
+  const add={r:col.r,y:col.y,b:col.b}; add[act[0]]+=2; add[act[1]]+=2;
+  const addRGB=ryb2rgb(add.r,add.y,add.b);
+  const mulRGB=ryb2rgb(col.r*2,col.y*2,col.b*2);
+  el.innerHTML=`<div class="strat-cmp-title">⚖️ 같은 수를 <b>더하면</b> vs <b>곱하면</b></div>
+    <div class="strat-cmp-row">
+      <div class="strat-cmp-item"><div class="strat-cmp-sw" style="background:${rs(cur)}"></div><span>지금 색</span></div>
+      <div class="strat-cmp-arrow">+</div>
+      <div class="strat-cmp-item"><div class="strat-cmp-sw" style="background:${rs(addRGB)}"></div><span>같은 만큼 <b>더하기</b> → <b style="color:var(--red)">색이 변해요</b></span></div>
+      <div class="strat-cmp-arrow">×</div>
+      <div class="strat-cmp-item"><div class="strat-cmp-sw" style="background:${rs(mulRGB)}"></div><span>같은 배로 <b>곱하기</b> → <b style="color:var(--teal)">색이 그대로!</b></span></div>
+    </div>`;
+  el.style.display='block';
 }
 
 function getResearchLog(){
