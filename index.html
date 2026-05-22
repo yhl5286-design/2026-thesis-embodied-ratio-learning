@@ -151,6 +151,16 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .report-bar-fill{height:100%;border-radius:100px;transition:width .5s .1s}
 .report-bar-val{font-size:.7rem;font-weight:700;width:36px;text-align:right;flex-shrink:0}
 .report-bar-pct{font-size:.62rem;color:var(--text-sub);width:30px;flex-shrink:0}
+/* 표현 교량 (비↔분수↔나눗셈↔백분율) — 원리⑤ 다중 표현 연결·번역 */
+.report-bridge{margin-top:14px;border-top:1px dashed #e3e3e3;padding-top:12px}
+.bridge-title{font-size:.72rem;font-weight:800;color:var(--text-sub);display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.bridge-swap{margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:100px;padding:3px 10px;font-size:.7rem;font-weight:700;color:var(--text-sub);cursor:pointer;transition:border-color .15s}
+.bridge-swap:hover{border-color:#aaa}
+.bridge-rows{display:flex;flex-direction:column;gap:6px}
+.bridge-row{display:flex;align-items:center;gap:10px;font-size:.92rem}
+.bridge-k{font-size:.7rem;font-weight:700;color:var(--text-sub);width:68px;flex-shrink:0;text-align:right}
+.bridge-v{font-weight:800;letter-spacing:.02em}
+.bridge-note{font-size:.8rem;color:var(--text-sub);line-height:1.5}
 
 /* ── Color Lab: 감각 모드 (숫자 잠금) ── */
 .col-mode-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;padding:6px 10px;border-radius:12px;background:#FAFAFA;border:1px solid #EEE}
@@ -175,6 +185,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #lab-color.col-blind .recipe-map-axes,
 #lab-color.col-blind .recipe-drops,
 #lab-color.col-blind .recipe-total,
+#lab-color.col-blind .report-bridge,
 #lab-color.col-blind .match-ratio-text{display:none !important}
 #lab-harmony.harm-blind .hi-ratio-big,
 #lab-harmony.harm-blind .hi-detail,
@@ -1643,10 +1654,38 @@ function showRecipeReport(r,idx){
       <button class="report-close" onclick="closeReport()">✕</button>
     </div>
     <div class="report-stack">${stack}</div>
-    <div class="report-bars">${bars}</div>`;
+    <div class="report-bars">${bars}</div>
+    <div class="report-bridge" id="colBridge"></div>`;
+  const nz=colors.filter(x=>x.val>0);
+  colBridge={parts:nz.map(x=>({label:x.label,color:x.color,val:x.val})),base:nz.length-1};
+  colBridgeRender();
   rpt.style.display='block';
 }
 function closeReport(){const rpt=$('recipeReport');if(rpt)rpt.style.display='none'}
+// ━━━━━━ 표현 교량: 비↔분수↔나눗셈↔백분율 (원리⑤) ━━━━━━
+let colBridge=null;
+function colBridgeRender(){
+  const el=$('colBridge'); if(!el||!colBridge)return;
+  const p=colBridge.parts;
+  if(p.length!==2){
+    el.innerHTML=`<div class="bridge-note">비 ${p.map(x=>x.val).join(' : ')} — 두 색의 비율일 때 분수·나눗셈 다리가 나타나요.</div>`;
+    return;
+  }
+  const base=colBridge.base, comp=1-base;
+  const cc=p[comp], bc=p[base];
+  const [ra,rb]=simplify(cc.val,bc.val);
+  const dec=cc.val/bc.val, pct=Math.round(dec*100);
+  el.innerHTML=`
+    <div class="bridge-title">같은 관계, 여러 가지 표현
+      <button class="bridge-swap" onclick="colBridgeSwap()">🔁 기준량 바꾸기 (현재: <b style="color:${bc.color}">${bc.label}</b>)</button></div>
+    <div class="bridge-rows">
+      <div class="bridge-row"><span class="bridge-k">비</span><span class="bridge-v"><b style="color:${cc.color}">${cc.label}</b> : <b style="color:${bc.color}">${bc.label}</b> = ${ra} : ${rb}</span></div>
+      <div class="bridge-row"><span class="bridge-k">분수(비율)</span><span class="bridge-v">${ra}/${rb}</span></div>
+      <div class="bridge-row"><span class="bridge-k">나눗셈</span><span class="bridge-v">${ra} ÷ ${rb} = ${dec.toFixed(2)}</span></div>
+      <div class="bridge-row"><span class="bridge-k">백분율</span><span class="bridge-v">${pct}%</span></div>
+    </div>`;
+}
+function colBridgeSwap(){ if(!colBridge||colBridge.parts.length!==2)return; colBridge.base=1-colBridge.base; colBridgeRender(); Logger.event('bridge_swap',{tab:'color',base:colBridge.base}); }
 
 // ━━━━━━ F: STRATEGY DETECTION ━━━━━━
 function checkStrategy(){
