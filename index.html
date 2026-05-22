@@ -200,6 +200,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 /* 단계적 reveal(원리④): col-rv1 = 비(a:b)만 공개, 전체는 col-blind 제거 */
 #lab-color.col-blind.col-rv1 .report-ratio-disp{display:block !important}
 #lab-color.col-blind.col-rv1 .match-ratio-text{display:inline !important}
+#lab-color.col-blind .col-task-hint{display:none !important}
+#lab-color.col-blind.col-rv1 .col-task-hint{display:block !important}
 .col-record-placeholder{display:none;padding:18px 16px;background:linear-gradient(135deg,#F7F2EA,#FEF9EE);border:1.5px dashed #D5C3A0;border-radius:12px;color:#8E6E3A;font-size:.82rem;line-height:1.55;text-align:center}
 /* 발견 배너 (감각 모드 → 양적 모드 전환 모먼트) */
 .discovery-banner{margin:10px 0 4px;padding:16px 18px;border-radius:14px;background:linear-gradient(135deg,#FFF7E0,#FFE9A8);border:2px solid #E8B53C;display:none;animation:fadeUp .35s;text-align:center}
@@ -531,6 +533,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .col-task-q{flex:1;font-size:.85rem;font-weight:700;color:var(--navy)}
 .col-task-target{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700}
 .col-task-swatch{width:30px;height:30px;border-radius:7px;border:2px solid #fff;box-shadow:0 0 0 1px #ccc}
+.col-task-tier{font-size:.6rem;font-weight:800;padding:2px 8px;border-radius:6px;background:var(--teal);color:#fff;margin-right:6px;vertical-align:middle}
+.col-task-hint{display:block;font-size:.72rem;font-weight:700;color:var(--teal);margin-top:3px}
 #lab-sound.snd-blind .gl-pct.gl-ml{display:none !important}
 #inst-string.geo-blind .geo-num{display:none !important}
 #inst-panflute.pf-blind .pf-hz-disp,#inst-panflute.pf-blind .pf-cut-len-line{visibility:hidden}
@@ -585,7 +589,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     </button>
   </div>
   <div class="col-task-bar" id="colTaskBar" style="display:none">
-    <div class="col-task-q">미션: 아래 <b>기준 색</b>과 똑같은 색을 <b>다른 양</b>으로 만들어 보세요.</div>
+    <div class="col-task-q"><span class="col-task-tier" id="colTaskTier"></span>미션: 아래 <b>기준 색</b>과 똑같은 색을 <b>다른 양</b>으로 만들어 보세요.<span class="col-task-hint" id="colTaskHint"></span></div>
     <div class="col-task-target"><span>기준 색</span><span class="col-task-swatch" id="colTaskSwatch"></span></div>
     <button class="act-btn" onclick="colTaskNext()">다른 미션 →</button>
   </div>
@@ -1515,16 +1519,20 @@ const GL_MAX_CELLS=10;
 const col={r:0,y:0,b:0,hist:[],recipes:[],interactions:0,dragLog:[],strategy:'explore',blind:true,discovered:false,revealLevel:0,
   task:null,trialId:null,attempts:{}};
 const COLOR_TASKS=[
-  {id:'t_r2b3', label:'빨강:파랑 = 2:3', ryb:{r:2,y:0,b:3}},
-  {id:'t_r1b2', label:'빨강:파랑 = 1:2', ryb:{r:1,y:0,b:2}},
-  {id:'t_r3y1', label:'빨강:노랑 = 3:1', ryb:{r:3,y:1,b:0}},
-  {id:'t_r2y3', label:'빨강:노랑 = 2:3', ryb:{r:2,y:3,b:0}}
+  {id:'t_r1b2', label:'빨강:파랑 = 1:2', ryb:{r:1,y:0,b:2}, tier:'쉬움', hint:'파랑이 빨강의 2배'},
+  {id:'t_r3y1', label:'빨강:노랑 = 3:1', ryb:{r:3,y:1,b:0}, tier:'쉬움', hint:'빨강이 노랑의 3배'},
+  {id:'t_r2b3', label:'빨강:파랑 = 2:3', ryb:{r:2,y:0,b:3}, tier:'보통', hint:'파랑이 빨강의 1.5배'},
+  {id:'t_r3y4', label:'빨강:노랑 = 3:4', ryb:{r:3,y:4,b:0}, tier:'보통', hint:'노랑이 빨강보다 조금 많음'},
+  {id:'t_r2b5', label:'빨강:파랑 = 2:5', ryb:{r:2,y:0,b:5}, tier:'도전', hint:'파랑이 빨강의 2.5배'},
+  {id:'t_r4y3', label:'빨강:노랑 = 4:3', ryb:{r:4,y:3,b:0}, tier:'보통', hint:'빨강이 노랑보다 조금 많음'}
 ];
 let colTaskIdx=-1;
 function colTaskStart(idx){
   colTaskIdx=idx; const t=COLOR_TASKS[idx]; col.task=t;
   $('colTaskBar').style.display='flex';
   $('colTaskSwatch').style.background=rs(ryb2rgb(t.ryb.r,t.ryb.y,t.ryb.b));
+  if($('colTaskTier'))$('colTaskTier').textContent=t.tier||'';
+  if($('colTaskHint'))$('colTaskHint').textContent=t.hint?('💡 '+t.hint):'';
   col.attempts[t.id]=(col.attempts[t.id]||0)+1;
   col.trialId=Logger.startTrial({tab:'color',activity:'color.equalize',task:t.id,attemptNo:col.attempts[t.id]});
   clearBeaker();
