@@ -190,6 +190,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #lab-harmony.harm-blind .hi-ratio-big,
 #lab-harmony.harm-blind .hi-detail,
 #lab-harmony.harm-blind .wave-explain,
+#lab-harmony.harm-blind .hi-bridge,
 #lab-harmony.harm-blind .harm-principle{display:none !important}
 /* 감각 모드: 기록 패널 자리에 안내문 */
 #lab-color.col-blind .record-section-title{display:none}
@@ -1662,7 +1663,19 @@ function showRecipeReport(r,idx){
   rpt.style.display='block';
 }
 function closeReport(){const rpt=$('recipeReport');if(rpt)rpt.style.display='none'}
-// ━━━━━━ 표현 교량: 비↔분수↔나눗셈↔백분율 (원리⑤) ━━━━━━
+// ━━━━━━ 표현 교량: 비↔분수↔나눗셈↔백분율 (원리⑤) — 색상·화음 공용 ━━━━━━
+function ratioBridgeBlock(a,b,labA,colA,labB,colB,swapAttr){
+  const [ra,rb]=simplify(a,b);
+  const dec=a/b, pct=Math.round(dec*100);
+  const swap=swapAttr?`<button class="bridge-swap" ${swapAttr}>🔁 기준량 바꾸기 (현재: <b style="color:${colB}">${labB}</b>)</button>`:'';
+  return `<div class="bridge-title">같은 관계, 여러 가지 표현 ${swap}</div>
+    <div class="bridge-rows">
+      <div class="bridge-row"><span class="bridge-k">비</span><span class="bridge-v"><b style="color:${colA}">${labA}</b> : <b style="color:${colB}">${labB}</b> = ${ra} : ${rb}</span></div>
+      <div class="bridge-row"><span class="bridge-k">분수(비율)</span><span class="bridge-v">${ra}/${rb}</span></div>
+      <div class="bridge-row"><span class="bridge-k">나눗셈</span><span class="bridge-v">${ra} ÷ ${rb} = ${dec.toFixed(2)}</span></div>
+      <div class="bridge-row"><span class="bridge-k">백분율</span><span class="bridge-v">${pct}%</span></div>
+    </div>`;
+}
 let colBridge=null;
 function colBridgeRender(){
   const el=$('colBridge'); if(!el||!colBridge)return;
@@ -1671,19 +1684,8 @@ function colBridgeRender(){
     el.innerHTML=`<div class="bridge-note">비 ${p.map(x=>x.val).join(' : ')} — 두 색의 비율일 때 분수·나눗셈 다리가 나타나요.</div>`;
     return;
   }
-  const base=colBridge.base, comp=1-base;
-  const cc=p[comp], bc=p[base];
-  const [ra,rb]=simplify(cc.val,bc.val);
-  const dec=cc.val/bc.val, pct=Math.round(dec*100);
-  el.innerHTML=`
-    <div class="bridge-title">같은 관계, 여러 가지 표현
-      <button class="bridge-swap" onclick="colBridgeSwap()">🔁 기준량 바꾸기 (현재: <b style="color:${bc.color}">${bc.label}</b>)</button></div>
-    <div class="bridge-rows">
-      <div class="bridge-row"><span class="bridge-k">비</span><span class="bridge-v"><b style="color:${cc.color}">${cc.label}</b> : <b style="color:${bc.color}">${bc.label}</b> = ${ra} : ${rb}</span></div>
-      <div class="bridge-row"><span class="bridge-k">분수(비율)</span><span class="bridge-v">${ra}/${rb}</span></div>
-      <div class="bridge-row"><span class="bridge-k">나눗셈</span><span class="bridge-v">${ra} ÷ ${rb} = ${dec.toFixed(2)}</span></div>
-      <div class="bridge-row"><span class="bridge-k">백분율</span><span class="bridge-v">${pct}%</span></div>
-    </div>`;
+  const base=colBridge.base, comp=1-base, cc=p[comp], bc=p[base];
+  el.innerHTML=ratioBridgeBlock(cc.val,bc.val,cc.label,cc.color,bc.label,bc.color,'onclick="colBridgeSwap()"');
 }
 function colBridgeSwap(){ if(!colBridge||colBridge.parts.length!==2)return; colBridge.base=1-colBridge.base; colBridgeRender(); Logger.event('bridge_swap',{tab:'color',base:colBridge.base}); }
 
@@ -2479,7 +2481,8 @@ function updateCmp2Info(){
     <div class="star-rating">${starStr} ${level}</div>
     <div class="hi-detail" style="margin-top:8px">
       <strong>${a.name}:</strong> ${fa.toFixed(0)}Hz &nbsp; <strong>${b.name}:</strong> ${fb.toFixed(0)}Hz
-    </div>`;
+    </div>
+    <div class="report-bridge hi-bridge">${ratioBridgeBlock(r1,r2,a.name,a.color,b.name,b.color)}</div>`;
   if(harmBlind && !harmDiscovered && stars>=4){const bn=$('harmDiscBanner');if(bn)bn.classList.add('show');}
   if(harmTrial)Logger.trialState(harmTrial,{a:a.name,b:b.name,ratio:r1+':'+r2,stars});
 }
@@ -2521,7 +2524,8 @@ function updatePianoInfo(){
       <strong>도:</strong> ${C4.toFixed(0)}Hz &nbsp; <strong>${k.name}:</strong> ${freq.toFixed(0)}Hz<br>
       <strong>음정:</strong> ${intv}<br>
       ${k.name}은 도의 <strong>${(k.ratio[0]/k.ratio[1]).toFixed(3)}배</strong> 주파수
-    </div>`;
+    </div>
+    <div class="report-bridge hi-bridge">${ratioBridgeBlock(k.ratio[0],k.ratio[1],'도','var(--coral)',k.name,'var(--blue)')}</div>`;
   if(harmBlind && !harmDiscovered && stars>=4 && pianoSel!==0){
     const b=$('harmDiscBanner');if(b)b.classList.add('show');
   }
