@@ -161,6 +161,14 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .bridge-k{font-size:.7rem;font-weight:700;color:var(--text-sub);width:68px;flex-shrink:0;text-align:right}
 .bridge-v{font-weight:800;letter-spacing:.02em}
 .bridge-note{font-size:.8rem;color:var(--text-sub);line-height:1.5}
+/* 합성단위 시각화 (원리⑥, Tzur "~마다") */
+.composite-unit{margin-top:10px;border-top:1px dashed #e3e3e3;padding-top:10px}
+.cu-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:.8rem}
+.cu-k{font-size:.7rem;font-weight:700;color:var(--text-sub);min-width:110px;text-align:right}
+.cu-dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:2px;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.cu-gap{display:inline-block;width:8px}
+.cu-group{display:inline-block;margin-right:8px;padding:3px 6px;border-radius:7px;background:rgba(0,184,148,.08);border:1px dashed rgba(0,184,148,.35)}
+.cu-more{font-size:.72rem;color:var(--text-sub);font-weight:700}
 
 /* ── Color Lab: 감각 모드 (숫자 잠금) ── */
 .col-mode-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;padding:6px 10px;border-radius:12px;background:#FAFAFA;border:1px solid #EEE}
@@ -202,6 +210,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #lab-color.col-blind.col-rv1 .match-ratio-text{display:inline !important}
 #lab-color.col-blind .col-task-hint{display:none !important}
 #lab-color.col-blind.col-rv1 .col-task-hint{display:block !important}
+#lab-color.col-blind .composite-unit{display:none !important}
+#lab-color.col-blind.col-rv1 .composite-unit{display:block !important}
 .col-record-placeholder{display:none;padding:18px 16px;background:linear-gradient(135deg,#F7F2EA,#FEF9EE);border:1.5px dashed #D5C3A0;border-radius:12px;color:#8E6E3A;font-size:.82rem;line-height:1.55;text-align:center}
 /* 발견 배너 (감각 모드 → 양적 모드 전환 모먼트) */
 .discovery-banner{margin:10px 0 4px;padding:16px 18px;border-radius:14px;background:linear-gradient(135deg,#FFF7E0,#FFE9A8);border:2px solid #E8B53C;display:none;animation:fadeUp .35s;text-align:center}
@@ -1710,11 +1720,33 @@ function showRecipeReport(r,idx){
     </div>
     <div class="report-stack">${stack}</div>
     <div class="report-bars">${bars}</div>
-    <div class="report-bridge" id="colBridge"></div>`;
+    <div class="report-bridge" id="colBridge"></div>
+    <div class="composite-unit" id="colCompUnit" style="display:none"></div>`;
   const nz=colors.filter(x=>x.val>0);
   colBridge={parts:nz.map(x=>({label:x.label,color:x.color,val:x.val})),base:nz.length-1};
   colBridgeRender();
+  renderCompositeUnit();
   rpt.style.display='block';
+}
+// "~마다" 합성단위 시각화: 한 묶음 = 빨ra+파rb, 이 레시피 = k묶음 (원리⑥ Tzur)
+function renderCompositeUnit(){
+  const el=$('colCompUnit'); if(!el||!colBridge)return;
+  const p=colBridge.parts;
+  if(p.length!==2){ el.innerHTML=''; el.style.display='none'; return; }
+  const [ra,rb]=simplify(p[0].val,p[1].val);
+  const k=Math.round(p[0].val/ra);
+  const dot=c=>`<span class="cu-dot" style="background:${c}"></span>`;
+  const oneUnit=dot(p[0].color).repeat(ra)+'<span class="cu-gap"></span>'+dot(p[1].color).repeat(rb);
+  let html=`<div class="bridge-title">📦 합성단위 — <b style="color:${p[0].color}">${p[0].label}</b> ${ra}마다 <b style="color:${p[1].color}">${p[1].label}</b> ${rb}</div>
+    <div class="cu-row"><span class="cu-k">한 묶음</span>${oneUnit}</div>`;
+  if(k>=2){
+    const cap=Math.min(k,6);
+    let kUnits=''; for(let i=0;i<cap;i++) kUnits+='<span class="cu-group">'+oneUnit+'</span>';
+    if(k>cap) kUnits+='<span class="cu-more">… +'+(k-cap)+'</span>';
+    html+=`<div class="cu-row"><span class="cu-k">이 레시피 = ${k}묶음</span>${kUnits}</div>`;
+  }
+  el.innerHTML=html;
+  el.style.display='';
 }
 function closeReport(){const rpt=$('recipeReport');if(rpt)rpt.style.display='none'}
 // ━━━━━━ 표현 교량: 비↔분수↔나눗셈↔백분율 (원리⑤) — 색상·화음 공용 ━━━━━━
