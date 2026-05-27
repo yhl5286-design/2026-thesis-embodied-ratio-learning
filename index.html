@@ -2118,8 +2118,97 @@ function unitLogTransform(){try{Logger.event('transform_apply',Object.assign({ta
 function unitToggleChanged(key){if(!unitState.s3)return;const a=unitState.s3.changed;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);unitRenderStage3();try{Logger.event('invariance_check',{tab:'unit',changed:unitState.s3.changed.slice(),invariant:unitState.s3.invariant.slice()});}catch(e){}}
 function unitToggleInvariant(key){if(!unitState.s3)return;const a=unitState.s3.invariant;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);unitRenderStage3();try{Logger.event('invariance_check',{tab:'unit',changed:unitState.s3.changed.slice(),invariant:unitState.s3.invariant.slice()});}catch(e){}}
 
-// ━━━━━━ 박자 Stage 3 — DJ Mix (placeholder; Task에서 채움) ━━━━━━
-// 재설계로 인해 이 영역은 후속 커밋에서 작성됩니다.
+// ━━━━━━ 박자 Stage 3 — DJ Mix (변환·불변량) ━━━━━━
+function beatEnterStage3(){
+  const tracks=beatState.s2.tracks.filter(t=>t.on);
+  beatState.s3={lastTransform:null, changed:[], invariant:[], prevTempo:beatState.tempo, prevTracks:tracks.map(t=>({instr:t.instr,beats:t.beats})), trial:null};
+  try{beatState.s3.trial=Logger.startTrial({tab:'beat',activity:'beat.dj',task:tracks.map(t=>t.beats).join('-')});}catch(e){}
+  $('beatStage2').style.display='none';
+  $('beatStage3').style.display='block';
+  beatState.stage=3;
+  beatStage3Render();
+}
+function beatStage3Render(){
+  const wrap=$('beatStage3');if(!wrap)return;
+  const tracks=beatState.s2.tracks.filter(t=>t.on);
+  const trackRows=tracks.map((t,idx)=>{
+    const inst=BEAT_INSTRUMENTS[t.instr];
+    const i=beatState.s2.tracks.indexOf(t);
+    return `<div style="display:flex;align-items:center;gap:6px;margin:4px 0;font-size:.82rem">
+      <span style="font-size:1.2rem">${inst.icon}</span>
+      <span style="color:${inst.color};font-weight:800;min-width:50px">${inst.label}</span>
+      <button class="uunit-blind-toggle" onclick="beatStage2ChangeBeats(${i},-1);beatStage3Render()">−</button>
+      <span style="min-width:42px;text-align:center">${t.beats}박</span>
+      <button class="uunit-blind-toggle" onclick="beatStage2ChangeBeats(${i},1);beatStage3Render()">+</button>
+    </div>`;
+  }).join('');
+  const transforms=[
+    {key:'tempo',label:'① BPM (빠르기)',color:'#f5b041',html:`
+      <input type="range" min="60" max="160" value="${Math.round(60000/(beatState.tempo/4))}" oninput="beatStage3Tempo(+this.value)" style="width:100%">
+      <div style="font-size:.7rem;color:#aaa;text-align:center">한 마디 ${(beatState.tempo/1000).toFixed(1)}초</div>`},
+    {key:'beats',label:'② 트랙 박 수',color:'#e74c8a',html:trackRows||'<div style="color:#aaa;font-size:.78rem">트랙 없음</div>'},
+    {key:'equiv',label:'③ 등가 ×k (모든 트랙)',color:'#9b59b6',html:`
+      <div style="display:flex;gap:4px">
+        <button class="uunit-blind-toggle" style="flex:1" onclick="beatStage3Equiv(2)">×2</button>
+        <button class="uunit-blind-toggle" style="flex:1" onclick="beatStage3Equiv(3)">×3</button>
+        <button class="uunit-blind-toggle" style="flex:1" onclick="beatStage3Equiv(0.5)">÷2</button>
+      </div>`}
+  ];
+  wrap.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <p style="margin:0;color:#666;font-size:.9rem">Stage 3 · DJ Mix 🎛 — 빠르기·박 수·등가 변환. 무엇이 변하고 무엇이 그대로?</p>
+      <button class="uunit-blind-toggle" onclick="beatStage3Back()">← Stage 2로</button>
+    </div>
+    <div class="bbeat-bar" id="bbeatBar3" style="height:${Math.max(48, 14*tracks.length)}px;margin:10px 0"></div>
+    ${renderTransformPanel(transforms)}
+    ${renderInvariantChecklist(beatState.s3,'beatStage3ToggleChanged','beatStage3ToggleInvariant')}
+  `;
+  beatStage3RenderBar();
+}
+function beatStage3RenderBar(){
+  const bar=$('bbeatBar3');if(!bar)return;
+  const tracks=beatState.s2.tracks.filter(t=>t.on);
+  let html='';
+  tracks.forEach((t,idx)=>{
+    const color=BEAT_INSTRUMENTS[t.instr].color;
+    const top=(idx*100/Math.max(1,tracks.length)+50/Math.max(1,tracks.length));
+    for(let i=0;i<t.beats;i++){
+      html+=`<div class="bbeat-dot" style="left:${(i*100/t.beats).toFixed(2)}%;top:${top}%;background:${color}"></div>`;
+    }
+  });
+  html+=`<div class="bbeat-cursor" id="bbeat3Cursor" style="left:0%"></div>`;
+  bar.innerHTML=html;
+}
+function beatStage3Back(){
+  beatState.stage=2;
+  $('beatStage3').style.display='none';
+  $('beatStage2').style.display='block';
+  if(beatState.s3&&beatState.s3.trial){try{Logger.endTrial(beatState.s3.trial,{outcome:'open',finalState:{tracks:beatState.s2.tracks.map(t=>({instr:t.instr,beats:t.beats,on:t.on}))}});}catch(e){}beatState.s3.trial=null;}
+  beatState.s3=null;
+  beatStage2Render();
+  beatStage2RestartMetronomes();
+}
+function beatStage3Tempo(bpm){
+  const newMs=60000/bpm*4;
+  beatState.s3.lastTransform={type:'tempo',before:beatState.tempo,after:newMs};
+  beatState.tempo=newMs;
+  beatStage2RestartMetronomes();
+  beatStage3Render();
+  try{Logger.event('transform_apply',{tab:'beat',type:'tempo',before:beatState.s3.lastTransform.before,after:newMs});}catch(e){}
+}
+function beatStage3Equiv(k){
+  const tracks=beatState.s2.tracks;
+  const before=tracks.map(t=>t.beats);
+  const after=before.map(b=>b*k);
+  if(after.some(b=>!Number.isInteger(b)||b<1||b>12))return;
+  tracks.forEach((t,i)=>t.beats=after[i]);
+  beatState.s3.lastTransform={type:'equiv',before,after,k};
+  beatStage2RestartMetronomes();
+  beatStage3Render();
+  try{Logger.event('transform_apply',{tab:'beat',type:'equiv',k,before,after});}catch(e){}
+}
+function beatStage3ToggleChanged(key){const a=beatState.s3.changed;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);beatStage3Render();try{Logger.event('invariance_check',{tab:'beat',changed:a.slice(),invariant:beatState.s3.invariant.slice()});}catch(e){}}
+function beatStage3ToggleInvariant(key){const a=beatState.s3.invariant;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);beatStage3Render();try{Logger.event('invariance_check',{tab:'beat',changed:beatState.s3.changed.slice(),invariant:a.slice()});}catch(e){}}
 
 // ━━━━━━ UTILS ━━━━━━
 function gcd(a,b){return b===0?a:gcd(b,a%b)}
