@@ -1593,6 +1593,178 @@ function unitOnLeave(){
   }
 }
 
+// ━━━━━━ 박자 탭 (beat) ━━━━━━
+const beatState={
+  left:2, right:3, tempo:2400, blind:true,
+  tapTimes:[], tapWindowStart:0,
+  trial:null, found:false, hintShown:false,
+  triedRatios:new Set(),
+  cursorRaf:0, barStart:0
+};
+function beatBuild(){
+  const root=$('beatRoot');if(!root)return;
+  root.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <p style="margin:0;color:#666;font-size:.9rem">왼쪽 박과 오른쪽 박이 <b>같이 치는 순간</b>을 귀로 찾아봐.</p>
+      <button class="uunit-blind-toggle" onclick="beatToggleBlind()">숫자 보기</button>
+    </div>
+    <div class="bbeat-tracks">
+      <div class="bbeat-track left">
+        <h4 style="color:#1e6b1e">🟢 왼쪽 (자동)</h4>
+        <div style="font-size:.78rem;color:#555">한 마디에 몇 번? <span class="bbeat-count" id="bbeatLeftCount" style="display:inline">${beatState.left}박</span></div>
+        <input type="range" min="1" max="6" value="${beatState.left}" id="bbeatLeftSlider" oninput="beatSetLeft(+this.value)" style="width:100%;margin-top:6px">
+      </div>
+      <div class="bbeat-track right">
+        <h4 style="color:#1f4e79">🔵 오른쪽 (내 박)</h4>
+        <button class="bbeat-tap-btn" onmousedown="beatTap()" ontouchstart="event.preventDefault();beatTap()">🔵 점프</button>
+        <div class="bbeat-count" id="bbeatRightCount">추정 박: <b>?</b></div>
+      </div>
+    </div>
+    <div style="font-size:.78rem;color:#555;margin-top:4px">한 마디 진행 (만남 순간은 ⚡로 깜빡임)</div>
+    <div class="bbeat-bar" id="bbeatBar"></div>
+    <div style="margin-top:14px;padding:12px;background:#fffbe6;border:2px dashed #f5b041;border-radius:10px;text-align:center">
+      <div style="font-size:.92rem;color:#7a5d00;margin-bottom:8px">두 박자가 같이 치는 순간이 들리면 누르세요</div>
+      <button class="uunit-discover-btn" onclick="beatDiscover()">⚡ 같이 친다!</button>
+    </div>
+    <div id="bbeatReveal" style="display:none;margin-top:16px"></div>
+  `;
+  root.dataset.built='1';
+  beatApplyBlind();
+  beatRenderBar();
+}
+function beatApplyBlind(){
+  const root=$('beatRoot');if(!root)return;
+  root.classList.toggle('beat-blind', beatState.blind);
+}
+function beatToggleBlind(){
+  beatState.blind=!beatState.blind; beatApplyBlind();
+  try{Logger.event('blind_toggle',{tab:'beat',blind:beatState.blind});}catch(e){}
+}
+function beatSetLeft(v){
+  beatState.left=v;
+  const c=$('bbeatLeftCount');if(c)c.textContent=v+'박';
+  beatRestartMetronome('left');
+  beatRenderBar();
+  beatLogState();
+  try{Logger.event('slider_change',{tab:'beat',side:'left',value:v});}catch(e){}
+  beatTriedRatio();
+  beatCheckAutoHint();
+}
+function beatTap(){
+  const now=performance.now();
+  if(!beatState.tapWindowStart || now-beatState.tapWindowStart > beatState.tempo*1.5){
+    beatState.tapTimes=[];
+    beatState.tapWindowStart=now;
+  }
+  beatState.tapTimes.push(now-beatState.tapWindowStart);
+  try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
+  const n=extractBeats(beatState.tapTimes, beatState.tempo);
+  if(n>0)beatState.right=n;
+  const c=$('bbeatRightCount');if(c)c.innerHTML='추정 박: <b>'+(n||'?')+'</b>';
+  beatRestartMetronome('right');
+  beatRenderBar();
+  beatLogState();
+  try{Logger.event('tap',{tab:'beat',taps:beatState.tapTimes.length,estBeats:n});}catch(e){}
+  beatTriedRatio();
+  beatCheckAutoHint();
+}
+function beatTriedRatio(){
+  const key=beatState.left+':'+beatState.right;
+  beatState.triedRatios.add(key);
+}
+function beatRenderBar(){
+  const bar=$('bbeatBar');if(!bar)return;
+  let html='';
+  for(let i=0;i<beatState.left;i++){
+    html+=`<div class="bbeat-dot left" style="left:${(i*100/beatState.left).toFixed(2)}%;top:30%"></div>`;
+  }
+  for(let i=0;i<beatState.right;i++){
+    html+=`<div class="bbeat-dot right" style="left:${(i*100/beatState.right).toFixed(2)}%;top:70%"></div>`;
+  }
+  html+=`<div class="bbeat-cursor" id="bbeatCursor" style="left:0%"></div>`;
+  bar.innerHTML=html;
+  bar.classList.add('bbeat-dots');
+}
+function beatFlashMeet(){
+  const bar=$('bbeatBar');if(!bar)return;
+  const m=document.createElement('div');m.className='bbeat-meet';m.textContent='⚡';m.style.left='-2px';m.style.top='6px';
+  bar.appendChild(m);setTimeout(()=>{try{bar.removeChild(m);}catch(e){}},420);
+  try{
+    const c=new (window.AudioContext||window.webkitAudioContext)();
+    [392,494].forEach(f=>{const o=c.createOscillator();const g=c.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(.1,c.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.25);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.3);});
+  }catch(e){}
+}
+function beatRestartMetronome(side){
+  if(side==='left'||!Metronome.isRunning('beatL')){
+    Metronome.start('beatL',{beats:beatState.left,barMs:beatState.tempo,freq:330,gain:0.13,onBeat:(idx,t)=>{
+      if(idx===0)beatState.barStart=performance.now();
+      if(idx===0)beatFlashMeet();
+    }});
+  }
+  if(side==='right'||!Metronome.isRunning('beatR')){
+    Metronome.start('beatR',{beats:beatState.right,barMs:beatState.tempo,freq:660,gain:0.12,onBeat:null});
+  }
+  if(!beatState.cursorRaf){
+    const step=()=>{
+      const c=$('bbeatCursor');
+      if(c){
+        const elapsed=(performance.now()-beatState.barStart)%beatState.tempo;
+        c.style.left=(elapsed/beatState.tempo*100).toFixed(2)+'%';
+      }
+      beatState.cursorRaf=requestAnimationFrame(step);
+    };
+    beatState.cursorRaf=requestAnimationFrame(step);
+  }
+}
+function beatLogState(){
+  if(!beatState.trial)return;
+  try{Logger.trialState(beatState.trial,{leftBeats:beatState.left,rightBeats:beatState.right,tempo:beatState.tempo,tapTimes:beatState.tapTimes.slice()});}catch(e){}
+}
+function beatDiscover(){
+  if(beatState.found)return;
+  beatState.found=true;
+  try{Logger.event('discovery_trigger',{tab:'beat',ratio:beatState.left+':'+beatState.right});}catch(e){}
+  beatState.blind=false; beatApplyBlind();
+  const [ra,rb]=simplify(beatState.left, beatState.right);
+  const meetEvery=(beatState.left*beatState.right)/gcd(beatState.left, beatState.right);
+  const rev=$('bbeatReveal');
+  if(rev){
+    rev.style.display='block';
+    rev.innerHTML=`
+      <div style="background:#eaf2fb;border:2px solid #5dade2;border-radius:10px;padding:12px">
+        <div style="font-weight:800;color:#1f4e79">발견! 왼쪽 ${beatState.left}박 : 오른쪽 ${beatState.right}박 = <b>${ra}:${rb}</b> · 같이 치는 곳: <b>${meetEvery}박마다</b> (한 마디 시작 = 0박)</div>
+      </div>`;
+  }
+  if(beatState.trial){
+    try{Logger.endTrial(beatState.trial,{outcome:'found',finalState:{ratio:[ra,rb],tried:[...beatState.triedRatios]}});}catch(e){}
+    beatState.trial=null;
+  }
+}
+function beatCheckAutoHint(){
+  if(beatState.found||beatState.hintShown)return;
+  const elapsed=Date.now()-(beatState._tStart||Date.now());
+  if(beatState.triedRatios.size>=4 && elapsed>=90000){
+    beatState.hintShown=true;
+    const btns=document.querySelectorAll('#lab-beat .uunit-discover-btn');
+    btns.forEach(b=>b.animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:600,iterations:3}));
+  }
+}
+function beatOnEnter(){
+  beatState._tStart=Date.now();
+  if(!beatState.trial){
+    try{beatState.trial=Logger.startTrial({tab:'beat',activity:'beat.meet',task:beatState.left+':'+beatState.right});}catch(e){}
+  }
+  beatRestartMetronome();
+}
+function beatOnLeave(){
+  Metronome.stop('beatL'); Metronome.stop('beatR');
+  if(beatState.cursorRaf){cancelAnimationFrame(beatState.cursorRaf);beatState.cursorRaf=0;}
+  if(beatState.trial){
+    try{Logger.endTrial(beatState.trial,{outcome:'open',finalState:{ratio:[beatState.left,beatState.right],tried:[...beatState.triedRatios]}});}catch(e){}
+    beatState.trial=null;
+  }
+}
+
 // ━━━━━━ UTILS ━━━━━━
 function gcd(a,b){return b===0?a:gcd(b,a%b)}
 function simplify(a,b){const g=gcd(a,b);return[a/g,b/g]}
