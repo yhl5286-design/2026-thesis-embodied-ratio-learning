@@ -1369,12 +1369,67 @@ const Metronome=(function(){
       osc.stop(time+0.15);
     }catch(e){}
   }
+  // 5종 타악기 합성 (초등 친숙)
+  function noiseBuffer(c, duration){
+    const b=c.createBuffer(1, Math.floor(c.sampleRate*duration), c.sampleRate);
+    const d=b.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    return b;
+  }
+  const SYNTHS={
+    // 큰북 (bass drum) — 낮은 sine + pitch envelope + short click
+    bassDrum(c, time, gain){
+      const osc=c.createOscillator(); const g=c.createGain();
+      osc.type='sine'; osc.frequency.setValueAtTime(120, time); osc.frequency.exponentialRampToValueAtTime(45, time+0.08);
+      g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(gain*1.8, time+0.005); g.gain.exponentialRampToValueAtTime(0.0001, time+0.22);
+      osc.connect(g).connect(c.destination); osc.start(time); osc.stop(time+0.25);
+    },
+    // 작은북 (snare) — noise burst + 약간의 톤
+    snare(c, time, gain){
+      const src=c.createBufferSource(); src.buffer=noiseBuffer(c, 0.18);
+      const hpf=c.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=1500;
+      const g=c.createGain();
+      g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(gain*1.3, time+0.003); g.gain.exponentialRampToValueAtTime(0.0001, time+0.18);
+      src.connect(hpf).connect(g).connect(c.destination); src.start(time); src.stop(time+0.2);
+      const osc=c.createOscillator(); const g2=c.createGain();
+      osc.type='triangle'; osc.frequency.value=220;
+      g2.gain.setValueAtTime(0, time); g2.gain.linearRampToValueAtTime(gain*0.5, time+0.003); g2.gain.exponentialRampToValueAtTime(0.0001, time+0.08);
+      osc.connect(g2).connect(c.destination); osc.start(time); osc.stop(time+0.1);
+    },
+    // 트라이앵글 — 높은 sine + 긴 감쇠 (잔향)
+    triangle(c, time, gain){
+      [3200, 4800, 6400].forEach((f, i)=>{
+        const osc=c.createOscillator(); const g=c.createGain();
+        osc.type='sine'; osc.frequency.value=f;
+        const peak=gain*(i===0?0.9:i===1?0.5:0.25);
+        g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(peak, time+0.005); g.gain.exponentialRampToValueAtTime(0.0001, time+0.9);
+        osc.connect(g).connect(c.destination); osc.start(time); osc.stop(time+1.0);
+      });
+    },
+    // 탬버린 — noise + 고주파 sine click + 약간 긴 감쇠
+    tambourine(c, time, gain){
+      const src=c.createBufferSource(); src.buffer=noiseBuffer(c, 0.25);
+      const hpf=c.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=4000;
+      const g=c.createGain();
+      g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(gain*1.1, time+0.002); g.gain.exponentialRampToValueAtTime(0.0001, time+0.28);
+      src.connect(hpf).connect(g).connect(c.destination); src.start(time); src.stop(time+0.3);
+    },
+    // 하이햇 — 매우 짧은 고주파 noise burst (closed hi-hat)
+    hihat(c, time, gain){
+      const src=c.createBufferSource(); src.buffer=noiseBuffer(c, 0.06);
+      const hpf=c.createBiquadFilter(); hpf.type='highpass'; hpf.frequency.value=7000;
+      const g=c.createGain();
+      g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(gain*0.9, time+0.002); g.gain.exponentialRampToValueAtTime(0.0001, time+0.05);
+      src.connect(hpf).connect(g).connect(c.destination); src.start(time); src.stop(time+0.07);
+    }
+  };
   function tick(id){
     const t=tracks[id];if(!t)return;
     const c=getCtx();if(!c)return;
     while(t.nextTime < c.currentTime + 0.1){
       const beatIdx=t.lastBeatIdx;
-      playClick(t.nextTime, t.freq, t.gain);
+      if(t.synth && SYNTHS[t.synth])SYNTHS[t.synth](c, t.nextTime, t.gain);
+      else playClick(t.nextTime, t.freq, t.gain);
       if(typeof t.onBeat==='function')try{t.onBeat(beatIdx, t.nextTime);}catch(e){}
       t.lastBeatIdx=(beatIdx+1)%t.beats;
       t.nextTime += t.barMs/t.beats/1000;
@@ -1390,6 +1445,7 @@ const Metronome=(function(){
         barMs: opts.barMs||2400,
         freq: opts.freq||440,
         gain: opts.gain||0.15,
+        synth: opts.synth||null,
         onBeat: opts.onBeat||null,
         nextTime: c.currentTime+0.05,
         lastBeatIdx:0
@@ -1414,6 +1470,7 @@ const Metronome=(function(){
     if(typeof opts.barMs==='number')t.barMs=opts.barMs;
     if(typeof opts.freq==='number')t.freq=opts.freq;
     if(typeof opts.gain==='number')t.gain=opts.gain;
+    if(typeof opts.synth==='string')t.synth=opts.synth;
     if(typeof opts.onBeat==='function')t.onBeat=opts.onBeat;
   }
   function isRunning(id){return !!tracks[id];}
@@ -1648,11 +1705,11 @@ function unitOnLeave(){
 
 // ━━━━━━ 박자 탭 (beat) — 재설계: 손박수 → 합주 → DJ mix ━━━━━━
 const BEAT_INSTRUMENTS={
-  base:   {label:'베이스', icon:'🥁', color:'#58d68d', freq:165},
-  drum:   {label:'드럼',   icon:'🪘', color:'#5dade2', freq:262},
-  melody: {label:'멜로디', icon:'🎵', color:'#9b59b6', freq:523},
-  clap:   {label:'손뼉',   icon:'👏', color:'#f5b041', freq:880},
-  fx:     {label:'효과',   icon:'✨', color:'#e74c3c', freq:1318}
+  base:   {label:'큰북',     icon:'🥁', color:'#58d68d', freq:165,  synth:'bassDrum'},
+  drum:   {label:'작은북',   icon:'🪘', color:'#5dade2', freq:262,  synth:'snare'},
+  melody: {label:'트라이앵글', icon:'🔔', color:'#9b59b6', freq:3200, synth:'triangle'},
+  clap:   {label:'탬버린',   icon:'🪇', color:'#f5b041', freq:4000, synth:'tambourine'},
+  fx:     {label:'하이햇',   icon:'🎯', color:'#e74c3c', freq:7000, synth:'hihat'}
 };
 const beatState={
   stage:1, tempo:2400, blind:true,
@@ -1896,11 +1953,9 @@ function beatStage2RestartMetronomes(){
     if(!t.on)return;
     const inst=BEAT_INSTRUMENTS[t.instr];
     Metronome.start('s2-'+t.instr,{
-      beats:t.beats, barMs:beatState.tempo, freq:inst.freq, gain:t.vol||0.12,
+      beats:t.beats, barMs:beatState.tempo, freq:inst.freq, gain:t.vol||0.14, synth:inst.synth,
       onBeat:(bidx,time)=>{
-        // 첫 트랙의 0박이 마디 시작
         if(idx===0 && bidx===0)beatState.s2.barStart=performance.now();
-        // 0박은 항상 모든 트랙 만남 → flash
         if(bidx===0 && idx===0 && beatState.s2.tracks.filter(t=>t.on).length>=2)beatStage2FlashMeet();
       }
     });
