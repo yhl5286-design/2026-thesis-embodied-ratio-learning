@@ -1786,12 +1786,201 @@ function beatEnterStage2(){
   beatStage2RestartMetronomes();
 }
 
-// ━━━━━━ Stage 2 — 리듬 합주 (placeholder; Task에서 채움) ━━━━━━
+// ━━━━━━ Stage 2 — 리듬 합주 (다중 트랙 layer) ━━━━━━
 function beatStage2Render(){
   const wrap=$('beatStage2');if(!wrap)return;
-  wrap.innerHTML=`<div style="background:#eaf2fb;border:2px solid #5dade2;border-radius:12px;padding:14px"><h3 style="margin:0 0 8px 0">Stage 2 · 리듬 합주 🥁🎵</h3><div style="color:#666;font-size:.85rem">트랙 layer 합주는 다음 커밋에서 구현됩니다.</div><div style="margin-top:8px;font-size:.85rem">현재 트랙: ${beatState.s2.tracks.map(t=>BEAT_INSTRUMENTS[t.instr].icon+' '+t.beats+'박').join(' · ')}</div></div>`;
+  const s2=beatState.s2;
+  const tracksHtml = s2.tracks.map((t,i)=>{
+    const inst=BEAT_INSTRUMENTS[t.instr];
+    return `<div style="background:#fff;border:2px solid ${inst.color};border-radius:10px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:1.3rem">${inst.icon}</span>
+      <span style="font-weight:800;color:${inst.color};min-width:50px">${inst.label}</span>
+      <button class="uunit-blind-toggle" onclick="beatStage2ChangeBeats(${i},-1)">−</button>
+      <span class="bbeat-count" style="min-width:46px;text-align:center;font-weight:800">${t.beats}박</span>
+      <button class="uunit-blind-toggle" onclick="beatStage2ChangeBeats(${i},1)">+</button>
+      <button class="uunit-blind-toggle" onclick="beatStage2ToggleTrack(${i})">${t.on?'🔊 켬':'🔇 끔'}</button>
+      <button class="uunit-blind-toggle" style="margin-left:auto;color:#c00" onclick="beatStage2RemoveTrack(${i})">✕</button>
+    </div>`;
+  }).join('');
+  const usedInstrs=new Set(s2.tracks.map(t=>t.instr));
+  const palette = Object.keys(BEAT_INSTRUMENTS).filter(k=>!usedInstrs.has(k)).map(k=>{
+    const inst=BEAT_INSTRUMENTS[k];
+    return `<button class="uunit-card" style="flex:1;min-width:80px;padding:10px 6px;font-size:1rem;border-color:${inst.color}" onclick="beatStage2AddTrack('${k}')">${inst.icon} ${inst.label}</button>`;
+  }).join('');
+  wrap.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <p style="margin:0;color:#666;font-size:.9rem">Stage 2 · 리듬 합주 🥁🎵 — 트랙을 쌓으며 새 박자를 만들어봐</p>
+      <button class="uunit-blind-toggle" onclick="beatToggleBlind()">${beatState.blind?'숫자 보기':'숫자 숨기기'}</button>
+    </div>
+    <div style="margin:10px 0">${tracksHtml}</div>
+    ${palette?`<div style="margin:6px 0"><div style="font-size:.78rem;color:#666;margin-bottom:4px">트랙 추가</div><div style="display:flex;gap:6px;flex-wrap:wrap">${palette}</div></div>`:''}
+    <div style="font-size:.78rem;color:#555;margin-top:10px">한 마디 진행 (만남 순간 ⚡로 깜빡임)</div>
+    <div class="bbeat-bar" id="bbeatBar2" style="height:${Math.max(48, 14*s2.tracks.length)}px"></div>
+    <div style="margin-top:14px;padding:12px;background:#fffbe6;border:2px dashed #f5b041;border-radius:10px;text-align:center">
+      <div style="font-size:.92rem;color:#7a5d00;margin-bottom:8px">두 트랙 이상이 같이 치는 순간이 들리면 누르세요</div>
+      <button class="uunit-discover-btn" onclick="beatStage2Discover()">⚡ 같이 친다!</button>
+    </div>
+    <div id="bbeatStage2Reveal" style="display:${s2.found?'block':'none'};margin-top:16px"></div>
+  `;
+  if(s2.found)beatStage2RenderReveal();
+  beatStage2RenderBar();
 }
-function beatStage2RestartMetronomes(){ /* 다음 커밋 */ }
+function beatStage2RenderBar(){
+  const bar=$('bbeatBar2');if(!bar)return;
+  const s2=beatState.s2;
+  let html='';
+  s2.tracks.forEach((t,idx)=>{
+    if(!t.on)return;
+    const color=BEAT_INSTRUMENTS[t.instr].color;
+    const top=(idx*100/Math.max(1,s2.tracks.length)+50/Math.max(1,s2.tracks.length));
+    for(let i=0;i<t.beats;i++){
+      html+=`<div class="bbeat-dot" style="left:${(i*100/t.beats).toFixed(2)}%;top:${top}%;background:${color}"></div>`;
+    }
+  });
+  html+=`<div class="bbeat-cursor" id="bbeat2Cursor" style="left:0%"></div>`;
+  bar.innerHTML=html;
+}
+function beatStage2AddTrack(instr){
+  if(beatState.s2.tracks.length>=5)return;
+  if(!BEAT_INSTRUMENTS[instr])return;
+  beatState.s2.tracks.push({instr, beats:2, on:true, vol:0.12});
+  try{Logger.event('track_add',{tab:'beat',instr});}catch(e){}
+  beatStage2LogState();
+  beatStage2Render();
+  beatStage2RestartMetronomes();
+}
+function beatStage2RemoveTrack(idx){
+  const t=beatState.s2.tracks[idx]; if(!t)return;
+  Metronome.stop('s2-'+t.instr);
+  beatState.s2.tracks.splice(idx,1);
+  try{Logger.event('track_remove',{tab:'beat',instr:t.instr});}catch(e){}
+  beatStage2LogState();
+  beatStage2Render();
+  beatStage2RestartMetronomes();
+}
+function beatStage2ChangeBeats(idx, delta){
+  const t=beatState.s2.tracks[idx]; if(!t)return;
+  t.beats=Math.max(1,Math.min(6,t.beats+delta));
+  try{Logger.event('track_beats_change',{tab:'beat',instr:t.instr,beats:t.beats});}catch(e){}
+  beatStage2LogState();
+  beatStage2Render();
+  beatStage2RestartMetronomes();
+}
+function beatStage2ToggleTrack(idx){
+  const t=beatState.s2.tracks[idx]; if(!t)return;
+  t.on=!t.on;
+  if(!t.on)Metronome.stop('s2-'+t.instr);
+  try{Logger.event('track_toggle',{tab:'beat',instr:t.instr,on:t.on});}catch(e){}
+  beatStage2LogState();
+  beatStage2Render();
+  beatStage2RestartMetronomes();
+}
+function beatStage2LogState(){
+  if(!beatState.s2.trial)return;
+  try{Logger.trialState(beatState.s2.trial,{tracks:beatState.s2.tracks.map(t=>({instr:t.instr,beats:t.beats,on:t.on})), tempo:beatState.tempo});}catch(e){}
+}
+function beatStage2FlashMeet(){
+  const bar=$('bbeatBar2');if(!bar)return;
+  const m=document.createElement('div');m.className='bbeat-meet';m.textContent='⚡';m.style.cssText='position:absolute;left:-2px;top:6px;font-size:1.4rem';
+  bar.appendChild(m);setTimeout(()=>{try{bar.removeChild(m);}catch(e){}},420);
+  try{
+    const c=new (window.AudioContext||window.webkitAudioContext)();
+    [392,494,587].forEach((f,i)=>{const o=c.createOscillator();const g=c.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(.08,c.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.25);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.3);});
+  }catch(e){}
+}
+function beatStage2RestartMetronomes(){
+  // 모든 5종 메트로놈 정지 후, 활성 트랙만 재시작
+  Object.keys(BEAT_INSTRUMENTS).forEach(k=>Metronome.stop('s2-'+k));
+  beatState.s2.barStart=performance.now();
+  beatState.s2.tracks.forEach((t,idx)=>{
+    if(!t.on)return;
+    const inst=BEAT_INSTRUMENTS[t.instr];
+    Metronome.start('s2-'+t.instr,{
+      beats:t.beats, barMs:beatState.tempo, freq:inst.freq, gain:t.vol||0.12,
+      onBeat:(bidx,time)=>{
+        // 첫 트랙의 0박이 마디 시작
+        if(idx===0 && bidx===0)beatState.s2.barStart=performance.now();
+        // 0박은 항상 모든 트랙 만남 → flash
+        if(bidx===0 && idx===0 && beatState.s2.tracks.filter(t=>t.on).length>=2)beatStage2FlashMeet();
+      }
+    });
+  });
+  if(!beatState.s2.rafId){
+    const step=()=>{
+      const c=$('bbeat2Cursor');
+      if(c){
+        const elapsed=(performance.now()-beatState.s2.barStart)%beatState.tempo;
+        c.style.left=(elapsed/beatState.tempo*100).toFixed(2)+'%';
+      }
+      beatState.s2.rafId=requestAnimationFrame(step);
+    };
+    beatState.s2.rafId=requestAnimationFrame(step);
+  }
+}
+function beatStage2Discover(){
+  const s2=beatState.s2;
+  if(s2.found)return;
+  if(s2.tracks.filter(t=>t.on).length<2)return;
+  s2.found=true;
+  try{Logger.event('discovery_trigger',{tab:'beat',tracks:s2.tracks.map(t=>t.instr+':'+t.beats)});}catch(e){}
+  beatState.blind=false;
+  beatStage2Render();
+}
+function beatStage2RenderReveal(){
+  const rev=$('bbeatStage2Reveal');if(!rev)return;
+  const tracks=beatState.s2.tracks.filter(t=>t.on);
+  if(tracks.length<2){rev.innerHTML='<div style="color:#888">두 트랙 이상이 켜져 있어야 합니다.</div>';return;}
+  // 짝지을 두 트랙 (기본: 첫 두 트랙)
+  if(!beatState.s2.ratioPair)beatState.s2.ratioPair=[tracks[0].instr, tracks[1].instr];
+  const [iA,iB] = beatState.s2.ratioPair;
+  const tA = tracks.find(t=>t.instr===iA) || tracks[0];
+  const tB = tracks.find(t=>t.instr===iB) || tracks[1];
+  const a=tA.beats, b=tB.beats;
+  const meetEvery=(a*b)/gcd(a,b);
+  const meetsInBar=gcd(a,b);
+  const bridge=ratioBridgeBlock(a,b,BEAT_INSTRUMENTS[tA.instr].label,BEAT_INSTRUMENTS[tA.instr].color,BEAT_INSTRUMENTS[tB.instr].label,BEAT_INSTRUMENTS[tB.instr].color,'');
+  const pairBtns = tracks.map(t=>`<button class="uunit-blind-toggle" style="background:${(beatState.s2.ratioPair.indexOf(t.instr)>=0)?BEAT_INSTRUMENTS[t.instr].color:'#fff'};color:${(beatState.s2.ratioPair.indexOf(t.instr)>=0)?'#fff':'#333'}" onclick="beatStage2TogglePair('${t.instr}')">${BEAT_INSTRUMENTS[t.instr].icon} ${t.beats}박</button>`).join(' ');
+  const posA=[],posB=[];
+  for(let i=0;i<a;i++)posA.push(i/a);
+  for(let i=0;i<b;i++)posB.push(i/b);
+  const partsCount=[
+    {label:BEAT_INSTRUMENTS[tA.instr].label, color:BEAT_INSTRUMENTS[tA.instr].color, count:a},
+    {label:BEAT_INSTRUMENTS[tB.instr].label, color:BEAT_INSTRUMENTS[tB.instr].color, count:b}
+  ];
+  const partsTime=[
+    {label:BEAT_INSTRUMENTS[tA.instr].label, color:BEAT_INSTRUMENTS[tA.instr].color, positions:posA, dashedEnd:true},
+    {label:BEAT_INSTRUMENTS[tB.instr].label, color:BEAT_INSTRUMENTS[tB.instr].color, positions:posB, dashedEnd:true}
+  ];
+  rev.innerHTML=`
+    <div style="background:#eaf2fb;border:2px solid #5dade2;border-radius:12px;padding:14px">
+      <h3 style="margin:0 0 8px 0">발견! 트랙들이 함께 가는 마디 (모두 같은 박자 위에 있어요)</h3>
+      <div style="font-size:.85rem;color:#444">전체 ${tracks.length}개 트랙 · 두 트랙 짝지어서 비례 보기:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${pairBtns}</div>
+      <div style="font-size:.85rem;color:#1f4e79;margin:6px 0">${BEAT_INSTRUMENTS[tA.instr].icon} ${a}박 vs ${BEAT_INSTRUMENTS[tB.instr].icon} ${b}박 → 한 마디 안에서 <b>${meetsInBar}번</b> 같이, 약분 비 ${a/gcd(a,b)}:${b/gcd(a,b)}</div>
+      ${renderBeatLine(partsCount)}
+      ${renderTimeRuler(partsTime, beatState.s2.zeroOneMode)}
+      ${renderZeroOneToggle(beatState.s2.zeroOneMode, 'beatStage2SetZeroOne')}
+      ${renderTwoLineQuestion(beatState.s2.twoLineAnswer, 'beatStage2SetTwoLineAnswer')}
+      <div class="bbeat-bridge" style="margin-top:8px">${bridge}</div>
+    </div>
+  `;
+}
+function beatStage2TogglePair(instr){
+  const p=beatState.s2.ratioPair;
+  if(!p)return;
+  const i=p.indexOf(instr);
+  if(i>=0){if(p.length>1)p.splice(i,1);}
+  else{if(p.length<2)p.push(instr);else{p.shift();p.push(instr);}}
+  beatStage2RenderReveal();
+}
+function beatStage2SetZeroOne(mode){beatState.s2.zeroOneMode=mode;try{Logger.event('zero_one_toggle',{tab:'beat',stage:2,mode});}catch(e){}beatStage2RenderReveal();}
+function beatStage2SetTwoLineAnswer(ans){
+  beatState.s2.twoLineAnswer=ans;
+  try{Logger.event('twoline_question_answer',{tab:'beat',stage:2,answer:ans});}catch(e){}
+  if(beatState.s2.trial){try{Logger.endTrial(beatState.s2.trial,{outcome:ans==='unknown'?'open':'answered',finalState:{tracks:beatState.s2.tracks.map(t=>({instr:t.instr,beats:t.beats,on:t.on})), twoLineAnswer:ans, zeroOneMode:beatState.s2.zeroOneMode}});}catch(e){}beatState.s2.trial=null;}
+  if(ans&&ans!=='unknown'&&!beatState.s3)beatEnterStage3();
+  else beatStage2RenderReveal();
+}
 
 function beatOnEnter(){
   beatState.s1._tStart=Date.now();
