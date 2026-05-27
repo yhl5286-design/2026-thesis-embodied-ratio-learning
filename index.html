@@ -550,6 +550,41 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #inst-panflute.pf-blind .pf-hz-disp,#inst-panflute.pf-blind .pf-cut-len-line{visibility:hidden}
 #lab-shadow.shad-blind .shad-ratio-display{visibility:hidden}
 .geo-readout{text-align:center;font-size:.85rem;font-weight:800;color:var(--red);margin:6px 0}
+
+/* 단위화 탭 */
+.unit-blind .uunit-count,.unit-blind .uunit-fraction{display:none !important}
+.uunit-card-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.uunit-card{flex:1 1 90px;min-width:80px;padding:14px 6px;border:2px solid #ddd;background:#fff;border-radius:10px;font-size:1.7rem;cursor:pointer;text-align:center;font-family:var(--font)}
+.uunit-card.active{border-color:#58d68d;background:#eaf7ea}
+.uunit-card.triplet{font-size:.95rem}
+.uunit-bar{position:relative;height:48px;background:#f0f8f0;border:2px solid #58d68d;border-radius:6px;overflow:hidden;margin:10px 0}
+.uunit-slot{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;background:rgba(88,214,141,.18)}
+.uunit-slot:not(:last-child){border-right:2px dashed #58d68d}
+.uunit-cursor{position:absolute;top:0;bottom:0;width:3px;background:#e74c3c;box-shadow:0 0 6px rgba(231,76,60,.6);transition:left .05s linear}
+.uunit-prev-row{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:.75rem;color:#888}
+.uunit-prev-bar{flex:1;position:relative;height:18px;background:#f0f0f0;border-radius:3px;overflow:hidden}
+.uunit-tag{font-weight:800;color:#1e6b1e;font-size:.78rem}
+.uunit-discover-btn{background:#f5b041;color:#fff;font-weight:800;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:.95rem}
+.uunit-count{font-size:.85rem;color:#1e6b1e;margin-top:6px;text-align:center}
+.uunit-blind-toggle{font-size:.75rem;background:none;border:1px solid #ccc;border-radius:4px;padding:2px 8px;cursor:pointer}
+
+/* 박자 탭 */
+.beat-blind .bbeat-count,.beat-blind .bbeat-dots,.beat-blind .bbeat-bridge{display:none !important}
+.bbeat-tracks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.bbeat-track{padding:14px;border-radius:12px;border:2px solid}
+.bbeat-track.left{border-color:#58d68d;background:#f0fcf3}
+.bbeat-track.right{border-color:#5dade2;background:#eaf6fc}
+.bbeat-track h4{margin:0 0 8px 0;font-size:.85rem}
+.bbeat-bar{position:relative;height:42px;background:#f0f0f0;border-radius:6px;margin:10px 0;overflow:hidden}
+.bbeat-cursor{position:absolute;top:0;bottom:0;width:3px;background:#e74c3c;transition:left .05s linear}
+.bbeat-dot{position:absolute;width:14px;height:14px;border-radius:50%;border:2px solid #fff;top:50%;transform:translate(-50%,-50%);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.bbeat-dot.left{background:#58d68d}
+.bbeat-dot.right{background:#5dade2}
+.bbeat-meet{position:absolute;left:0;top:0;font-size:1.3rem;animation:bmflash .4s ease 1}
+@keyframes bmflash{0%{opacity:0;transform:scale(.6)}50%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(1)}}
+.bbeat-tap-btn{width:100%;padding:18px 0;font-size:1.2rem;border:none;border-radius:10px;background:#5dade2;color:#fff;font-weight:800;cursor:pointer}
+.bbeat-tap-btn:active{transform:scale(.98);background:#3498db}
+.bbeat-count{font-size:.82rem;color:#555;text-align:center;margin-top:6px}
 </style>
 </head>
 <body>
@@ -1384,6 +1419,179 @@ const Metronome=(function(){
   function isRunning(id){return !!tracks[id];}
   return {start, stop, stopAll, update, isRunning};
 })();
+
+// ━━━━━━ 단위화 탭 (unit) ━━━━━━
+const unitState={
+  unit:'quarter',
+  prevUnit:null,
+  tempo:2400,
+  blind:true,
+  attemptsByUnit:{half:0,quarter:0,eighth:0,sixteenth:0,triplet:0},
+  trial:null,
+  found:false,
+  hintShown:false,
+  cursorRaf:0,
+  barStart:0
+};
+const UNIT_GLYPH={half:'𝅗𝅥',quarter:'♩',eighth:'♪',sixteenth:'♬',triplet:'3'};
+const UNIT_LABEL={half:'반음표',quarter:'4분음표',eighth:'8분음표',sixteenth:'16분음표',triplet:'3연음'};
+const UNIT_FREQ={half:392,quarter:440,eighth:494,sixteenth:523,triplet:466};
+
+function unitBuild(){
+  const root=$('unitRoot');if(!root)return;
+  root.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <p style="margin:0;color:#666;font-size:.9rem">한 마디를 어떤 음표로 채울지 골라봐. 음표가 작아지면 개수는?</p>
+      <button class="uunit-blind-toggle" onclick="unitToggleBlind()">숫자 보기</button>
+    </div>
+    <div class="uunit-card-row" id="uunitCardRow"></div>
+    <div style="display:flex;justify-content:space-between;font-size:.75rem;color:#888;margin-top:-4px;margin-bottom:4px"><span>한 마디 (반복 재생 중)</span><span class="uunit-tag" id="uunitCurTag"></span></div>
+    <div class="uunit-bar" id="uunitBar"></div>
+    <div class="uunit-count" id="uunitCount"></div>
+    <div id="uunitPrev" style="margin-top:14px"></div>
+    <div style="margin-top:18px;padding:12px;background:#fffbe6;border:2px dashed #f5b041;border-radius:10px;text-align:center">
+      <div style="font-size:.92rem;color:#7a5d00;margin-bottom:8px">단위가 작아지면 개수는 어떻게 되는지 알 것 같으면 누르세요</div>
+      <button class="uunit-discover-btn" onclick="unitDiscover()">💡 발견했어!</button>
+    </div>
+    <div id="uunitReveal" style="display:none;margin-top:16px"></div>
+  `;
+  const row=$('uunitCardRow');
+  Object.keys(UNIT_GLYPH).forEach(key=>{
+    const b=document.createElement('button');
+    b.className='uunit-card'+(key==='triplet'?' triplet':'');
+    b.textContent=UNIT_GLYPH[key]+(key==='triplet'?'연음':'');
+    b.id='uunitCard-'+key;
+    b.onclick=()=>unitSelect(key);
+    row.appendChild(b);
+  });
+  root.dataset.built='1';
+  unitApplyBlind();
+  unitSelect('quarter',true);
+}
+
+function unitApplyBlind(){
+  const root=$('unitRoot');if(!root)return;
+  root.classList.toggle('unit-blind', unitState.blind);
+}
+function unitToggleBlind(){
+  unitState.blind=!unitState.blind;
+  unitApplyBlind();
+  try{Logger.event('blind_toggle',{tab:'unit',blind:unitState.blind});}catch(e){}
+}
+
+function unitSelect(key, initial){
+  if(!UNIT_GLYPH[key])return;
+  if(!initial){
+    unitState.attemptsByUnit[key]=(unitState.attemptsByUnit[key]||0)+1;
+    unitState.prevUnit=unitState.unit;
+  }
+  unitState.unit=key;
+  Object.keys(UNIT_GLYPH).forEach(k=>{
+    const c=$('uunitCard-'+k);if(c)c.classList.toggle('active', k===key);
+  });
+  unitRenderBar();
+  unitRenderPrev();
+  unitRestartMetronome();
+  if(unitState.trial){
+    try{Logger.trialState(unitState.trial,{currentUnit:key, prevUnit:unitState.prevUnit, attemptsByUnit:Object.assign({},unitState.attemptsByUnit), tempo:unitState.tempo});}catch(e){}
+    try{Logger.event('unit_select',{tab:'unit',unit:key});}catch(e){}
+  }
+  unitCheckAutoHint();
+}
+
+function unitRenderBar(){
+  const bar=$('uunitBar');if(!bar)return;
+  const n=countForUnit(unitState.unit);
+  const tag=$('uunitCurTag');if(tag)tag.textContent=UNIT_LABEL[unitState.unit];
+  const count=$('uunitCount');if(count)count.innerHTML='개수: <b>'+n+'</b>개 · ' + (unitFraction(unitState.unit)?'각 음표 = 한 마디의 <b>1/'+unitFraction(unitState.unit)[1]+'</b>':'');
+  let html='';
+  for(let i=0;i<n;i++){
+    html+=`<div class="uunit-slot" style="left:${(i*100/n).toFixed(2)}%;width:${(100/n).toFixed(2)}%">${UNIT_GLYPH[unitState.unit]}</div>`;
+  }
+  html+=`<div class="uunit-cursor" id="uunitCursor" style="left:0%"></div>`;
+  bar.innerHTML=html;
+}
+function unitRenderPrev(){
+  const wrap=$('uunitPrev');if(!wrap)return;
+  if(!unitState.prevUnit){wrap.innerHTML='';return;}
+  const prevN=countForUnit(unitState.prevUnit);
+  const curN=countForUnit(unitState.unit);
+  function rowHtml(label, glyph, n){
+    let slots='';
+    for(let i=0;i<n;i++)slots+=`<div style="position:absolute;left:${(i*100/n).toFixed(2)}%;width:${(100/n).toFixed(2)}%;top:0;bottom:0;background:rgba(88,214,141,.4);${i<n-1?'border-right:1px dashed #58d68d':''}"></div>`;
+    return `<div class="uunit-prev-row"><span style="width:38px;text-align:center;font-size:1.1rem">${glyph}</span><div class="uunit-prev-bar">${slots}</div><span style="width:46px" class="uunit-count">${n}개</span></div>`;
+  }
+  wrap.innerHTML=`<div style="font-size:.78rem;color:#666;margin-bottom:4px">방금 시도한 단위 vs 지금 단위</div>`+
+    rowHtml('이전', UNIT_GLYPH[unitState.prevUnit], prevN) +
+    rowHtml('지금', UNIT_GLYPH[unitState.unit], curN);
+}
+
+function unitRestartMetronome(){
+  const n=countForUnit(unitState.unit);if(!n)return;
+  unitState.barStart=performance.now();
+  Metronome.start('unit', {
+    beats:n, barMs:unitState.tempo, freq:UNIT_FREQ[unitState.unit], gain:0.12,
+    onBeat:(idx, t)=>{ if(idx===0)unitState.barStart=performance.now(); }
+  });
+  if(!unitState.cursorRaf){
+    const step=()=>{
+      const c=$('uunitCursor');
+      if(c){
+        const elapsed=(performance.now()-unitState.barStart)%unitState.tempo;
+        c.style.left=(elapsed/unitState.tempo*100).toFixed(2)+'%';
+      }
+      unitState.cursorRaf=requestAnimationFrame(step);
+    };
+    unitState.cursorRaf=requestAnimationFrame(step);
+  }
+}
+
+function unitDiscover(){
+  if(unitState.found)return;
+  unitState.found=true;
+  try{Logger.event('discovery_trigger',{tab:'unit',unit:unitState.unit});}catch(e){}
+  unitState.blind=false; unitApplyBlind();
+  const rev=$('uunitReveal');
+  if(rev){
+    rev.style.display='block';
+    rev.innerHTML=`
+      <div style="background:#eaf7ea;border:2px solid #58d68d;border-radius:10px;padding:12px">
+        <div style="font-weight:800;color:#1e6b1e">발견! 한 마디 = ${UNIT_GLYPH[unitState.unit]} ${countForUnit(unitState.unit)}개 (= 한 마디의 1/${unitFraction(unitState.unit)[1]} × ${countForUnit(unitState.unit)})</div>
+        <div style="font-size:.85rem;color:#444;margin-top:4px">단위 ½ → 개수 2배. 단위 2배 → 개수 ½. (역관계)</div>
+      </div>`;
+  }
+  if(unitState.trial){
+    try{Logger.endTrial(unitState.trial,{outcome:'found',finalState:{unit:unitState.unit, count:countForUnit(unitState.unit), unitsTried:Object.keys(unitState.attemptsByUnit).filter(k=>unitState.attemptsByUnit[k]>0)}});}catch(e){}
+    unitState.trial=null;
+  }
+}
+
+function unitCheckAutoHint(){
+  if(unitState.found||unitState.hintShown)return;
+  const tried=Object.values(unitState.attemptsByUnit).filter(n=>n>0).length;
+  const elapsed=Date.now()-(unitState._tStart||Date.now());
+  if(tried>=3 && elapsed>=90000){
+    unitState.hintShown=true;
+    const btn=document.querySelector('.uunit-discover-btn');
+    if(btn){btn.animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:600,iterations:3});}
+  }
+}
+
+function unitOnEnter(){
+  unitState._tStart=Date.now();
+  if(!unitState.trial){
+    try{unitState.trial=Logger.startTrial({tab:'unit',activity:'unit.fill',task:'explore'});}catch(e){}
+  }
+  unitRestartMetronome();
+}
+function unitOnLeave(){
+  Metronome.stop('unit');
+  if(unitState.cursorRaf){cancelAnimationFrame(unitState.cursorRaf);unitState.cursorRaf=0;}
+  if(unitState.trial){
+    try{Logger.endTrial(unitState.trial,{outcome:'open',finalState:{unit:unitState.unit, unitsTried:Object.keys(unitState.attemptsByUnit).filter(k=>unitState.attemptsByUnit[k]>0)}});}catch(e){}
+    unitState.trial=null;
+  }
+}
 
 // ━━━━━━ UTILS ━━━━━━
 function gcd(a,b){return b===0?a:gcd(b,a%b)}
