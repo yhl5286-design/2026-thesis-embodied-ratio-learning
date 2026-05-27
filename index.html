@@ -1554,16 +1554,48 @@ function unitDiscover(){
   const rev=$('uunitReveal');
   if(rev){
     rev.style.display='block';
-    rev.innerHTML=`
-      <div style="background:#eaf7ea;border:2px solid #58d68d;border-radius:10px;padding:12px">
-        <div style="font-weight:800;color:#1e6b1e">발견! 한 마디 = ${UNIT_GLYPH[unitState.unit]} ${countForUnit(unitState.unit)}개 (= 한 마디의 1/${unitFraction(unitState.unit)[1]} × ${countForUnit(unitState.unit)})</div>
-        <div style="font-size:.85rem;color:#444;margin-top:4px">단위 ½ → 개수 2배. 단위 2배 → 개수 ½. (역관계)</div>
-      </div>`;
+    unitState.s2={zeroOneMode:'zero', twoLineAnswer:null};
+    try{unitState.s2.trial=Logger.startTrial({tab:'unit',activity:'unit.twoline',task:unitState.unit});}catch(e){unitState.s2.trial=null;}
+    rev.innerHTML = unitStage2Html();
   }
   if(unitState.trial){
     try{Logger.endTrial(unitState.trial,{outcome:'found',finalState:{unit:unitState.unit, count:countForUnit(unitState.unit), unitsTried:Object.keys(unitState.attemptsByUnit).filter(k=>unitState.attemptsByUnit[k]>0)}});}catch(e){}
     unitState.trial=null;
   }
+}
+function unitStage2Html(){
+  const n=countForUnit(unitState.unit);
+  const positions=[];
+  for(let i=0;i<n;i++)positions.push(i/n);
+  const partsCount=[{label:UNIT_LABEL[unitState.unit], color:'#58d68d', count:n}];
+  const partsTime=[{label:UNIT_LABEL[unitState.unit], color:'#58d68d', positions:positions, dashedEnd:true}];
+  const bridge = ratioBridgeBlock(1, n, '음표 1개', '#58d68d', '한 마디', '#1f4e79', '');
+  return `
+    <div style="background:#fef3e2;border:2px solid #f5b041;border-radius:12px;padding:14px">
+      <h3 style="margin:0 0 8px 0">Stage 2 · 음표선 ↔ 시간선</h3>
+      ${renderBeatLine(partsCount)}
+      ${renderTimeRuler(partsTime, unitState.s2.zeroOneMode)}
+      ${renderZeroOneToggle(unitState.s2.zeroOneMode, 'unitSetZeroOne')}
+      ${renderTwoLineQuestion(unitState.s2.twoLineAnswer, 'unitSetTwoLineAnswer')}
+      <div class="uunit-fraction" style="margin-top:8px">${bridge}</div>
+    </div>
+  `;
+}
+function unitSetZeroOne(mode){
+  if(!unitState.s2)return;
+  unitState.s2.zeroOneMode=mode;
+  $('uunitReveal').innerHTML=unitStage2Html();
+  try{Logger.event('zero_one_toggle',{tab:'unit',mode});}catch(e){}
+}
+function unitSetTwoLineAnswer(ans){
+  if(!unitState.s2)return;
+  unitState.s2.twoLineAnswer=ans;
+  try{Logger.event('twoline_question_answer',{tab:'unit',answer:ans});}catch(e){}
+  if(unitState.s2.trial){
+    try{Logger.endTrial(unitState.s2.trial,{outcome:ans==='unknown'?'open':'answered',finalState:{twoLineAnswer:ans,zeroOneMode:unitState.s2.zeroOneMode}});}catch(e){}
+    unitState.s2.trial=null;
+  }
+  $('uunitReveal').innerHTML=unitStage2Html();
 }
 
 function unitCheckAutoHint(){
@@ -1726,19 +1758,59 @@ function beatDiscover(){
   try{Logger.event('discovery_trigger',{tab:'beat',ratio:beatState.left+':'+beatState.right});}catch(e){}
   beatState.blind=false; beatApplyBlind();
   const [ra,rb]=simplify(beatState.left, beatState.right);
-  const meetEvery=(beatState.left*beatState.right)/gcd(beatState.left, beatState.right);
   const rev=$('bbeatReveal');
   if(rev){
     rev.style.display='block';
-    rev.innerHTML=`
-      <div style="background:#eaf2fb;border:2px solid #5dade2;border-radius:10px;padding:12px">
-        <div style="font-weight:800;color:#1f4e79">발견! 왼쪽 ${beatState.left}박 : 오른쪽 ${beatState.right}박 = <b>${ra}:${rb}</b> · 같이 치는 곳: <b>${meetEvery}박마다</b> (한 마디 시작 = 0박)</div>
-      </div>`;
+    beatState.s2={zeroOneMode:'zero', twoLineAnswer:null};
+    try{beatState.s2.trial=Logger.startTrial({tab:'beat',activity:'beat.twoline',task:beatState.left+':'+beatState.right});}catch(e){beatState.s2.trial=null;}
+    rev.innerHTML = beatStage2Html();
   }
   if(beatState.trial){
     try{Logger.endTrial(beatState.trial,{outcome:'found',finalState:{ratio:[ra,rb],tried:[...beatState.triedRatios]}});}catch(e){}
     beatState.trial=null;
   }
+}
+function beatStage2Html(){
+  const a=beatState.left, b=beatState.right;
+  const meetEvery=(a*b)/gcd(a,b);
+  const posA=[],posB=[];
+  for(let i=0;i<a;i++)posA.push(i/a);
+  for(let i=0;i<b;i++)posB.push(i/b);
+  const partsCount=[
+    {label:'왼쪽', color:'#58d68d', count:a},
+    {label:'오른쪽', color:'#5dade2', count:b}
+  ];
+  const partsTime=[
+    {label:'왼쪽', color:'#58d68d', positions:posA, dashedEnd:true},
+    {label:'오른쪽', color:'#5dade2', positions:posB, dashedEnd:true}
+  ];
+  const bridge = ratioBridgeBlock(a, b, '왼쪽', '#58d68d', '오른쪽', '#5dade2', '');
+  return `
+    <div style="background:#eaf2fb;border:2px solid #5dade2;border-radius:12px;padding:14px">
+      <h3 style="margin:0 0 8px 0">Stage 2 · 박수선 ↔ 시간선 · 만남: ${meetEvery}박마다</h3>
+      ${renderBeatLine(partsCount)}
+      ${renderTimeRuler(partsTime, beatState.s2.zeroOneMode)}
+      ${renderZeroOneToggle(beatState.s2.zeroOneMode, 'beatSetZeroOne')}
+      ${renderTwoLineQuestion(beatState.s2.twoLineAnswer, 'beatSetTwoLineAnswer')}
+      <div class="bbeat-bridge" style="margin-top:8px">${bridge}</div>
+    </div>
+  `;
+}
+function beatSetZeroOne(mode){
+  if(!beatState.s2)return;
+  beatState.s2.zeroOneMode=mode;
+  $('bbeatReveal').innerHTML=beatStage2Html();
+  try{Logger.event('zero_one_toggle',{tab:'beat',mode});}catch(e){}
+}
+function beatSetTwoLineAnswer(ans){
+  if(!beatState.s2)return;
+  beatState.s2.twoLineAnswer=ans;
+  try{Logger.event('twoline_question_answer',{tab:'beat',answer:ans});}catch(e){}
+  if(beatState.s2.trial){
+    try{Logger.endTrial(beatState.s2.trial,{outcome:ans==='unknown'?'open':'answered',finalState:{twoLineAnswer:ans,zeroOneMode:beatState.s2.zeroOneMode}});}catch(e){}
+    beatState.s2.trial=null;
+  }
+  $('bbeatReveal').innerHTML=beatStage2Html();
 }
 function beatCheckAutoHint(){
   if(beatState.found||beatState.hintShown)return;
