@@ -1449,6 +1449,8 @@ function unitBuild(){
     <div class="uunit-bar" id="uunitBar"></div>
     <div class="uunit-count" id="uunitCount"></div>
     <div id="uunitPrev" style="margin-top:14px"></div>
+    <div style="margin-top:14px;display:flex;align-items:center;gap:8px"><label style="font-size:.82rem;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="uunitCuToggle" onchange="unitToggleCompUnit(this.checked)"> 묶음 점 도식 보기</label></div>
+    <div id="uunitCu" style="display:none;margin-top:8px"></div>
     <div style="margin-top:18px;padding:12px;background:#fffbe6;border:2px dashed #f5b041;border-radius:10px;text-align:center">
       <div style="font-size:.92rem;color:#7a5d00;margin-bottom:8px">단위가 작아지면 개수는 어떻게 되는지 알 것 같으면 누르세요</div>
       <button class="uunit-discover-btn" onclick="unitDiscover()">💡 발견했어!</button>
@@ -1496,7 +1498,22 @@ function unitSelect(key, initial){
     try{Logger.trialState(unitState.trial,{currentUnit:key, prevUnit:unitState.prevUnit, attemptsByUnit:Object.assign({},unitState.attemptsByUnit), tempo:unitState.tempo});}catch(e){}
     try{Logger.event('unit_select',{tab:'unit',unit:key});}catch(e){}
   }
+  if($('uunitCuToggle')&&$('uunitCuToggle').checked)unitToggleCompUnit(true);
   unitCheckAutoHint();
+}
+function unitToggleCompUnit(on){
+  const el=$('uunitCu');
+  if(!el)return;
+  if(on){
+    const n=countForUnit(unitState.unit);
+    renderCompositeUnitGeneric('uunitCu', [{label:UNIT_LABEL[unitState.unit], color:'#58d68d', val:n}]);
+    el.style.display='';
+    try{Logger.event('composite_unit_toggle',{tab:'unit',on:true});}catch(e){}
+  } else {
+    el.style.display='none';
+    el.innerHTML='';
+    try{Logger.event('composite_unit_toggle',{tab:'unit',on:false});}catch(e){}
+  }
 }
 
 function unitRenderBar(){
@@ -2505,6 +2522,26 @@ function renderCompositeUnit(){
   }
   el.innerHTML=html;
   el.style.display='';
+}
+// 일반화: 단위화·박자도 쓸 수 있게 (parts: [{label, color, val}], wrapperId)
+function renderCompositeUnitGeneric(wrapperId, parts){
+  const el=$(wrapperId); if(!el)return;
+  if(!parts||parts.length<1){el.innerHTML='';el.style.display='none';return;}
+  if(parts.length===1){
+    const p=parts[0], n=p.val;
+    const dot=`<span class="cu-dot" style="background:${p.color}"></span>`;
+    let row=''; for(let i=0;i<Math.min(n,12);i++)row+=dot;
+    el.innerHTML=`<div class="bridge-title">📦 한 마디 = <b style="color:${p.color}">${p.label}</b> ${n}개</div><div class="cu-row"><span class="cu-k">한 묶음</span>${row}${n>12?'<span class="cu-more">… +'+(n-12)+'</span>':''}</div>`;
+    el.style.display='';
+    return;
+  }
+  const [ra,rb]=simplify(parts[0].val, parts[1].val);
+  const k=Math.round(parts[0].val/ra);
+  const dot=c=>`<span class="cu-dot" style="background:${c}"></span>`;
+  const oneUnit=dot(parts[0].color).repeat(ra)+'<span class="cu-gap"></span>'+dot(parts[1].color).repeat(rb);
+  let html=`<div class="bridge-title">📦 합성단위 — <b style="color:${parts[0].color}">${parts[0].label}</b> ${ra}마다 <b style="color:${parts[1].color}">${parts[1].label}</b> ${rb}</div><div class="cu-row"><span class="cu-k">한 묶음</span>${oneUnit}</div>`;
+  if(k>=2){const cap=Math.min(k,6);let kUnits='';for(let i=0;i<cap;i++)kUnits+='<span class="cu-group">'+oneUnit+'</span>';if(k>cap)kUnits+='<span class="cu-more">… +'+(k-cap)+'</span>';html+=`<div class="cu-row"><span class="cu-k">이 레시피 = ${k}묶음</span>${kUnits}</div>`;}
+  el.innerHTML=html; el.style.display='';
 }
 function closeReport(){const rpt=$('recipeReport');if(rpt)rpt.style.display='none'}
 // ━━━━━━ 표현 교량: 비↔분수↔나눗셈↔백분율 (원리⑤) — 색상·화음 공용 ━━━━━━
