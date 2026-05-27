@@ -1595,7 +1595,8 @@ function unitSetTwoLineAnswer(ans){
     try{Logger.endTrial(unitState.s2.trial,{outcome:ans==='unknown'?'open':'answered',finalState:{twoLineAnswer:ans,zeroOneMode:unitState.s2.zeroOneMode}});}catch(e){}
     unitState.s2.trial=null;
   }
-  $('uunitReveal').innerHTML=unitStage2Html();
+  if(ans&&ans!=='unknown'&&!unitState.s3)unitEnterStage3();
+  else $('uunitReveal').innerHTML=unitStage2Html();
 }
 
 function unitCheckAutoHint(){
@@ -1619,6 +1620,9 @@ function unitOnEnter(){
 function unitOnLeave(){
   Metronome.stop('unit');
   if(unitState.cursorRaf){cancelAnimationFrame(unitState.cursorRaf);unitState.cursorRaf=0;}
+  ['s2','s3'].forEach(k=>{
+    const o=unitState[k]; if(o&&o.trial){try{Logger.endTrial(o.trial,{outcome:'open',finalState:{}});}catch(e){}o.trial=null;}
+  });
   if(unitState.trial){
     try{Logger.endTrial(unitState.trial,{outcome:'open',finalState:{unit:unitState.unit, unitsTried:Object.keys(unitState.attemptsByUnit).filter(k=>unitState.attemptsByUnit[k]>0)}});}catch(e){}
     unitState.trial=null;
@@ -1810,7 +1814,8 @@ function beatSetTwoLineAnswer(ans){
     try{Logger.endTrial(beatState.s2.trial,{outcome:ans==='unknown'?'open':'answered',finalState:{twoLineAnswer:ans,zeroOneMode:beatState.s2.zeroOneMode}});}catch(e){}
     beatState.s2.trial=null;
   }
-  $('bbeatReveal').innerHTML=beatStage2Html();
+  if(ans&&ans!=='unknown'&&!beatState.s3)beatEnterStage3();
+  else $('bbeatReveal').innerHTML=beatStage2Html();
 }
 function beatCheckAutoHint(){
   if(beatState.found||beatState.hintShown)return;
@@ -1831,6 +1836,9 @@ function beatOnEnter(){
 function beatOnLeave(){
   Metronome.stop('beatL'); Metronome.stop('beatR');
   if(beatState.cursorRaf){cancelAnimationFrame(beatState.cursorRaf);beatState.cursorRaf=0;}
+  ['s2','s3'].forEach(k=>{
+    const o=beatState[k]; if(o&&o.trial){try{Logger.endTrial(o.trial,{outcome:'open',finalState:{}});}catch(e){}o.trial=null;}
+  });
   if(beatState.trial){
     try{Logger.endTrial(beatState.trial,{outcome:'open',finalState:{ratio:[beatState.left,beatState.right],tried:[...beatState.triedRatios]}});}catch(e){}
     beatState.trial=null;
@@ -1881,6 +1889,115 @@ function renderTwoLineQuestion(answer, onAnswer){
     </div>
   </div>`;
 }
+
+// ━━━━━━ 공용 Stage 3 — 변환·불변량 ━━━━━━
+function renderTransformPanel(transforms){
+  const cards=transforms.map(t=>`
+    <div style="background:#fff;border:2px solid ${t.color};border-radius:10px;padding:10px;flex:1 1 200px;min-width:180px">
+      <div style="font-size:.78rem;font-weight:800;color:${t.color};margin-bottom:6px">${t.label}</div>
+      ${t.html}
+    </div>`).join('');
+  return `<div style="display:flex;flex-wrap:wrap;gap:10px;margin:10px 0">${cards}</div>`;
+}
+const INVARIANT_OPTIONS={
+  changed:[
+    {key:'bar',label:'한 마디 길이'},
+    {key:'gap',label:'박 간격'},
+    {key:'count',label:'점/음표 개수'},
+    {key:'unit',label:'단위 크기'},
+  ],
+  invariant:[
+    {key:'ratio',label:'비'},
+    {key:'meet',label:'만남 패턴/분할 비율'},
+    {key:'pos',label:'점/음표 상대 위치'},
+  ]
+};
+function renderInvariantChecklist(state, changedHandler, invariantHandler){
+  function cb(side, opt){
+    const checked=(state[side]||[]).indexOf(opt.key)>=0;
+    return `<label style="display:block;font-size:.82rem;cursor:pointer"><input type="checkbox" ${checked?'checked':''} onchange="${side==='changed'?changedHandler:invariantHandler}('${opt.key}')"> ${opt.label}</label>`;
+  }
+  return `<div style="background:#eaf7ea;border:2px solid #58d68d;border-radius:10px;padding:12px;margin:10px 0">
+    <div style="font-weight:800;color:#1e6b1e;text-align:center">💭 무엇이 변했어요? 무엇이 그대로예요?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <div style="background:#fff;border:1px solid #ccc;border-radius:6px;padding:8px">
+        <div style="font-weight:800;font-size:.78rem;margin-bottom:4px">변한 것</div>
+        ${INVARIANT_OPTIONS.changed.map(o=>cb('changed',o)).join('')}
+      </div>
+      <div style="background:#fff;border:1px solid #ccc;border-radius:6px;padding:8px">
+        <div style="font-weight:800;font-size:.78rem;margin-bottom:4px">그대로인 것</div>
+        ${INVARIANT_OPTIONS.invariant.map(o=>cb('invariant',o)).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ━━━━━━ 단위화 Stage 3 ━━━━━━
+function unitNextSmaller(u){return {half:'quarter',quarter:'eighth',eighth:'sixteenth'}[u]||null;}
+function unitEnterStage3(){
+  unitState.s3={lastTransform:null, changed:[], invariant:[], prevUnit:unitState.unit, prevTempo:unitState.tempo, trial:null};
+  try{unitState.s3.trial=Logger.startTrial({tab:'unit',activity:'unit.transform',task:unitState.unit});}catch(e){}
+  unitRenderStage3();
+}
+function unitRenderStage3(){
+  const cur=unitState.unit;
+  const transforms=[
+    {key:'tempo',label:'① 빠르기 바꾸기',color:'#f5b041',html:`
+      <input type="range" min="1200" max="4000" step="200" value="${unitState.tempo}" oninput="unitTransformTempo(+this.value)" style="width:100%">
+      <div style="font-size:.7rem;color:#aaa;text-align:center">한 마디 길이 ${(unitState.tempo/1000).toFixed(1)}초</div>`},
+    {key:'unit',label:'② 단위 바꾸기',color:'#e74c8a',html:`
+      <select onchange="unitTransformUnit(this.value)" style="width:100%;padding:6px">
+        ${Object.keys(UNIT_GLYPH).map(k=>`<option value="${k}" ${k===cur?'selected':''}>${UNIT_GLYPH[k]} ${UNIT_LABEL[k]}</option>`).join('')}
+      </select>`},
+    {key:'split',label:'③ 분해 (등가)',color:'#9b59b6',html:`
+      <button class="uunit-blind-toggle" style="width:100%" onclick="unitTransformSplit()">현재 단위를 두 배로 쪼개기 (${UNIT_GLYPH[cur]} → ${UNIT_GLYPH[unitNextSmaller(cur)]||'-'} 2개)</button>`}
+  ];
+  $('uunitReveal').innerHTML = unitStage2Html().replace(/<\/div>\s*$/,'') + `
+    <h3 style="margin:14px 0 8px 0">Stage 3 · 변환·불변량</h3>
+    ${renderTransformPanel(transforms)}
+    ${renderInvariantChecklist(unitState.s3,'unitToggleChanged','unitToggleInvariant')}
+  </div>`;
+}
+function unitTransformTempo(v){unitState.s3.lastTransform={type:'tempo',before:unitState.tempo,after:v};unitState.tempo=v;unitRestartMetronome();unitRenderStage3();unitLogTransform();}
+function unitTransformUnit(v){unitState.s3.lastTransform={type:'unit',before:unitState.unit,after:v};unitState.unit=v;unitRenderBar();unitRestartMetronome();unitRenderStage3();unitLogTransform();}
+function unitTransformSplit(){const nx=unitNextSmaller(unitState.unit);if(!nx)return;unitState.s3.lastTransform={type:'split',before:unitState.unit,after:nx};unitState.unit=nx;unitRenderBar();unitRestartMetronome();unitRenderStage3();unitLogTransform();}
+function unitLogTransform(){try{Logger.event('transform_apply',Object.assign({tab:'unit'},unitState.s3.lastTransform));}catch(e){}}
+function unitToggleChanged(key){if(!unitState.s3)return;const a=unitState.s3.changed;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);unitRenderStage3();try{Logger.event('invariance_check',{tab:'unit',changed:unitState.s3.changed.slice(),invariant:unitState.s3.invariant.slice()});}catch(e){}}
+function unitToggleInvariant(key){if(!unitState.s3)return;const a=unitState.s3.invariant;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);unitRenderStage3();try{Logger.event('invariance_check',{tab:'unit',changed:unitState.s3.changed.slice(),invariant:unitState.s3.invariant.slice()});}catch(e){}}
+
+// ━━━━━━ 박자 Stage 3 ━━━━━━
+function beatEnterStage3(){
+  beatState.s3={lastTransform:null, changed:[], invariant:[], prevRatio:[beatState.left,beatState.right], prevTempo:beatState.tempo, trial:null};
+  try{beatState.s3.trial=Logger.startTrial({tab:'beat',activity:'beat.transform',task:beatState.left+':'+beatState.right});}catch(e){}
+  beatRenderStage3();
+}
+function beatRenderStage3(){
+  const transforms=[
+    {key:'tempo',label:'① 빠르기',color:'#f5b041',html:`
+      <input type="range" min="60" max="160" value="${Math.round(60000/(beatState.tempo/4))}" oninput="beatTransformTempo(+this.value)" style="width:100%">
+      <div style="font-size:.7rem;color:#aaa;text-align:center">BPM (한 마디 ${(beatState.tempo/1000).toFixed(1)}초)</div>`},
+    {key:'beats',label:'② 박 수',color:'#e74c8a',html:`
+      <div style="display:flex;gap:4px;margin-bottom:4px"><button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformBeats('left',-1)">왼 −</button><span style="flex:1;text-align:center">${beatState.left}박</span><button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformBeats('left',1)">왼 +</button></div>
+      <div style="display:flex;gap:4px"><button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformBeats('right',-1)">오 −</button><span style="flex:1;text-align:center">${beatState.right}박</span><button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformBeats('right',1)">오 +</button></div>`},
+    {key:'equiv',label:'③ 등가 ×k',color:'#9b59b6',html:`
+      <div style="display:flex;gap:4px">
+        <button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformEquiv(2)">×2</button>
+        <button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformEquiv(3)">×3</button>
+        <button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformEquiv(0.5)">÷2</button>
+      </div>`}
+  ];
+  $('bbeatReveal').innerHTML = beatStage2Html().replace(/<\/div>\s*$/,'') + `
+    <h3 style="margin:14px 0 8px 0">Stage 3 · 변환·불변량</h3>
+    ${renderTransformPanel(transforms)}
+    ${renderInvariantChecklist(beatState.s3,'beatToggleChanged','beatToggleInvariant')}
+  </div>`;
+}
+function beatTransformTempo(bpm){const newMs=60000/bpm*4;beatState.s3.lastTransform={type:'tempo',before:beatState.tempo,after:newMs};beatState.tempo=newMs;beatRestartMetronome('left');beatRestartMetronome('right');beatRenderStage3();beatLogTransform();}
+function beatTransformBeats(side, delta){const before=[beatState.left,beatState.right];if(side==='left')beatState.left=Math.max(1,Math.min(12,beatState.left+delta));else beatState.right=Math.max(1,Math.min(12,beatState.right+delta));beatState.s3.lastTransform={type:'beats',before,after:[beatState.left,beatState.right]};beatRestartMetronome('left');beatRestartMetronome('right');beatRenderBar();beatRenderStage3();beatLogTransform();}
+function beatTransformEquiv(k){const before=[beatState.left,beatState.right];const r=equivScale(before,k);if(!r)return;beatState.s3.lastTransform={type:'equiv',before,after:r,k};beatState.left=r[0];beatState.right=r[1];beatRestartMetronome('left');beatRestartMetronome('right');beatRenderBar();beatRenderStage3();beatLogTransform();}
+function beatLogTransform(){try{Logger.event('transform_apply',Object.assign({tab:'beat'},beatState.s3.lastTransform));}catch(e){}}
+function beatToggleChanged(key){if(!beatState.s3)return;const a=beatState.s3.changed;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);beatRenderStage3();try{Logger.event('invariance_check',{tab:'beat',changed:beatState.s3.changed.slice(),invariant:beatState.s3.invariant.slice()});}catch(e){}}
+function beatToggleInvariant(key){if(!beatState.s3)return;const a=beatState.s3.invariant;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);beatRenderStage3();try{Logger.event('invariance_check',{tab:'beat',changed:beatState.s3.changed.slice(),invariant:beatState.s3.invariant.slice()});}catch(e){}}
 
 // ━━━━━━ UTILS ━━━━━━
 function gcd(a,b){return b===0?a:gcd(b,a%b)}
