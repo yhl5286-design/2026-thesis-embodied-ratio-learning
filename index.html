@@ -1712,11 +1712,11 @@ const BEAT_INSTRUMENTS={
   fx:     {label:'하이햇',   icon:'🎯', color:'#e74c3c', freq:7000, synth:'hihat'}
 };
 const beatState={
-  stage:1, tempo:2400, blind:true,
+  stage:1, tempo:4000, blind:true,
   // Stage 1
   s1:{beats:4, claps:[], correct:0, total:0, trial:null, unlocked:false, _tStart:0, barStart:0, rafId:0},
   // Stage 2
-  s2:{tracks:[], trial:null, found:false, hintShown:false, _tStart:0, barStart:0, rafId:0, ratioPair:null, twoLineAnswer:null, zeroOneMode:'zero'},
+  s2:{tracks:[], trial:null, found:false, hintShown:false, _tStart:0, barStart:0, rafId:0, ratioPair:null, twoLineAnswer:null, zeroOneMode:'zero', meetCount:0},
   // Stage 3
   s3:null
 };
@@ -1844,14 +1844,22 @@ function beatEnterStage2(){
 }
 
 // ━━━━━━ Stage 2 — 리듬 합주 (다중 트랙 layer) ━━━━━━
+function beatStage2GuideText(nTracks){
+  if(nTracks===0)return '🎵 먼저 좋아하는 악기를 하나 골라봐 (예: 트라이앵글이나 큰북)';
+  if(nTracks===1)return '🎶 두 번째 악기를 추가해서 합주를 만들어보자';
+  if(nTracks===2)return '✨ 두 악기의 박 수를 바꿔보며 같이 치는 순간을 들어봐';
+  if(nTracks>=3)return '🎉 여러 악기가 함께 가는 마디가 들려? 같이 치는 순간 ⚡ 버튼을 눌러봐';
+  return '';
+}
 function beatStage2Render(){
   const wrap=$('beatStage2');if(!wrap)return;
   const s2=beatState.s2;
+  const onTracks=s2.tracks.filter(t=>t.on);
   const tracksHtml = s2.tracks.map((t,i)=>{
     const inst=BEAT_INSTRUMENTS[t.instr];
     return `<div style="background:#fff;border:2px solid ${inst.color};border-radius:10px;padding:10px;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span style="font-size:1.3rem">${inst.icon}</span>
-      <span style="font-weight:800;color:${inst.color};min-width:50px">${inst.label}</span>
+      <span style="font-weight:800;color:${inst.color};min-width:60px">${inst.label}</span>
       <button class="uunit-blind-toggle" onclick="beatStage2ChangeBeats(${i},-1)">−</button>
       <span class="bbeat-count" style="min-width:46px;text-align:center;font-weight:800">${t.beats}박</span>
       <button class="uunit-blind-toggle" onclick="beatStage2ChangeBeats(${i},1)">+</button>
@@ -1862,17 +1870,32 @@ function beatStage2Render(){
   const usedInstrs=new Set(s2.tracks.map(t=>t.instr));
   const palette = Object.keys(BEAT_INSTRUMENTS).filter(k=>!usedInstrs.has(k)).map(k=>{
     const inst=BEAT_INSTRUMENTS[k];
-    return `<button class="uunit-card" style="flex:1;min-width:80px;padding:10px 6px;font-size:1rem;border-color:${inst.color}" onclick="beatStage2AddTrack('${k}')">${inst.icon} ${inst.label}</button>`;
+    return `<button class="uunit-card" style="flex:1;min-width:90px;padding:10px 6px;font-size:.95rem;border-color:${inst.color}" onclick="beatStage2AddTrack('${k}')">${inst.icon} ${inst.label}</button>`;
   }).join('');
+  const bpm=Math.round(60000/(beatState.tempo/4));
   wrap.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <p style="margin:0;color:#666;font-size:.9rem">Stage 2 · 리듬 합주 🥁🎵 — 트랙을 쌓으며 새 박자를 만들어봐</p>
       <button class="uunit-blind-toggle" onclick="beatToggleBlind()">${beatState.blind?'숫자 보기':'숫자 숨기기'}</button>
     </div>
+    <div style="background:#e8f4fd;border-left:4px solid #5dade2;padding:8px 12px;border-radius:6px;font-size:.9rem;color:#1f4e79;margin:8px 0">
+      ${beatStage2GuideText(onTracks.length)}
+    </div>
     <div style="margin:10px 0">${tracksHtml}</div>
-    ${palette?`<div style="margin:6px 0"><div style="font-size:.78rem;color:#666;margin-bottom:4px">트랙 추가</div><div style="display:flex;gap:6px;flex-wrap:wrap">${palette}</div></div>`:''}
-    <div style="font-size:.78rem;color:#555;margin-top:10px">한 마디 진행 (만남 순간 ⚡로 깜빡임)</div>
-    <div class="bbeat-bar" id="bbeatBar2" style="height:${Math.max(48, 14*s2.tracks.length)}px"></div>
+    ${palette?`<div style="margin:6px 0"><div style="font-size:.78rem;color:#666;margin-bottom:4px">트랙 추가 (최대 5개)</div><div style="display:flex;gap:6px;flex-wrap:wrap">${palette}</div></div>`:''}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:.78rem;color:#555">
+      <span>한 마디 진행 — <b>같이 치는 순간 ⚡</b>는 항상 마디 시작·끝에 (마디 ${(beatState.tempo/1000).toFixed(1)}초)</span>
+      <span>같이 친 마디: <b id="bbeatMeetCount">${s2.meetCount}</b>번</span>
+    </div>
+    <div style="position:relative">
+      <div class="bbeat-bar" id="bbeatBar2" style="height:${Math.max(56, 16*Math.max(1,onTracks.length))}px"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.78rem;color:#666">
+      <span>🐢 천천히</span>
+      <input type="range" min="40" max="120" value="${bpm}" oninput="beatStage2SetBpm(+this.value)" style="flex:1">
+      <span>🐇 빠르게</span>
+      <span style="min-width:60px;text-align:right">${bpm} BPM</span>
+    </div>
     <div style="margin-top:14px;padding:12px;background:#fffbe6;border:2px dashed #f5b041;border-radius:10px;text-align:center">
       <div style="font-size:.92rem;color:#7a5d00;margin-bottom:8px">두 트랙 이상이 같이 치는 순간이 들리면 누르세요</div>
       <button class="uunit-discover-btn" onclick="beatStage2Discover()">⚡ 같이 친다!</button>
@@ -1882,19 +1905,38 @@ function beatStage2Render(){
   if(s2.found)beatStage2RenderReveal();
   beatStage2RenderBar();
 }
+function beatStage2SetBpm(bpm){
+  beatState.tempo=60000/bpm*4;
+  beatStage2RestartMetronomes();
+  beatStage2Render();
+  try{Logger.event('bpm_change',{tab:'beat',stage:2,bpm});}catch(e){}
+}
 function beatStage2RenderBar(){
   const bar=$('bbeatBar2');if(!bar)return;
   const s2=beatState.s2;
+  const onTracks=s2.tracks.filter(t=>t.on);
   let html='';
-  s2.tracks.forEach((t,idx)=>{
-    if(!t.on)return;
+  // 영구 ⚡ 마커: 모든 트랙이 같이 치는 곳 (0 = 마디 시작, 1 = 마디 끝)
+  // 추가로 모든 트랙 박 수의 GCD에 따라 마디 안 만남 위치도 표시
+  if(onTracks.length>=2){
+    const beatsArr=onTracks.map(t=>t.beats);
+    const gcdAll=beatsArr.reduce((a,b)=>gcd(a,b));
+    // 마디 안 만남 점 — gcdAll 위치마다
+    for(let i=0;i<gcdAll;i++){
+      const pos=i/gcdAll*100;
+      html+=`<div style="position:absolute;left:${pos.toFixed(2)}%;top:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:radial-gradient(circle,#fff7c0,#f5b041);border:3px solid #f5b041;display:flex;align-items:center;justify-content:center;font-size:1.1rem;z-index:5;pointer-events:none">⚡</div>`;
+    }
+    // 마디 끝점도
+    html+=`<div style="position:absolute;left:100%;top:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:radial-gradient(circle,#fff7c0,#f5b041);border:3px solid #f5b041;display:flex;align-items:center;justify-content:center;font-size:1.1rem;z-index:5;pointer-events:none">⚡</div>`;
+  }
+  onTracks.forEach((t,idx)=>{
     const color=BEAT_INSTRUMENTS[t.instr].color;
-    const top=(idx*100/Math.max(1,s2.tracks.length)+50/Math.max(1,s2.tracks.length));
+    const top=(idx*100/Math.max(1,onTracks.length)+50/Math.max(1,onTracks.length));
     for(let i=0;i<t.beats;i++){
-      html+=`<div class="bbeat-dot" style="left:${(i*100/t.beats).toFixed(2)}%;top:${top}%;background:${color}"></div>`;
+      html+=`<div class="bbeat-dot" style="left:${(i*100/t.beats).toFixed(2)}%;top:${top}%;background:${color};z-index:2"></div>`;
     }
   });
-  html+=`<div class="bbeat-cursor" id="bbeat2Cursor" style="left:0%"></div>`;
+  html+=`<div class="bbeat-cursor" id="bbeat2Cursor" style="left:0%;z-index:3"></div>`;
   bar.innerHTML=html;
 }
 function beatStage2AddTrack(instr){
@@ -1938,12 +1980,23 @@ function beatStage2LogState(){
 }
 function beatStage2FlashMeet(){
   const bar=$('bbeatBar2');if(!bar)return;
-  const m=document.createElement('div');m.className='bbeat-meet';m.textContent='⚡';m.style.cssText='position:absolute;left:-2px;top:6px;font-size:1.4rem';
-  bar.appendChild(m);setTimeout(()=>{try{bar.removeChild(m);}catch(e){}},420);
+  beatState.s2.meetCount++;
+  const cnt=$('bbeatMeetCount');if(cnt)cnt.textContent=beatState.s2.meetCount;
+  // 모든 영구 ⚡ 마커 펄스 애니메이션
+  bar.querySelectorAll('div').forEach(el=>{
+    if(el.textContent==='⚡' && el.style.zIndex==='5'){
+      el.animate([
+        {transform:'translate(-50%,-50%) scale(1)', boxShadow:'0 0 0 0 rgba(245,176,65,.7)'},
+        {transform:'translate(-50%,-50%) scale(1.6)', boxShadow:'0 0 20px 8px rgba(245,176,65,.5)'},
+        {transform:'translate(-50%,-50%) scale(1)', boxShadow:'0 0 0 0 rgba(245,176,65,0)'}
+      ], {duration:1200, iterations:1});
+    }
+  });
   try{
     const c=new (window.AudioContext||window.webkitAudioContext)();
-    [392,494,587].forEach((f,i)=>{const o=c.createOscillator();const g=c.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(.08,c.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.25);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.3);});
+    [523,659,784].forEach((f,i)=>{const o=c.createOscillator();const g=c.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(.1,c.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.5);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.6);});
   }catch(e){}
+  try{Logger.event('meet_resonance',{tab:'beat',count:beatState.s2.meetCount});}catch(e){}
 }
 function beatStage2RestartMetronomes(){
   // 모든 5종 메트로놈 정지 후, 활성 트랙만 재시작
