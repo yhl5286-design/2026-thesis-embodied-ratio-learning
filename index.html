@@ -1314,6 +1314,77 @@ function unitChange(from, to){
 }
 //__RS_TRANSFORMS_END__
 
+// ━━━━━━ Metronome — Web Audio lookahead scheduler (박자·단위화 공용) ━━━━━━
+const Metronome=(function(){
+  let ctx=null;
+  const tracks={};
+  function getCtx(){try{if(!ctx)ctx=new (window.AudioContext||window.webkitAudioContext)();return ctx;}catch(e){return null;}}
+  function playClick(time, freq, gain){
+    const c=getCtx();if(!c)return;
+    try{
+      const osc=c.createOscillator();
+      const g=c.createGain();
+      osc.frequency.value=freq;
+      osc.type='sine';
+      g.gain.setValueAtTime(0,time);
+      g.gain.linearRampToValueAtTime(gain,time+0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001,time+0.12);
+      osc.connect(g).connect(c.destination);
+      osc.start(time);
+      osc.stop(time+0.15);
+    }catch(e){}
+  }
+  function tick(id){
+    const t=tracks[id];if(!t)return;
+    const c=getCtx();if(!c)return;
+    while(t.nextTime < c.currentTime + 0.1){
+      const beatIdx=t.lastBeatIdx;
+      playClick(t.nextTime, t.freq, t.gain);
+      if(typeof t.onBeat==='function')try{t.onBeat(beatIdx, t.nextTime);}catch(e){}
+      t.lastBeatIdx=(beatIdx+1)%t.beats;
+      t.nextTime += t.barMs/t.beats/1000;
+    }
+  }
+  function start(id, opts){
+    try{
+      const c=getCtx();if(!c)return;
+      if(c.state==='suspended')c.resume();
+      stop(id);
+      const t={
+        beats: opts.beats||2,
+        barMs: opts.barMs||2400,
+        freq: opts.freq||440,
+        gain: opts.gain||0.15,
+        onBeat: opts.onBeat||null,
+        nextTime: c.currentTime+0.05,
+        lastBeatIdx:0
+      };
+      tracks[id]=t;
+      t.intervalId=setInterval(()=>tick(id), 25);
+    }catch(e){}
+  }
+  function stop(id){
+    try{
+      const t=tracks[id];if(!t)return;
+      if(t.intervalId)clearInterval(t.intervalId);
+      delete tracks[id];
+    }catch(e){}
+  }
+  function stopAll(){
+    try{Object.keys(tracks).forEach(stop);}catch(e){}
+  }
+  function update(id, opts){
+    const t=tracks[id];if(!t)return;
+    if(typeof opts.beats==='number')t.beats=opts.beats;
+    if(typeof opts.barMs==='number')t.barMs=opts.barMs;
+    if(typeof opts.freq==='number')t.freq=opts.freq;
+    if(typeof opts.gain==='number')t.gain=opts.gain;
+    if(typeof opts.onBeat==='function')t.onBeat=opts.onBeat;
+  }
+  function isRunning(id){return !!tracks[id];}
+  return {start, stop, stopAll, update, isRunning};
+})();
+
 // ━━━━━━ UTILS ━━━━━━
 function gcd(a,b){return b===0?a:gcd(b,a%b)}
 function simplify(a,b){const g=gcd(a,b);return[a/g,b/g]}
