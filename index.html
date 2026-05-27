@@ -1292,6 +1292,28 @@ function extractBeats(times,barMs){
 }
 //__TAP_EXTRACTOR_END__
 
+// ━━━━━━ Transforms — 변환·불변량 순수 로직 ━━━━━━
+//__RS_TRANSFORMS_START__
+const UNIT_COUNTS={half:2,quarter:4,eighth:8,sixteenth:16,triplet:3};
+function equivScale(ratio, k){
+  const a=ratio[0]*k, b=ratio[1]*k;
+  if(!Number.isInteger(a)||!Number.isInteger(b))return null;
+  return [a,b];
+}
+function countForUnit(unit){
+  return UNIT_COUNTS[unit]||0;
+}
+function unitFraction(unit){
+  const c=UNIT_COUNTS[unit];
+  return c?[1,c]:null;
+}
+function unitChange(from, to){
+  const a=UNIT_COUNTS[from], b=UNIT_COUNTS[to];
+  if(!a||!b)return {countMultiplier:0};
+  return {countMultiplier:b/a};
+}
+//__RS_TRANSFORMS_END__
+
 // ━━━━━━ UTILS ━━━━━━
 function gcd(a,b){return b===0?a:gcd(b,a%b)}
 function simplify(a,b){const g=gcd(a,b);return[a/g,b/g]}
