@@ -581,8 +581,10 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 
 <div class="tab-bar">
   <button class="tab-btn active" onclick="switchTab('color')">&#x1f3a8; 색상 실험실</button>
+  <button class="tab-btn" onclick="switchTab('unit')">&#x1F4D0; 단위화</button>
   <button class="tab-btn" onclick="switchTab('sound')">&#x1f3b5; 소리 탐험실</button>
   <button class="tab-btn" onclick="switchTab('instrument')">&#x1f3b9; 악기 제작실</button>
+  <button class="tab-btn" onclick="switchTab('beat')">&#x1F941; 박자</button>
   <button class="tab-btn" onclick="switchTab('harmony')">&#x1f3bc; 화음 감상실</button>
   <button class="tab-btn" onclick="switchTab('shadow')">&#x1F31F; 그림자와 비율</button>
 </div>
@@ -980,6 +982,23 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 </div>
 
 
+<!-- ════════ 신규: 단위화 ════════ -->
+<div class="lab" id="lab-unit">
+  <div class="card" style="padding:24px">
+    <h2 style="margin:0 0 8px 0">📐 단위화</h2>
+    <div id="unitRoot" style="min-height:200px"></div>
+  </div>
+</div>
+
+<!-- ════════ 신규: 박자 ════════ -->
+<div class="lab" id="lab-beat">
+  <div class="card" style="padding:24px">
+    <h2 style="margin:0 0 8px 0">🥁 박자</h2>
+    <div id="beatRoot" style="min-height:200px"></div>
+  </div>
+</div>
+
+
 <!-- ════════ 6. 그림자와 비율 ════════ -->
 <div class="lab shad-blind" id="lab-shadow">
   <div class="snd-stage-bar">
@@ -1287,7 +1306,7 @@ function bootAuth() {
   if (saved && CODE_RE.test(saved.code)) { applyUser(saved.code, saved.name); Logger.startSession({ resume: true }); }
   else showLogin();
 }
-const ALL_TABS=['color','sound','instrument','harmony','shadow'];
+const ALL_TABS=['color','unit','sound','instrument','beat','harmony','shadow'];
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
@@ -1296,6 +1315,7 @@ function switchTab(t){
   $('lab-'+t).classList.add('active');
   if(snd.playing)stopSnd();
   if(t!=='sound'&&t!=='instrument')glStopAll();
+  if(t!=='unit'&&t!=='beat'&&typeof Metronome==='object'&&Metronome&&typeof Metronome.stopAll==='function')Metronome.stopAll();
   if(t==='sound'){
     if(!$('gl1Row').children.length){glBuildS1();glBuildDoremi();}
     if(!gl.exploreTrial)gl.exploreTrial=Logger.startTrial({tab:'sound',activity:'sound.explore',task:'explore'});
@@ -1304,6 +1324,10 @@ function switchTab(t){
   if(t==='harmony'){buildPiano();stopWaveAnim();if(!harmTrial)harmStartTrial(1);}
   if(t!=='harmony')harmEndTrial();
   if(t==='shadow'){shadDraw()}
+  if(t==='unit'){if(typeof unitBuild==='function'){if(!$('unitRoot').dataset.built)unitBuild();}if(typeof unitOnEnter==='function')unitOnEnter();}
+  if(t==='beat'){if(typeof beatBuild==='function'){if(!$('beatRoot').dataset.built)beatBuild();}if(typeof beatOnEnter==='function')beatOnEnter();}
+  if(t!=='unit'&&typeof unitOnLeave==='function')unitOnLeave();
+  if(t!=='beat'&&typeof beatOnLeave==='function')beatOnLeave();
   if(t!=='instrument'&&geomungoTrial){Logger.endTrial(geomungoTrial,{outcome:'open',finalState:{lenCm:+strLenA.toFixed(1),freq:Math.round(strFreqFromLen(strLenA))}});geomungoTrial=null;}
 }
 
