@@ -1646,220 +1646,167 @@ function unitOnLeave(){
   }
 }
 
-// ━━━━━━ 박자 탭 (beat) ━━━━━━
-const beatState={
-  left:2, right:3, tempo:2400, blind:true,
-  tapTimes:[], tapWindowStart:0,
-  trial:null, found:false, hintShown:false,
-  triedRatios:new Set(),
-  cursorRaf:0, barStart:0
+// ━━━━━━ 박자 탭 (beat) — 재설계: 손박수 → 합주 → DJ mix ━━━━━━
+const BEAT_INSTRUMENTS={
+  base:   {label:'베이스', icon:'🥁', color:'#58d68d', freq:165},
+  drum:   {label:'드럼',   icon:'🪘', color:'#5dade2', freq:262},
+  melody: {label:'멜로디', icon:'🎵', color:'#9b59b6', freq:523},
+  clap:   {label:'손뼉',   icon:'👏', color:'#f5b041', freq:880},
+  fx:     {label:'효과',   icon:'✨', color:'#e74c3c', freq:1318}
 };
+const beatState={
+  stage:1, tempo:2400, blind:true,
+  // Stage 1
+  s1:{beats:4, claps:[], correct:0, total:0, trial:null, unlocked:false, _tStart:0, barStart:0, rafId:0},
+  // Stage 2
+  s2:{tracks:[], trial:null, found:false, hintShown:false, _tStart:0, barStart:0, rafId:0, ratioPair:null, twoLineAnswer:null, zeroOneMode:'zero'},
+  // Stage 3
+  s3:null
+};
+
 function beatBuild(){
   const root=$('beatRoot');if(!root)return;
-  root.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <p style="margin:0;color:#666;font-size:.9rem">왼쪽 박과 오른쪽 박이 <b>같이 치는 순간</b>을 귀로 찾아봐.</p>
-      <button class="uunit-blind-toggle" onclick="beatToggleBlind()">숫자 보기</button>
-    </div>
-    <div class="bbeat-tracks">
-      <div class="bbeat-track left">
-        <h4 style="color:#1e6b1e">🟢 왼쪽 (자동)</h4>
-        <div style="font-size:.78rem;color:#555">한 마디에 몇 번? <span class="bbeat-count" id="bbeatLeftCount" style="display:inline">${beatState.left}박</span></div>
-        <input type="range" min="1" max="6" value="${beatState.left}" id="bbeatLeftSlider" oninput="beatSetLeft(+this.value)" style="width:100%;margin-top:6px">
-      </div>
-      <div class="bbeat-track right">
-        <h4 style="color:#1f4e79">🔵 오른쪽 (내 박)</h4>
-        <button class="bbeat-tap-btn" onmousedown="beatTap()" ontouchstart="event.preventDefault();beatTap()">🔵 점프</button>
-        <div class="bbeat-count" id="bbeatRightCount">추정 박: <b>?</b></div>
-      </div>
-    </div>
-    <div style="font-size:.78rem;color:#555;margin-top:4px">한 마디 진행 (만남 순간은 ⚡로 깜빡임)</div>
-    <div class="bbeat-bar" id="bbeatBar"></div>
-    <div style="margin-top:14px;padding:12px;background:#fffbe6;border:2px dashed #f5b041;border-radius:10px;text-align:center">
-      <div style="font-size:.92rem;color:#7a5d00;margin-bottom:8px">두 박자가 같이 치는 순간이 들리면 누르세요</div>
-      <button class="uunit-discover-btn" onclick="beatDiscover()">⚡ 같이 친다!</button>
-    </div>
-    <div id="bbeatReveal" style="display:none;margin-top:16px"></div>
-  `;
+  root.innerHTML=`<div id="beatStage1"></div><div id="beatStage2" style="display:none"></div><div id="beatStage3" style="display:none"></div>`;
   root.dataset.built='1';
-  beatApplyBlind();
-  beatRenderBar();
+  beatStage1Render();
 }
-function beatApplyBlind(){
-  const root=$('beatRoot');if(!root)return;
-  root.classList.toggle('beat-blind', beatState.blind);
+
+// ━━━━━━ Stage 1 — 손박수 ━━━━━━
+function beatStage1Render(){
+  const wrap=$('beatStage1');if(!wrap)return;
+  const s1=beatState.s1;
+  const beatsCards = [2,3,4].map(n=>`<button class="uunit-card" style="flex:1;min-width:60px;padding:8px;font-size:1rem;${s1.beats===n?'border-color:#58d68d;background:#eaf7ea;':''}" onclick="beatStage1SetBeats(${n})">${n}박</button>`).join('');
+  wrap.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <p style="margin:0;color:#666;font-size:.9rem">Stage 1 · 손박수 — 박을 듣고 같이 박수 쳐봐 🖐</p>
+      <button class="uunit-blind-toggle" onclick="beatToggleBlind()">${beatState.blind?'숫자 보기':'숫자 숨기기'}</button>
+    </div>
+    <div style="font-size:.78rem;color:#555;margin:8px 0 4px 0">한 마디에 몇 박?</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">${beatsCards}</div>
+    <div style="font-size:.78rem;color:#555;margin:8px 0 4px 0">박이 떨어지는 순간 🖐 박수 버튼을 누르세요</div>
+    <div class="bbeat-bar" id="bbeatBar1" style="height:56px"></div>
+    <button class="bbeat-tap-btn" id="bbeatClapBtn" onmousedown="beatStage1Clap()" ontouchstart="event.preventDefault();beatStage1Clap()" style="margin-top:10px">🖐 박수</button>
+    <div class="bbeat-count" id="bbeatClapCount" style="margin-top:8px">${beatState.blind?'박수 가능':'정확: '+s1.correct+' / 총 '+s1.total}</div>
+    <div id="bbeatUnlock" style="margin-top:12px;display:${s1.unlocked?'block':'none'}"></div>
+  `;
+  beatStage1RenderBar();
+}
+function beatStage1RenderBar(){
+  const bar=$('bbeatBar1');if(!bar)return;
+  const n=beatState.s1.beats;
+  let html='';
+  for(let i=0;i<n;i++){
+    html+=`<div class="bbeat-dot" id="bbeat1dot${i}" style="left:${(i*100/n).toFixed(2)}%;top:50%;background:#58d68d"></div>`;
+  }
+  html+=`<div class="bbeat-cursor" id="bbeat1Cursor" style="left:0%"></div>`;
+  html+=`<div id="bbeat1Claps" style="position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none"></div>`;
+  bar.innerHTML=html;
 }
 function beatToggleBlind(){
-  beatState.blind=!beatState.blind; beatApplyBlind();
+  beatState.blind=!beatState.blind;
+  const root=$('beatRoot');if(root)root.classList.toggle('beat-blind', beatState.blind);
   try{Logger.event('blind_toggle',{tab:'beat',blind:beatState.blind});}catch(e){}
+  if(beatState.stage===1)beatStage1Render();
 }
-function beatSetLeft(v){
-  beatState.left=v;
-  const c=$('bbeatLeftCount');if(c)c.textContent=v+'박';
-  beatRestartMetronome('left');
-  beatRenderBar();
-  beatLogState();
-  try{Logger.event('slider_change',{tab:'beat',side:'left',value:v});}catch(e){}
-  beatTriedRatio();
-  beatCheckAutoHint();
+function beatStage1SetBeats(n){
+  beatState.s1.beats=n; beatState.s1.claps=[]; beatState.s1.correct=0; beatState.s1.total=0;
+  try{Logger.event('beats_change',{tab:'beat',stage:1,beats:n});}catch(e){}
+  beatStage1Render();
+  beatStage1Restart();
 }
-function beatTap(){
-  const now=performance.now();
-  if(!beatState.tapWindowStart || now-beatState.tapWindowStart > beatState.tempo*1.5){
-    beatState.tapTimes=[];
-    beatState.tapWindowStart=now;
-  }
-  beatState.tapTimes.push(now-beatState.tapWindowStart);
-  try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
-  const n=extractBeats(beatState.tapTimes, beatState.tempo);
-  if(n>0)beatState.right=n;
-  const c=$('bbeatRightCount');if(c)c.innerHTML='추정 박: <b>'+(n||'?')+'</b>';
-  beatRestartMetronome('right');
-  beatRenderBar();
-  beatLogState();
-  try{Logger.event('tap',{tab:'beat',taps:beatState.tapTimes.length,estBeats:n});}catch(e){}
-  beatTriedRatio();
-  beatCheckAutoHint();
-}
-function beatTriedRatio(){
-  const key=beatState.left+':'+beatState.right;
-  beatState.triedRatios.add(key);
-}
-function beatRenderBar(){
-  const bar=$('bbeatBar');if(!bar)return;
-  let html='';
-  for(let i=0;i<beatState.left;i++){
-    html+=`<div class="bbeat-dot left" style="left:${(i*100/beatState.left).toFixed(2)}%;top:30%"></div>`;
-  }
-  for(let i=0;i<beatState.right;i++){
-    html+=`<div class="bbeat-dot right" style="left:${(i*100/beatState.right).toFixed(2)}%;top:70%"></div>`;
-  }
-  html+=`<div class="bbeat-cursor" id="bbeatCursor" style="left:0%"></div>`;
-  bar.innerHTML=html;
-  bar.classList.add('bbeat-dots');
-}
-function beatFlashMeet(){
-  const bar=$('bbeatBar');if(!bar)return;
-  const m=document.createElement('div');m.className='bbeat-meet';m.textContent='⚡';m.style.left='-2px';m.style.top='6px';
-  bar.appendChild(m);setTimeout(()=>{try{bar.removeChild(m);}catch(e){}},420);
-  try{
-    const c=new (window.AudioContext||window.webkitAudioContext)();
-    [392,494].forEach(f=>{const o=c.createOscillator();const g=c.createGain();o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(.1,c.currentTime+.01);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.25);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.3);});
-  }catch(e){}
-}
-function beatRestartMetronome(side){
-  if(side==='left'||!Metronome.isRunning('beatL')){
-    Metronome.start('beatL',{beats:beatState.left,barMs:beatState.tempo,freq:330,gain:0.13,onBeat:(idx,t)=>{
-      if(idx===0)beatState.barStart=performance.now();
-      if(idx===0)beatFlashMeet();
-    }});
-  }
-  if(side==='right'||!Metronome.isRunning('beatR')){
-    Metronome.start('beatR',{beats:beatState.right,barMs:beatState.tempo,freq:660,gain:0.12,onBeat:null});
-  }
-  if(!beatState.cursorRaf){
+function beatStage1Restart(){
+  Metronome.stop('s1');
+  beatState.s1.barStart=performance.now();
+  Metronome.start('s1', {beats:beatState.s1.beats, barMs:beatState.tempo, freq:392, gain:0.16, onBeat:(idx,t)=>{
+    if(idx===0)beatState.s1.barStart=performance.now();
+    // 동그라미 깜빡
+    const d=$('bbeat1dot'+idx); if(d){d.style.transform='translate(-50%,-50%) scale(1.6)';d.style.boxShadow='0 0 12px #58d68d';setTimeout(()=>{try{d.style.transform='translate(-50%,-50%) scale(1)';d.style.boxShadow='';}catch(e){}},150);}
+  }});
+  if(!beatState.s1.rafId){
     const step=()=>{
-      const c=$('bbeatCursor');
+      const c=$('bbeat1Cursor');
       if(c){
-        const elapsed=(performance.now()-beatState.barStart)%beatState.tempo;
+        const elapsed=(performance.now()-beatState.s1.barStart)%beatState.tempo;
         c.style.left=(elapsed/beatState.tempo*100).toFixed(2)+'%';
       }
-      beatState.cursorRaf=requestAnimationFrame(step);
+      beatState.s1.rafId=requestAnimationFrame(step);
     };
-    beatState.cursorRaf=requestAnimationFrame(step);
+    beatState.s1.rafId=requestAnimationFrame(step);
   }
 }
-function beatLogState(){
-  if(!beatState.trial)return;
-  try{Logger.trialState(beatState.trial,{leftBeats:beatState.left,rightBeats:beatState.right,tempo:beatState.tempo,tapTimes:beatState.tapTimes.slice()});}catch(e){}
-}
-function beatDiscover(){
-  if(beatState.found)return;
-  beatState.found=true;
-  try{Logger.event('discovery_trigger',{tab:'beat',ratio:beatState.left+':'+beatState.right});}catch(e){}
-  beatState.blind=false; beatApplyBlind();
-  const [ra,rb]=simplify(beatState.left, beatState.right);
-  const rev=$('bbeatReveal');
-  if(rev){
-    rev.style.display='block';
-    beatState.s2={zeroOneMode:'zero', twoLineAnswer:null};
-    try{beatState.s2.trial=Logger.startTrial({tab:'beat',activity:'beat.twoline',task:beatState.left+':'+beatState.right});}catch(e){beatState.s2.trial=null;}
-    rev.innerHTML = beatStage2Html();
+function beatStage1Clap(){
+  const s1=beatState.s1;
+  s1.total++;
+  const beatMs=beatState.tempo/s1.beats;
+  const elapsed=(performance.now()-s1.barStart)%beatState.tempo;
+  // 가장 가까운 박과의 차이
+  const nearestBeat=Math.round(elapsed/beatMs)%s1.beats;
+  const expectedAt=nearestBeat*beatMs;
+  let diff=elapsed-expectedAt; if(diff>beatMs/2)diff-=beatMs; if(diff<-beatMs/2)diff+=beatMs;
+  const accurate=Math.abs(diff)<=200;
+  s1.claps.push({atMs:elapsed, beatIdx:nearestBeat, accurate});
+  if(accurate)s1.correct++;
+  try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+  try{Logger.event(accurate?'clap_accurate':'clap',{tab:'beat',diff:Math.round(diff),beatIdx:nearestBeat});}catch(e){}
+  // 시각: 박수 위치 점 + 정확 표시
+  const claps=$('bbeat1Claps');
+  if(claps){
+    const dot=document.createElement('div');
+    dot.style.cssText=`position:absolute;left:${(elapsed/beatState.tempo*100).toFixed(2)}%;top:${accurate?'10%':'85%'};transform:translateX(-50%);width:12px;height:12px;background:${accurate?'#1e6b1e':'#aaa'};border-radius:50%;border:2px solid #fff`;
+    claps.appendChild(dot);
+    if(accurate){const star=document.createElement('div');star.textContent='🎯';star.style.cssText=`position:absolute;left:${(elapsed/beatState.tempo*100).toFixed(2)}%;top:-4px;transform:translateX(-50%);font-size:1.1rem;animation:bmflash .5s ease 1`;claps.appendChild(star);setTimeout(()=>{try{claps.removeChild(star);}catch(e){}},500);}
+    setTimeout(()=>{try{claps.removeChild(dot);}catch(e){}},beatState.tempo*1.2);
   }
-  if(beatState.trial){
-    try{Logger.endTrial(beatState.trial,{outcome:'found',finalState:{ratio:[ra,rb],tried:[...beatState.triedRatios]}});}catch(e){}
-    beatState.trial=null;
-  }
-}
-function beatStage2Html(){
-  const a=beatState.left, b=beatState.right;
-  const meetEvery=(a*b)/gcd(a,b);
-  const posA=[],posB=[];
-  for(let i=0;i<a;i++)posA.push(i/a);
-  for(let i=0;i<b;i++)posB.push(i/b);
-  const partsCount=[
-    {label:'왼쪽', color:'#58d68d', count:a},
-    {label:'오른쪽', color:'#5dade2', count:b}
-  ];
-  const partsTime=[
-    {label:'왼쪽', color:'#58d68d', positions:posA, dashedEnd:true},
-    {label:'오른쪽', color:'#5dade2', positions:posB, dashedEnd:true}
-  ];
-  const bridge = ratioBridgeBlock(a, b, '왼쪽', '#58d68d', '오른쪽', '#5dade2', '');
-  return `
-    <div style="background:#eaf2fb;border:2px solid #5dade2;border-radius:12px;padding:14px">
-      <h3 style="margin:0 0 8px 0">Stage 2 · 박수선 ↔ 시간선 · 만남: ${meetEvery}박마다</h3>
-      ${renderBeatLine(partsCount)}
-      ${renderTimeRuler(partsTime, beatState.s2.zeroOneMode)}
-      ${renderZeroOneToggle(beatState.s2.zeroOneMode, 'beatSetZeroOne')}
-      ${renderTwoLineQuestion(beatState.s2.twoLineAnswer, 'beatSetTwoLineAnswer')}
-      <div class="bbeat-bridge" style="margin-top:8px">${bridge}</div>
-    </div>
-  `;
-}
-function beatSetZeroOne(mode){
-  if(!beatState.s2)return;
-  beatState.s2.zeroOneMode=mode;
-  $('bbeatReveal').innerHTML=beatStage2Html();
-  try{Logger.event('zero_one_toggle',{tab:'beat',mode});}catch(e){}
-}
-function beatSetTwoLineAnswer(ans){
-  if(!beatState.s2)return;
-  beatState.s2.twoLineAnswer=ans;
-  try{Logger.event('twoline_question_answer',{tab:'beat',answer:ans});}catch(e){}
-  if(beatState.s2.trial){
-    try{Logger.endTrial(beatState.s2.trial,{outcome:ans==='unknown'?'open':'answered',finalState:{twoLineAnswer:ans,zeroOneMode:beatState.s2.zeroOneMode}});}catch(e){}
-    beatState.s2.trial=null;
-  }
-  if(ans&&ans!=='unknown'&&!beatState.s3)beatEnterStage3();
-  else $('bbeatReveal').innerHTML=beatStage2Html();
-}
-function beatCheckAutoHint(){
-  if(beatState.found||beatState.hintShown)return;
-  const elapsed=Date.now()-(beatState._tStart||Date.now());
-  if(beatState.triedRatios.size>=4 && elapsed>=90000){
-    beatState.hintShown=true;
-    const btns=document.querySelectorAll('#lab-beat .uunit-discover-btn');
-    btns.forEach(b=>b.animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}],{duration:600,iterations:3}));
+  const c=$('bbeatClapCount');if(c)c.textContent='정확: '+s1.correct+' / 총 '+s1.total;
+  if(s1.trial){try{Logger.trialState(s1.trial,{beats:s1.beats, total:s1.total, correct:s1.correct});}catch(e){}}
+  // 해제 조건: 정확 박수 3회
+  if(!s1.unlocked && s1.correct>=3){
+    s1.unlocked=true;
+    try{Logger.event('stage1_unlock',{tab:'beat',beats:s1.beats,correct:s1.correct});}catch(e){}
+    if(s1.trial){try{Logger.endTrial(s1.trial,{outcome:'unlocked',finalState:{beats:s1.beats, totalClaps:s1.total, accurateClaps:s1.correct}});}catch(e){}s1.trial=null;}
+    const u=$('bbeatUnlock');
+    if(u){
+      u.style.display='block';
+      u.innerHTML=`<div style="background:#eaf7ea;border:2px solid #58d68d;border-radius:10px;padding:12px;text-align:center"><div style="font-weight:800;color:#1e6b1e">🎉 한 박을 잘 느꼈어요! 이제 여러 박자를 함께 만들어 볼까요?</div><button class="uunit-discover-btn" style="margin-top:8px" onclick="beatEnterStage2()">Stage 2 · 합주 시작</button></div>`;
+    }
   }
 }
+function beatEnterStage2(){
+  // Stage 1 정리
+  Metronome.stop('s1');
+  if(beatState.s1.rafId){cancelAnimationFrame(beatState.s1.rafId);beatState.s1.rafId=0;}
+  beatState.stage=2;
+  $('beatStage1').style.display='none';
+  $('beatStage2').style.display='block';
+  // Stage 2 init — 첫 트랙으로 Stage 1 박을 베이스로
+  beatState.s2.tracks=[{instr:'base', beats:beatState.s1.beats, on:true, vol:0.13}];
+  beatState.s2._tStart=Date.now();
+  try{beatState.s2.trial=Logger.startTrial({tab:'beat',activity:'beat.layer',task:beatState.s2.tracks.map(t=>t.beats).join('-')});}catch(e){}
+  beatStage2Render();
+  beatStage2RestartMetronomes();
+}
+
+// ━━━━━━ Stage 2 — 리듬 합주 (placeholder; Task에서 채움) ━━━━━━
+function beatStage2Render(){
+  const wrap=$('beatStage2');if(!wrap)return;
+  wrap.innerHTML=`<div style="background:#eaf2fb;border:2px solid #5dade2;border-radius:12px;padding:14px"><h3 style="margin:0 0 8px 0">Stage 2 · 리듬 합주 🥁🎵</h3><div style="color:#666;font-size:.85rem">트랙 layer 합주는 다음 커밋에서 구현됩니다.</div><div style="margin-top:8px;font-size:.85rem">현재 트랙: ${beatState.s2.tracks.map(t=>BEAT_INSTRUMENTS[t.instr].icon+' '+t.beats+'박').join(' · ')}</div></div>`;
+}
+function beatStage2RestartMetronomes(){ /* 다음 커밋 */ }
+
 function beatOnEnter(){
-  beatState._tStart=Date.now();
-  if(!beatState.trial){
-    try{beatState.trial=Logger.startTrial({tab:'beat',activity:'beat.meet',task:beatState.left+':'+beatState.right});}catch(e){}
+  beatState.s1._tStart=Date.now();
+  if(!beatState.s1.trial){
+    try{beatState.s1.trial=Logger.startTrial({tab:'beat',activity:'beat.clap',task:'beats_'+beatState.s1.beats});}catch(e){}
   }
-  beatRestartMetronome();
+  if(beatState.stage===1)beatStage1Restart();
 }
 function beatOnLeave(){
-  Metronome.stop('beatL'); Metronome.stop('beatR');
-  if(beatState.cursorRaf){cancelAnimationFrame(beatState.cursorRaf);beatState.cursorRaf=0;}
-  ['s2','s3'].forEach(k=>{
+  Metronome.stop('s1'); Metronome.stop('s2-base'); Metronome.stop('s2-drum'); Metronome.stop('s2-melody'); Metronome.stop('s2-clap'); Metronome.stop('s2-fx');
+  if(beatState.s1.rafId){cancelAnimationFrame(beatState.s1.rafId);beatState.s1.rafId=0;}
+  if(beatState.s2.rafId){cancelAnimationFrame(beatState.s2.rafId);beatState.s2.rafId=0;}
+  ['s1','s2','s3'].forEach(k=>{
     const o=beatState[k]; if(o&&o.trial){try{Logger.endTrial(o.trial,{outcome:'open',finalState:{}});}catch(e){}o.trial=null;}
   });
-  if(beatState.trial){
-    try{Logger.endTrial(beatState.trial,{outcome:'open',finalState:{ratio:[beatState.left,beatState.right],tried:[...beatState.triedRatios]}});}catch(e){}
-    beatState.trial=null;
-  }
 }
 
 // ━━━━━━ 공용 Stage 2 컴포넌트 (단위화·박자) ━━━━━━
@@ -1982,39 +1929,8 @@ function unitLogTransform(){try{Logger.event('transform_apply',Object.assign({ta
 function unitToggleChanged(key){if(!unitState.s3)return;const a=unitState.s3.changed;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);unitRenderStage3();try{Logger.event('invariance_check',{tab:'unit',changed:unitState.s3.changed.slice(),invariant:unitState.s3.invariant.slice()});}catch(e){}}
 function unitToggleInvariant(key){if(!unitState.s3)return;const a=unitState.s3.invariant;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);unitRenderStage3();try{Logger.event('invariance_check',{tab:'unit',changed:unitState.s3.changed.slice(),invariant:unitState.s3.invariant.slice()});}catch(e){}}
 
-// ━━━━━━ 박자 Stage 3 ━━━━━━
-function beatEnterStage3(){
-  beatState.s3={lastTransform:null, changed:[], invariant:[], prevRatio:[beatState.left,beatState.right], prevTempo:beatState.tempo, trial:null};
-  try{beatState.s3.trial=Logger.startTrial({tab:'beat',activity:'beat.transform',task:beatState.left+':'+beatState.right});}catch(e){}
-  beatRenderStage3();
-}
-function beatRenderStage3(){
-  const transforms=[
-    {key:'tempo',label:'① 빠르기',color:'#f5b041',html:`
-      <input type="range" min="60" max="160" value="${Math.round(60000/(beatState.tempo/4))}" oninput="beatTransformTempo(+this.value)" style="width:100%">
-      <div style="font-size:.7rem;color:#aaa;text-align:center">BPM (한 마디 ${(beatState.tempo/1000).toFixed(1)}초)</div>`},
-    {key:'beats',label:'② 박 수',color:'#e74c8a',html:`
-      <div style="display:flex;gap:4px;margin-bottom:4px"><button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformBeats('left',-1)">왼 −</button><span style="flex:1;text-align:center">${beatState.left}박</span><button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformBeats('left',1)">왼 +</button></div>
-      <div style="display:flex;gap:4px"><button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformBeats('right',-1)">오 −</button><span style="flex:1;text-align:center">${beatState.right}박</span><button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformBeats('right',1)">오 +</button></div>`},
-    {key:'equiv',label:'③ 등가 ×k',color:'#9b59b6',html:`
-      <div style="display:flex;gap:4px">
-        <button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformEquiv(2)">×2</button>
-        <button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformEquiv(3)">×3</button>
-        <button class="uunit-blind-toggle" style="flex:1" onclick="beatTransformEquiv(0.5)">÷2</button>
-      </div>`}
-  ];
-  $('bbeatReveal').innerHTML = beatStage2Html().replace(/<\/div>\s*$/,'') + `
-    <h3 style="margin:14px 0 8px 0">Stage 3 · 변환·불변량</h3>
-    ${renderTransformPanel(transforms)}
-    ${renderInvariantChecklist(beatState.s3,'beatToggleChanged','beatToggleInvariant')}
-  </div>`;
-}
-function beatTransformTempo(bpm){const newMs=60000/bpm*4;beatState.s3.lastTransform={type:'tempo',before:beatState.tempo,after:newMs};beatState.tempo=newMs;beatRestartMetronome('left');beatRestartMetronome('right');beatRenderStage3();beatLogTransform();}
-function beatTransformBeats(side, delta){const before=[beatState.left,beatState.right];if(side==='left')beatState.left=Math.max(1,Math.min(12,beatState.left+delta));else beatState.right=Math.max(1,Math.min(12,beatState.right+delta));beatState.s3.lastTransform={type:'beats',before,after:[beatState.left,beatState.right]};beatRestartMetronome('left');beatRestartMetronome('right');beatRenderBar();beatRenderStage3();beatLogTransform();}
-function beatTransformEquiv(k){const before=[beatState.left,beatState.right];const r=equivScale(before,k);if(!r)return;beatState.s3.lastTransform={type:'equiv',before,after:r,k};beatState.left=r[0];beatState.right=r[1];beatRestartMetronome('left');beatRestartMetronome('right');beatRenderBar();beatRenderStage3();beatLogTransform();}
-function beatLogTransform(){try{Logger.event('transform_apply',Object.assign({tab:'beat'},beatState.s3.lastTransform));}catch(e){}}
-function beatToggleChanged(key){if(!beatState.s3)return;const a=beatState.s3.changed;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);beatRenderStage3();try{Logger.event('invariance_check',{tab:'beat',changed:beatState.s3.changed.slice(),invariant:beatState.s3.invariant.slice()});}catch(e){}}
-function beatToggleInvariant(key){if(!beatState.s3)return;const a=beatState.s3.invariant;const i=a.indexOf(key);if(i>=0)a.splice(i,1);else a.push(key);beatRenderStage3();try{Logger.event('invariance_check',{tab:'beat',changed:beatState.s3.changed.slice(),invariant:beatState.s3.invariant.slice()});}catch(e){}}
+// ━━━━━━ 박자 Stage 3 — DJ Mix (placeholder; Task에서 채움) ━━━━━━
+// 재설계로 인해 이 영역은 후속 커밋에서 작성됩니다.
 
 // ━━━━━━ UTILS ━━━━━━
 function gcd(a,b){return b===0?a:gcd(b,a%b)}
