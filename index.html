@@ -1265,6 +1265,33 @@ const Logger = (function () {
     startTrial, trialState, endTrial, setUser, startSession, event, init, _uuid: uuid };
 })();
 
+// ━━━━━━ TapExtractor — 두드림 → 박 수 추출 (±25% 관대) ━━━━━━
+//__TAP_EXTRACTOR_START__
+function medianInterval(times){
+  if(!times||times.length<2)return 0;
+  const gaps=[];
+  for(let i=1;i<times.length;i++)gaps.push(times[i]-times[i-1]);
+  gaps.sort((a,b)=>a-b);
+  const mid=Math.floor(gaps.length/2);
+  return gaps.length%2?gaps[mid]:(gaps[mid-1]+gaps[mid])/2;
+}
+function extractBeats(times,barMs){
+  if(!times||times.length<2||barMs<=0)return 0;
+  const cleaned=[times[0]];
+  for(let i=1;i<times.length;i++){
+    if(times[i]-cleaned[cleaned.length-1]>=50)cleaned.push(times[i]);
+  }
+  if(cleaned.length<2)return 0;
+  const med=medianInterval(cleaned);
+  if(med<=0)return 0;
+  const est=barMs/med;
+  const rounded=Math.round(est);
+  if(rounded<1)return 0;
+  if(Math.abs(est-rounded)/rounded>0.25)return cleaned.length;
+  return rounded;
+}
+//__TAP_EXTRACTOR_END__
+
 // ━━━━━━ UTILS ━━━━━━
 function gcd(a,b){return b===0?a:gcd(b,a%b)}
 function simplify(a,b){const g=gcd(a,b);return[a/g,b/g]}
