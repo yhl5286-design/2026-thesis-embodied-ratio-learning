@@ -3148,6 +3148,12 @@ else document.addEventListener('DOMContentLoaded',()=>Reflect.init());
   }
   if(document.readyState!=='loading')show(); else document.addEventListener('DOMContentLoaded',show);
 })();
+
+/* WB-P4: 연구 모드 — 개발용 단축 버튼은 ?dev=1 일 때만 노출. 평소엔 숨겨 학생이 과제를 실제로 수행하게 함. */
+(function(){ const dev=/[?&]dev=1/.test(location.search);
+  function apply(){ if(dev)return; ['questDevGate','questDevDone'].forEach(id=>{ const e=document.getElementById(id); if(e)e.style.display='none'; }); }
+  if(document.readyState!=='loading')apply(); else document.addEventListener('DOMContentLoaded',apply);
+})();
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
