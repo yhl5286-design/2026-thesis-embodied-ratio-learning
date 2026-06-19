@@ -626,6 +626,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 
 <!-- WB-2 (v2): 퀘스트 진행 맵 (5단계 시퀀스 상태머신) -->
 <style>
+.tab-bar{display:none} /* WB-3: v2는 퀘스트 맵이 내비게이션 — 기존 탭바 숨김 */
 #questWrap{background:#0f1830;border-bottom:1px solid #22304f;padding:7px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #questMap{display:flex;align-items:center;gap:3px;flex-wrap:wrap;font-size:12.5px}
 #questMap .q-node{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:13px;border:1px solid #2a3a5c;background:#15203a;color:#9fb3d6;cursor:pointer;white-space:nowrap}
@@ -2583,7 +2584,7 @@ function applyUser(code, name) {
   $('userChipName').textContent = name + ' (' + code + ')';
   $('userChip').style.display = 'flex';
   if (typeof Gate === 'object') Gate.load();                       // WB-4
-  if (typeof Quest === 'object') { Quest.load(); Quest.render(); } // WB-2: 사용자별 퀘스트 진척 로드
+  if (typeof Quest === 'object') { Quest.load(); Quest.render(); const c=Quest.currentId(); if(c)Quest.go(c); } // WB-2/3: 진척 로드 + 현재 노드로 이동
 }
 function doLogin() {
   const code = $('loginCode').value.trim(), name = $('loginName').value.trim();
@@ -2684,7 +2685,7 @@ const Gate={
   arm(id){ const s=this.ensure(id); if(s.open||s._armed)return; s._armed=true; const ms=(GATES[id]&&GATES[id].fallbackMs)||0; if(ms)setTimeout(()=>{ if(!this.ensure(id).open)this.open(id,'fallback-time'); },ms); },
 };
 function devOpenGate(){ const g=Object.keys(GATES).find(k=>{ const gn=Quest.node(GATES[k].guards); return gn&&gn.requires.every(r=>Quest.done.has(r))&&!Gate.isOpen(k); }); if(g)Gate.pass(g); }
-function _v2QuestInit(){ Gate.load(); Quest.load(); Quest.render(); }
+function _v2QuestInit(){ Gate.load(); Quest.load(); Quest.render(); const c=Quest.currentId(); if(c)Quest.go(c); } // WB-3: 현재 노드로 자동 이동
 if(document.readyState!=='loading')_v2QuestInit();
 else document.addEventListener('DOMContentLoaded',_v2QuestInit);
 
