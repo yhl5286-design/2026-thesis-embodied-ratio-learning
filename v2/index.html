@@ -2460,6 +2460,32 @@ function devOpenGate(){ const g=Object.keys(GATES).find(k=>{ const gn=Quest.node
 function _v2QuestInit(){ Gate.load(); Quest.load(); Quest.render(); }
 if(document.readyState!=='loading')_v2QuestInit();
 else document.addEventListener('DOMContentLoaded',_v2QuestInit);
+
+/* ===== WB-5 (v2): 공통 판정 엔진 — '비 일치 → 결과 보존' + 감각 증거 =====
+   모든 토픽(색·소리·도형) 과제가 공유. 도메인 독립 비 수학 + 가법 함정 탐지 + 감각 증거 강도(0..1). */
+const Ratio={
+  gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ const t=a%b; a=b; b=t; } return a||1; },
+  simplify(a,b){ const g=this.gcd(a,b); return [a/g,b/g]; },
+  equal(a,b,c,d){ return a*d===b*c; },                 // 정수비 동치(교차곱)
+  value(a,b){ return b===0?NaN:a/b; },
+  percent(part,whole){ return whole===0?NaN:part/whole*100; },
+};
+const RatioEngine={
+  // 목표비(tA:tB) vs 현재비(cA:cB) 판정. tol=비율값 허용 오차(연속 입력용).
+  judge(tA,tB,cA,cB,opts){
+    opts=opts||{}; const tol=opts.tol!=null?opts.tol:0.04;
+    const tv=Ratio.value(tA,tB), cv=Ratio.value(cA,cB);
+    const ratioError=(!isFinite(tv)||!isFinite(cv))?1:Math.abs(cv-tv)/(Math.abs(tv)||1);
+    const match=ratioError<=tol;
+    const dA=cA-tA, dB=cB-tB;
+    const additive=!match && dA===dB && dA!==0;        // 차이는 같고 비가 다름 = 가법 함정
+    return { match, preserved:match, ratioError, additive, additiveDelta:additive?dA:0 };
+  },
+  // RGB 색차(가중 유클리드) — 색 도메인 감각 증거
+  deltaE(rgb1,rgb2){ const dr=rgb1[0]-rgb2[0], dg=rgb1[1]-rgb2[1], db=rgb1[2]-rgb2[2]; return Math.sqrt(2*dr*dr+4*dg*dg+3*db*db); },
+  // 비 오차 → 감각 증거 강도(0=일치 … 1=크게 어긋남). 색 탁함·불협·찌그러짐 강도에 매핑.
+  mismatchLevel(ratioError){ return Math.max(0,Math.min(1, ratioError/0.5)); },
+};
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
