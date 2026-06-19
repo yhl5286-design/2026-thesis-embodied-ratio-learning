@@ -2360,6 +2360,16 @@ function bootAuth() {
   else showLogin();
 }
 const ALL_TABS=['color','unit','sound','instrument','beat','harmony','shadow'];
+/* WB-1 (v2 행위기반 재구성): 정규 토픽 = 색상·악기(화음/현악기)·도형(예정). 미사용 모듈은 코드 보존·UI 숨김.
+   display:none만 적용하므로 ALL_TABS 인덱스 매핑은 그대로 유지된다. 복구하려면 HIDDEN_TABS를 비우면 된다. */
+const HIDDEN_TABS=['sound','beat','shadow']; // 소리 탐험실 · 박자(→분수 앱) · 그림자와 비율
+function applyHiddenTabs(){
+  document.querySelectorAll('.tab-bar .tab-btn').forEach((b,i)=>{
+    if(HIDDEN_TABS.includes(ALL_TABS[i])) b.style.display='none';
+  });
+}
+if(document.readyState!=='loading')applyHiddenTabs();
+else document.addEventListener('DOMContentLoaded',applyHiddenTabs);
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
