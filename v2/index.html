@@ -1370,6 +1370,23 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   </div>
 </div>
 
+<!-- WB-13 (v2): 반성 — 전략 관계 반성 (5단계, 전 과제 통합) -->
+<div class="lab v2-colorlab" id="lab-reflect">
+  <div class="ca-hint">🧠 지금까지 발견한 것을 모아 봅시다. <b>같은 비</b>가 색·음·모양에서 거듭 나타났어요!</div>
+  <div id="rfCards" class="ca-combos" style="margin-bottom:12px"></div>
+  <div class="ca-hint" style="margin-top:2px">🔊 기호로 쓰기 전에 비를 <b>소리 내어</b> 말해 보세요: “2 대 3”, “2와 3의 비”.</div>
+  <div style="margin-top:8px">
+    <div class="ca-label">① 오늘 발견한 규칙을 한 문장으로 적어 보세요</div>
+    <textarea id="rfText" rows="2" style="width:100%;max-width:460px;background:#0f1830;border:1px solid #3a4a6a;color:#cfe0ff;border-radius:8px;padding:8px"></textarea>
+  </div>
+  <div style="margin-top:10px">
+    <div class="ca-label">② 양쪽에 같은 수를 ‘더하면’ 왜 색·모양이 달라질까요?</div>
+    <div id="rfChoices" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px"></div>
+  </div>
+  <div style="margin-top:12px"><button id="rfSubmit">제출하고 마치기</button></div>
+  <div class="ca-reveal" id="rfReveal"></div>
+</div>
+
 </main>
 
 <div class="teacher-toggle">
@@ -2617,7 +2634,7 @@ const QUEST=[
  {id:'col.FG',  topic:'색상', tab:'colorFG',    stage:4, tier:'비율',  label:'단위화 가역',         requires:['shp.rub']},
  {id:'col.100', topic:'색상', tab:'color100',   stage:4, tier:'백분율', label:'100칸(%)',            requires:['col.FG']},
  {id:'ins.75',  topic:'악기', tab:'instV2',     stage:4, tier:'백분율', label:'75% 줄',              requires:['col.100']},
- {id:'reflect', topic:'반성', tab:null,         stage:5, tier:'반성',  label:'전략 반성',           requires:['ins.75']},
+ {id:'reflect', topic:'반성', tab:'reflect',    stage:5, tier:'반성',  label:'전략 반성',           requires:['ins.75']},
 ];
 const Quest={
   done:new Set(),
@@ -3084,6 +3101,31 @@ const ShapeRub=(function(){
 })();
 if(document.readyState!=='loading')ShapeRub.init();
 else document.addEventListener('DOMContentLoaded',()=>ShapeRub.init());
+
+/* ===== WB-13 (v2): 반성 — 전략 관계 반성 (5단계, 전 과제 통합) =====
+   산출 카드(여러 곳의 같은 비) + 성찰 발화(질적 데이터) + 음성화 안내. 제출 → Quest.complete('reflect'). */
+const Reflect=(function(){
+  const CARDS=[{t:'같은 색',v:'1:2'},{t:'동치비 색',v:'2:3'},{t:'색 백분율',v:'40% = 2:3 = 2/5'},{t:'옥타브',v:'1:2'},{t:'완전5도',v:'2:3'},{t:'닮은꼴',v:'2:3'}];
+  const CHOICES=[{t:'비(몇 배)가 달라지기 때문',ok:true},{t:'양이 많아지기 때문',ok:false},{t:'원래 그런 색이라서',ok:false}];
+  let pick=null;
+  const $=id=>document.getElementById(id);
+  function render(){
+    if(!$('rfCards'))return;
+    $('rfCards').innerHTML=CARDS.map(c=>'<span class="ca-card" style="border-color:#4d8df0;background:#15203a;color:#cfe3ff"><b>'+c.t+'</b> · '+c.v+'</span>').join('');
+    $('rfChoices').innerHTML=CHOICES.map((c,i)=>'<button class="rf-ch" data-i="'+i+'" style="'+(pick===i?'border-color:#4d8df0;background:#1f3a66':'')+'">'+c.t+'</button>').join('');
+    $('rfChoices').querySelectorAll('.rf-ch').forEach(b=>b.onclick=()=>{ pick=+b.dataset.i; render(); });
+  }
+  function submit(){
+    const txt=($('rfText').value||'').trim();
+    Submit.task('reflect',{values:{statement:txt,choice:pick,choiceCorrect:pick!=null&&CHOICES[pick].ok},verdict:null,meta:{}});
+    const r=$('rfReveal'); r.innerHTML='✨ 다 해냈어요! 핵심: <b>비(몇 배)를 지키면</b> 색·음·모양·%가 모두 보존돼요. 더하기(차이)가 아니라 곱하기(비)!'; r.classList.add('show');
+    if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('reflect')&&!Quest.done.has('reflect'))Quest.complete('reflect');
+  }
+  function init(){ if(!$('rfSubmit')||$('lab-reflect').dataset.init)return; $('lab-reflect').dataset.init='1'; $('rfSubmit').onclick=submit; render(); }
+  return {init,render,_pick:()=>pick};
+})();
+if(document.readyState!=='loading')Reflect.init();
+else document.addEventListener('DOMContentLoaded',()=>Reflect.init());
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
