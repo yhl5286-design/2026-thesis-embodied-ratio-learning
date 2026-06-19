@@ -1160,6 +1160,60 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   </div>
 </div>
 
+<!-- WB-7a (v2): 색상 A — 같은 색 찾기 (① 비 · 1단계 탐색) -->
+<style>
+#lab-colorA{padding:18px}
+#lab-colorA .ca-row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+#lab-colorA .ca-swatch{width:116px;height:116px;border-radius:14px;border:3px solid #2a3a5c;transition:background .15s,border-color .15s,box-shadow .15s}
+#lab-colorA .ca-swatch.match{border-color:#39d98a;box-shadow:0 0 0 5px rgba(57,217,138,.25)}
+#lab-colorA .ca-label{font-size:12px;color:#9fb3d6;margin-bottom:6px}
+#lab-colorA .ca-ctrl{flex:1;min-width:280px}
+#lab-colorA .ca-slider{display:flex;align-items:center;gap:10px;margin:9px 0 2px}
+#lab-colorA .ca-slider>span.l{width:42px;font-size:13px;color:#cfe0ff}
+#lab-colorA .ca-slider input[type=range]{flex:1}
+#lab-colorA .ca-bar{height:16px;border-radius:8px;background:#1a2540;overflow:hidden;margin-bottom:4px}
+#lab-colorA .ca-bar>i{display:block;height:100%}
+#lab-colorA.ca-discrete .ca-bar>i{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.4) 0 2px,transparent 2px 16px)}
+#lab-colorA .ca-combos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+#lab-colorA .ca-card{padding:5px 10px;border-radius:10px;border:1px solid #2e7d46;background:#16361f;color:#9fe6b4;font-size:13px;display:flex;align-items:center;gap:6px}
+#lab-colorA .ca-card i{display:inline-block;width:14px;height:14px;border-radius:4px}
+#lab-colorA .ca-hint{font-size:13px;color:#cfe0ff;margin-bottom:12px}
+#lab-colorA .ca-toggles{display:flex;gap:16px;margin:2px 0 6px;font-size:12.5px;color:#9fb3d6}
+#lab-colorA button{padding:7px 12px;border-radius:9px;border:1px solid #3a4a6a;background:#1f2c4a;color:#cfe0ff;cursor:pointer}
+#lab-colorA button:disabled{opacity:.4;cursor:not-allowed}
+#lab-colorA .ca-reveal{margin-top:14px;padding:11px 14px;border-radius:12px;background:#15203a;border:1px solid #4d8df0;color:#cfe3ff;display:none}
+#lab-colorA .ca-reveal.show{display:block}
+</style>
+<div class="lab" id="lab-colorA">
+  <div class="ca-hint">🎨 견본과 <b>같은 색</b>을 만들어 보세요. 양이 달라도 같은 색이 되는 조합을 모으면 비밀이 드러나요.</div>
+  <div class="ca-row">
+    <div>
+      <div class="ca-label">견본</div>
+      <div class="ca-swatch" id="caTarget"></div>
+    </div>
+    <div>
+      <div class="ca-label">내 색 <span id="caMatchTxt"></span></div>
+      <div class="ca-swatch" id="caMix"></div>
+    </div>
+    <div class="ca-ctrl">
+      <div class="ca-toggles">
+        <label><input type="checkbox" id="caLock"> 비율 유지(자동연동)</label>
+        <label><input type="checkbox" id="caDisc"> 구슬로 보기</label>
+      </div>
+      <div class="ca-slider"><span class="l">파랑</span><input type="range" id="caBlue" min="0" max="12" step="1" value="3"><span id="caBlueV">3</span></div>
+      <div class="ca-bar"><i id="caBlueBar"></i></div>
+      <div class="ca-slider"><span class="l">노랑</span><input type="range" id="caYel" min="0" max="12" step="1" value="3"><span id="caYelV">3</span></div>
+      <div class="ca-bar"><i id="caYelBar"></i></div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+        <button id="caCollect" disabled>이 조합 담기</button>
+        <span class="ca-label" id="caCollectHint" style="margin:0"></span>
+      </div>
+      <div class="ca-combos" id="caCombos"></div>
+      <div class="ca-reveal" id="caReveal"></div>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <div class="teacher-toggle">
@@ -2397,7 +2451,7 @@ else document.addEventListener('DOMContentLoaded',applyHiddenTabs);
    제출 연동(차기 WB)이 붙기 전까지 진행은 ‘개발용’ 버튼으로. 진척은 사용자코드별 localStorage 저장.
    각 노드는 requires(선행 노드)가 모두 완료돼야 잠금 해제 → 선형 퀘스트. */
 const QUEST=[
- {id:'col.A',   topic:'색상', tab:'color',      stage:1, tier:'비',    label:'같은 색',             requires:[]},
+ {id:'col.A',   topic:'색상', tab:'colorA',     stage:1, tier:'비',    label:'같은 색',             requires:[]},
  {id:'ins.oct', topic:'악기', tab:'instrument', stage:1, tier:'비',    label:'옥타브 2:1',          requires:['col.A']},
  {id:'shp.sim', topic:'도형', tab:null,         stage:1, tier:'비',    label:'닮은꼴',              requires:['ins.oct']},
  {id:'col.B',   topic:'색상', tab:'color',      stage:1, tier:'게이트', label:'어긋남(곱셈 게이트)', requires:['shp.sim']},
@@ -2510,6 +2564,62 @@ const Submit={
     return rec;
   }
 };
+
+/* ===== WB-7a (v2): 색상 A — 같은 색 찾기 (① 비 · 1단계 탐색) =====
+   2색(파랑:노랑) 연속량. 같은 비 = 같은 색. ΔE 감각 증거(정오 문구 없음). 비율 유지 자동연동으로 동치비 수집.
+   같은 색 조합 2개 이상 모으면 발견(비 기호 명명) → Submit + Quest.complete('col.A'). */
+const ColorA=(function(){
+  const TARGET={b:1,y:2};                 // 숨긴 목표비
+  const BCOL=[40,90,210], YCOL=[235,205,40], EMPTY=[40,40,48], MAX=12;
+  let st={blue:3,yellow:3,lock:false,lockRatio:1,disc:false,combos:[]};
+  const $=id=>document.getElementById(id);
+  function rgb(b,y){ const t=b+y; if(t<=0)return EMPTY.slice(); const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
+  function css(c){ return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
+  function matched(){ return (st.blue+st.yellow)>0 && RatioEngine.deltaE(rgb(TARGET.b,TARGET.y),rgb(st.blue,st.yellow))<=16; }
+  function render(){
+    if(!$('caMix'))return;
+    $('caTarget').style.background=css(rgb(TARGET.b,TARGET.y));
+    $('caMix').style.background=css(rgb(st.blue,st.yellow));
+    $('caBlue').value=st.blue; $('caYel').value=st.yellow; $('caBlueV').textContent=st.blue; $('caYelV').textContent=st.yellow;
+    $('caBlueBar').style.width=(st.blue/MAX*100)+'%'; $('caBlueBar').style.background=css(BCOL);
+    $('caYelBar').style.width=(st.yellow/MAX*100)+'%'; $('caYelBar').style.background=css(YCOL);
+    const m=matched();
+    $('caMix').classList.toggle('match',m); $('caMatchTxt').textContent=m?'· 같은 색!':'';
+    $('caCollect').disabled=!m;
+    $('caLock').checked=st.lock; $('caDisc').checked=st.disc;
+    $('caCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>파랑 '+c.b+' · 노랑 '+c.y+'</span>').join('');
+    $('caCollectHint').textContent=st.combos.length?('담은 조합 '+st.combos.length+'개'):'같은 색을 만들면 담을 수 있어요';
+    $('lab-colorA').classList.toggle('ca-discrete',st.disc);
+  }
+  function setBlue(v){ st.blue=+v; if(st.lock&&st.lockRatio>0)st.yellow=Math.max(0,Math.min(MAX,Math.round(st.blue*st.lockRatio))); render(); }
+  function setYel(v){ st.yellow=+v; if(st.lock&&st.lockRatio>0)st.blue=Math.max(0,Math.min(MAX,Math.round(st.yellow/st.lockRatio))); render(); }
+  function toggleLock(on){ st.lock=on; if(on)st.lockRatio=st.blue>0?st.yellow/st.blue:1; render(); }
+  function collect(){
+    if(!matched())return;
+    if(st.combos.some(c=>c.b===st.blue&&c.y===st.yellow))return;     // 중복 방지
+    st.combos.push({b:st.blue,y:st.yellow});
+    Submit.task('col.A',{values:{blue:st.blue,yellow:st.yellow},verdict:RatioEngine.judge(TARGET.b,TARGET.y,st.blue,st.yellow),meta:{combos:st.combos.length}});
+    if(st.combos.length>=2)reveal();
+    render();
+  }
+  function reveal(){
+    const s=Ratio.simplify(TARGET.b,TARGET.y);
+    const el=$('caReveal'); if(el){ el.innerHTML='✨ 발견! 양이 달라도 <b>파랑 : 노랑 = '+s[0]+' : '+s[1]+'</b> 이면 같은 색이에요.'; el.classList.add('show'); }
+    if(typeof Quest==='object'&&!Quest.done.has('col.A'))Quest.complete('col.A');
+  }
+  function init(){
+    if(!$('caBlue')||$('lab-colorA').dataset.init)return; $('lab-colorA').dataset.init='1';
+    $('caBlue').oninput=e=>setBlue(e.target.value);
+    $('caYel').oninput=e=>setYel(e.target.value);
+    $('caLock').onchange=e=>toggleLock(e.target.checked);
+    $('caDisc').onchange=e=>{ st.disc=e.target.checked; render(); };
+    $('caCollect').onclick=collect;
+    render();
+  }
+  return {init,render,_st:()=>st,_matched:matched};
+})();
+if(document.readyState!=='loading')ColorA.init();
+else document.addEventListener('DOMContentLoaded',()=>ColorA.init());
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
