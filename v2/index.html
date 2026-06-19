@@ -1162,29 +1162,29 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 
 <!-- WB-7a (v2): 색상 A — 같은 색 찾기 (① 비 · 1단계 탐색) -->
 <style>
-#lab-colorA{padding:18px}
-#lab-colorA .ca-row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
-#lab-colorA .ca-swatch{width:116px;height:116px;border-radius:14px;border:3px solid #2a3a5c;transition:background .15s,border-color .15s,box-shadow .15s}
-#lab-colorA .ca-swatch.match{border-color:#39d98a;box-shadow:0 0 0 5px rgba(57,217,138,.25)}
-#lab-colorA .ca-label{font-size:12px;color:#9fb3d6;margin-bottom:6px}
-#lab-colorA .ca-ctrl{flex:1;min-width:280px}
-#lab-colorA .ca-slider{display:flex;align-items:center;gap:10px;margin:9px 0 2px}
-#lab-colorA .ca-slider>span.l{width:42px;font-size:13px;color:#cfe0ff}
-#lab-colorA .ca-slider input[type=range]{flex:1}
-#lab-colorA .ca-bar{height:16px;border-radius:8px;background:#1a2540;overflow:hidden;margin-bottom:4px}
-#lab-colorA .ca-bar>i{display:block;height:100%}
-#lab-colorA.ca-discrete .ca-bar>i{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.4) 0 2px,transparent 2px 16px)}
-#lab-colorA .ca-combos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-#lab-colorA .ca-card{padding:5px 10px;border-radius:10px;border:1px solid #2e7d46;background:#16361f;color:#9fe6b4;font-size:13px;display:flex;align-items:center;gap:6px}
-#lab-colorA .ca-card i{display:inline-block;width:14px;height:14px;border-radius:4px}
-#lab-colorA .ca-hint{font-size:13px;color:#cfe0ff;margin-bottom:12px}
-#lab-colorA .ca-toggles{display:flex;gap:16px;margin:2px 0 6px;font-size:12.5px;color:#9fb3d6}
-#lab-colorA button{padding:7px 12px;border-radius:9px;border:1px solid #3a4a6a;background:#1f2c4a;color:#cfe0ff;cursor:pointer}
-#lab-colorA button:disabled{opacity:.4;cursor:not-allowed}
-#lab-colorA .ca-reveal{margin-top:14px;padding:11px 14px;border-radius:12px;background:#15203a;border:1px solid #4d8df0;color:#cfe3ff;display:none}
-#lab-colorA .ca-reveal.show{display:block}
+.v2-colorlab{padding:18px}
+.v2-colorlab .ca-row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.v2-colorlab .ca-swatch{width:116px;height:116px;border-radius:14px;border:3px solid #2a3a5c;transition:background .15s,border-color .15s,box-shadow .15s}
+.v2-colorlab .ca-swatch.match{border-color:#39d98a;box-shadow:0 0 0 5px rgba(57,217,138,.25)}
+.v2-colorlab .ca-label{font-size:12px;color:#9fb3d6;margin-bottom:6px}
+.v2-colorlab .ca-ctrl{flex:1;min-width:280px}
+.v2-colorlab .ca-slider{display:flex;align-items:center;gap:10px;margin:9px 0 2px}
+.v2-colorlab .ca-slider>span.l{width:42px;font-size:13px;color:#cfe0ff}
+.v2-colorlab .ca-slider input[type=range]{flex:1}
+.v2-colorlab .ca-bar{height:16px;border-radius:8px;background:#1a2540;overflow:hidden;margin-bottom:4px}
+.v2-colorlab .ca-bar>i{display:block;height:100%}
+.v2-colorlab.ca-discrete .ca-bar>i{background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.4) 0 2px,transparent 2px 16px)}
+.v2-colorlab .ca-combos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.v2-colorlab .ca-card{padding:5px 10px;border-radius:10px;border:1px solid #2e7d46;background:#16361f;color:#9fe6b4;font-size:13px;display:flex;align-items:center;gap:6px}
+.v2-colorlab .ca-card i{display:inline-block;width:14px;height:14px;border-radius:4px}
+.v2-colorlab .ca-hint{font-size:13px;color:#cfe0ff;margin-bottom:12px}
+.v2-colorlab .ca-toggles{display:flex;gap:16px;margin:2px 0 6px;font-size:12.5px;color:#9fb3d6}
+.v2-colorlab button{padding:7px 12px;border-radius:9px;border:1px solid #3a4a6a;background:#1f2c4a;color:#cfe0ff;cursor:pointer}
+.v2-colorlab button:disabled{opacity:.4;cursor:not-allowed}
+.v2-colorlab .ca-reveal{margin-top:14px;padding:11px 14px;border-radius:12px;background:#15203a;border:1px solid #4d8df0;color:#cfe3ff;display:none}
+.v2-colorlab .ca-reveal.show{display:block}
 </style>
-<div class="lab" id="lab-colorA">
+<div class="lab v2-colorlab" id="lab-colorA">
   <div class="ca-hint">🎨 견본과 <b>같은 색</b>을 만들어 보세요. 양이 달라도 같은 색이 되는 조합을 모으면 비밀이 드러나요.</div>
   <div class="ca-row">
     <div>
@@ -1210,6 +1210,29 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
       </div>
       <div class="ca-combos" id="caCombos"></div>
       <div class="ca-reveal" id="caReveal"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WB-7b (v2): 색상 A+ — 색 유지하며 움직이기 (② 비율 · 2단계 역동적 보존) -->
+<div class="lab v2-colorlab" id="lab-colorAp">
+  <div class="ca-hint">🤝 <b>같은 색을 유지</b>하며 양을 키워 보세요. 파랑을 늘리면 노랑도 함께 — 비를 지키면 색이 그대로예요. 서로 다른 크기로 <b>3번</b> 기록하면 완성!</div>
+  <div class="ca-row">
+    <div><div class="ca-label">유지할 색</div><div class="ca-swatch" id="apTarget"></div></div>
+    <div><div class="ca-label">내 색 <span id="apMatchTxt"></span></div><div class="ca-swatch" id="apMix"></div></div>
+    <div class="ca-ctrl">
+      <div id="apStatus" style="font-size:13px;font-weight:700;margin-bottom:6px"></div>
+      <div class="ca-slider"><span class="l">파랑</span><input type="range" id="apBlue" min="0" max="12" step="1" value="2"><span id="apBlueV">2</span></div>
+      <div class="ca-bar"><i id="apBlueBar"></i></div>
+      <div class="ca-slider"><span class="l">노랑</span><input type="range" id="apYel" min="0" max="12" step="1" value="3"><span id="apYelV">3</span></div>
+      <div class="ca-bar"><i id="apYelBar"></i></div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button id="apCapture" disabled>이 지점 기록</button>
+        <button id="apSound" disabled>🔊 이 비를 소리로</button>
+        <span class="ca-label" id="apCpHint" style="margin:0"></span>
+      </div>
+      <div class="ca-combos" id="apCps"></div>
+      <div class="ca-reveal" id="apReveal"></div>
     </div>
   </div>
 </div>
@@ -2455,7 +2478,7 @@ const QUEST=[
  {id:'ins.oct', topic:'악기', tab:'instrument', stage:1, tier:'비',    label:'옥타브 2:1',          requires:['col.A']},
  {id:'shp.sim', topic:'도형', tab:null,         stage:1, tier:'비',    label:'닮은꼴',              requires:['ins.oct']},
  {id:'col.B',   topic:'색상', tab:'color',      stage:1, tier:'게이트', label:'어긋남(곱셈 게이트)', requires:['shp.sim']},
- {id:'col.Ap',  topic:'색상', tab:'color',      stage:2, tier:'비율',  label:'동치비 협응',         requires:['col.B']},
+ {id:'col.Ap',  topic:'색상', tab:'colorAp',    stage:2, tier:'비율',  label:'동치비 협응',         requires:['col.B']},
  {id:'ins.5th', topic:'악기', tab:'instrument', stage:2, tier:'비율',  label:'완전5도 유지',        requires:['col.Ap']},
  {id:'shp.rub', topic:'도형', tab:null,         stage:2, tier:'비율',  label:'고무줄 보존',         requires:['ins.5th']},
  {id:'col.FG',  topic:'색상', tab:'color',      stage:4, tier:'비율',  label:'단위화 가역',         requires:['shp.rub']},
@@ -2620,6 +2643,70 @@ const ColorA=(function(){
 })();
 if(document.readyState!=='loading')ColorA.init();
 else document.addEventListener('DOMContentLoaded',()=>ColorA.init());
+
+/* 색→화음 미니 확인: 비를 음정으로(다중감각). 사용자 제스처에서 호출. */
+function playRatioChord(b,y){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC||b<=0||y<=0)return;
+    const ac=new AC(); const base=294, f1=base, f2=base*(y/b); const t0=ac.currentTime;
+    [f1,f2].forEach(f=>{ const o=ac.createOscillator(),g=ac.createGain(); o.type='sine'; o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.16,t0+0.05); g.gain.exponentialRampToValueAtTime(0.0001,t0+1.1);
+      o.connect(g); g.connect(ac.destination); o.start(t0); o.stop(t0+1.15); });
+    setTimeout(()=>{try{ac.close();}catch(e){}},1400);
+  }catch(e){}
+}
+
+/* ===== WB-7b (v2): 색상 A+ — 색 유지하며 움직이기 (② 비율 · 2단계 역동적 보존) =====
+   유지할 비(2:3)를 두 슬라이더로 ‘유지하며’ 양을 바꾸는 협응(자동연동 없음). 실시간 유지/벗어남 피드백.
+   서로 다른 크기의 보존 체크포인트 3개 → 색→화음 미니 확인 + Submit + Quest.complete('col.Ap'). */
+const ColorAp=(function(){
+  const TARGET={b:2,y:3}; const BCOL=[40,90,210],YCOL=[235,205,40],EMPTY=[40,40,48],MAX=12;
+  let st={blue:2,yellow:3,cps:[]};
+  const $=id=>document.getElementById(id);
+  function rgb(b,y){ const t=b+y; if(t<=0)return EMPTY.slice(); const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
+  function css(c){ return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
+  function matched(){ return (st.blue+st.yellow)>0 && RatioEngine.deltaE(rgb(TARGET.b,TARGET.y),rgb(st.blue,st.yellow))<=16; }
+  function canCapture(){ if(!matched())return false; const tot=st.blue+st.yellow; return st.cps.every(c=>Math.abs((c.b+c.y)-tot)>=2); }
+  function render(){
+    if(!$('apMix'))return;
+    $('apTarget').style.background=css(rgb(TARGET.b,TARGET.y));
+    $('apMix').style.background=css(rgb(st.blue,st.yellow));
+    $('apBlue').value=st.blue; $('apYel').value=st.yellow; $('apBlueV').textContent=st.blue; $('apYelV').textContent=st.yellow;
+    $('apBlueBar').style.width=(st.blue/MAX*100)+'%'; $('apBlueBar').style.background=css(BCOL);
+    $('apYelBar').style.width=(st.yellow/MAX*100)+'%'; $('apYelBar').style.background=css(YCOL);
+    const m=matched();
+    $('apMix').classList.toggle('match',m); $('apMatchTxt').textContent=m?'· 유지 중!':'';
+    const sEl=$('apStatus'); sEl.textContent=m?'✓ 색 유지 중':'⚠ 색이 달라졌어요 — 다른 쪽도 함께 움직이세요'; sEl.style.color=m?'#39d98a':'#e6b86a';
+    $('apCapture').disabled=!canCapture();
+    $('apCps').innerHTML=st.cps.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>파랑 '+c.b+' · 노랑 '+c.y+'</span>').join('');
+    $('apCpHint').textContent=st.cps.length?('기록한 크기 '+st.cps.length+'/3'):'유지한 채 다른 크기로 기록하세요';
+    $('apSound').disabled=st.cps.length<3;
+  }
+  function setBlue(v){ st.blue=+v; render(); }   // 자동연동 없음 — 학생이 두 슬라이더 모두 조작
+  function setYel(v){ st.yellow=+v; render(); }
+  function capture(){ if(!canCapture())return;
+    st.cps.push({b:st.blue,y:st.yellow});
+    Submit.task('col.Ap',{values:{blue:st.blue,yellow:st.yellow},verdict:RatioEngine.judge(TARGET.b,TARGET.y,st.blue,st.yellow),meta:{checkpoints:st.cps.length}});
+    if(st.cps.length>=3)done();
+    render();
+  }
+  function done(){
+    const s=Ratio.simplify(TARGET.b,TARGET.y);
+    const el=$('apReveal'); if(el){ el.innerHTML='✨ 여러 크기에서 <b>파랑 : 노랑 = '+s[0]+' : '+s[1]+'</b> 를 유지했어요. 비를 지키면 색이 보존돼요!'; el.classList.add('show'); }
+    if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('col.Ap')&&!Quest.done.has('col.Ap'))Quest.complete('col.Ap');
+  }
+  function init(){
+    if(!$('apBlue')||$('lab-colorAp').dataset.init)return; $('lab-colorAp').dataset.init='1';
+    $('apBlue').oninput=e=>setBlue(e.target.value);
+    $('apYel').oninput=e=>setYel(e.target.value);
+    $('apCapture').onclick=capture;
+    $('apSound').onclick=()=>playRatioChord(TARGET.b,TARGET.y);
+    render();
+  }
+  return {init,render,_st:()=>st,_matched:matched,_canCapture:canCapture};
+})();
+if(document.readyState!=='loading')ColorAp.init();
+else document.addEventListener('DOMContentLoaded',()=>ColorAp.init());
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
