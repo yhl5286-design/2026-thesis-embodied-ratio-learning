@@ -640,6 +640,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #questMap .q-gate.open{border-color:#2e7d46;background:#16361f;color:#9fe6b4}
 </style>
 <div id="questWrap">
+  <span style="font-size:12px;color:#cfe3ff;font-weight:700;white-space:nowrap">🎯 비율 탐험</span>
+  <span id="questProg" style="font-size:12px;color:#9fe6b4;white-space:nowrap"></span>
   <div id="questMap"></div>
   <button id="questDevGate" title="게이트 증거 충족 시뮬레이션(개발용)" onclick="devOpenGate()">⚡ 게이트 통과(개발용)</button>
   <button id="questDevDone" title="실제 제출 연동(차기 WB) 전 임시 진행 버튼" onclick="Quest.complete(Quest.currentId())">▶ 현재 과제 완료(개발용)</button>
@@ -2663,6 +2665,7 @@ const Quest={
       return `${gateChip}<span class="${cls}" data-id="${n.id}" title="${n.topic} · ${n.stage}단계 · ${n.tier}">${mark} ${n.label}</span>${sep}`;
     }).join('');
     el.querySelectorAll('.q-node').forEach(s=>s.onclick=()=>this.go(s.dataset.id));
+    const pe=document.getElementById('questProg'); if(pe)pe.textContent=this.done.size+' / '+QUEST.length+' 완료'; // WB-P2: 진행률
   }
 };
 /* ===== WB-4 (v2): 진행 게이트 + 자동 해제 폴백 =====
