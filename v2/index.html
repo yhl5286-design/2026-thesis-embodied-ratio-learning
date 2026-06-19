@@ -2486,6 +2486,30 @@ const RatioEngine={
   // 비 오차 → 감각 증거 강도(0=일치 … 1=크게 어긋남). 색 탁함·불협·찌그러짐 강도에 매핑.
   mismatchLevel(ratioError){ return Math.max(0,Math.min(1, ratioError/0.5)); },
 };
+
+/* ===== WB-6 (v2): 제출 기반 로깅 스키마 =====
+   미팅 결정 — 슬라이더 raw 궤적은 저장하지 않고 '제출' 시점에만 DB로 넘긴다.
+   각 과제는 끝에서 Submit.task(노드id, {values, verdict, meta})를 호출. 기존 Logger(events 테이블) 파이프라인 사용.
+   수집 스키마(IRB 명세): node, topic, stage, tier, attemptNo, values(체크포인트), verdict(RatioEngine 판정), meta, ts. */
+const Submit={
+  attempts:{},
+  task(nodeId, payload){
+    payload=payload||{};
+    const n=(typeof Quest==='object'&&Quest.node)?Quest.node(nodeId):null;
+    this.attempts[nodeId]=(this.attempts[nodeId]||0)+1;
+    const rec={
+      node:nodeId,
+      topic:n?n.topic:'', stage:n?n.stage:'', tier:n?n.tier:'',
+      attemptNo:this.attempts[nodeId],
+      values:(payload.values!==undefined?payload.values:null),  // 체크포인트(raw 궤적 아님)
+      verdict:(payload.verdict!==undefined?payload.verdict:null),// RatioEngine.judge 결과
+      meta:(payload.meta!==undefined?payload.meta:null),
+      ts:new Date().toISOString()
+    };
+    try{ Logger.event('submit', rec); }catch(e){}
+    return rec;
+  }
+};
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
