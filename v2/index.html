@@ -624,6 +624,22 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   <button class="tab-btn" onclick="switchTab('shadow')">&#x1F31F; 그림자와 비율</button>
 </div>
 
+<!-- WB-2 (v2): 퀘스트 진행 맵 (5단계 시퀀스 상태머신) -->
+<style>
+#questWrap{background:#0f1830;border-bottom:1px solid #22304f;padding:7px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#questMap{display:flex;align-items:center;gap:3px;flex-wrap:wrap;font-size:12.5px}
+#questMap .q-node{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:13px;border:1px solid #2a3a5c;background:#15203a;color:#9fb3d6;cursor:pointer;white-space:nowrap}
+#questMap .q-node.done{background:#16361f;border-color:#2e7d46;color:#9fe6b4}
+#questMap .q-node.current{background:#1f3a66;border-color:#4d8df0;color:#cfe3ff;font-weight:700}
+#questMap .q-node.locked{opacity:.45;cursor:not-allowed}
+#questMap .q-sep{color:#3a4a6a;margin:0 1px}
+#questDevDone{margin-left:auto;font-size:11px;padding:4px 8px;border-radius:8px;border:1px dashed #b0608a;background:#2a1020;color:#f7a;cursor:pointer}
+</style>
+<div id="questWrap">
+  <div id="questMap"></div>
+  <button id="questDevDone" title="실제 제출 연동(차기 WB) 전 임시 진행 버튼" onclick="Quest.complete(Quest.currentId())">▶ 현재 과제 완료(개발용)</button>
+</div>
+
 <main>
 
 <!-- ════════ 1. COLOR LAB ════════ -->
@@ -2335,6 +2351,7 @@ function applyUser(code, name) {
   Logger.setUser({ code, name });
   $('userChipName').textContent = name + ' (' + code + ')';
   $('userChip').style.display = 'flex';
+  if (typeof Quest === 'object') { Quest.load(); Quest.render(); } // WB-2: 사용자별 퀘스트 진척 로드
 }
 function doLogin() {
   const code = $('loginCode').value.trim(), name = $('loginName').value.trim();
@@ -2370,6 +2387,48 @@ function applyHiddenTabs(){
 }
 if(document.readyState!=='loading')applyHiddenTabs();
 else document.addEventListener('DOMContentLoaded',applyHiddenTabs);
+
+/* ===== WB-2 (v2): 퀘스트 진행 상태머신 (비→비율→백분율 · 5단계 시퀀스) =====
+   제출 연동(차기 WB)이 붙기 전까지 진행은 ‘개발용’ 버튼으로. 진척은 사용자코드별 localStorage 저장.
+   각 노드는 requires(선행 노드)가 모두 완료돼야 잠금 해제 → 선형 퀘스트. */
+const QUEST=[
+ {id:'col.A',   topic:'색상', tab:'color',      stage:1, tier:'비',    label:'같은 색',             requires:[]},
+ {id:'ins.oct', topic:'악기', tab:'instrument', stage:1, tier:'비',    label:'옥타브 2:1',          requires:['col.A']},
+ {id:'shp.sim', topic:'도형', tab:null,         stage:1, tier:'비',    label:'닮은꼴',              requires:['ins.oct']},
+ {id:'col.B',   topic:'색상', tab:'color',      stage:1, tier:'게이트', label:'어긋남(곱셈 게이트)', requires:['shp.sim']},
+ {id:'col.Ap',  topic:'색상', tab:'color',      stage:2, tier:'비율',  label:'동치비 협응',         requires:['col.B']},
+ {id:'ins.5th', topic:'악기', tab:'instrument', stage:2, tier:'비율',  label:'완전5도 유지',        requires:['col.Ap']},
+ {id:'shp.rub', topic:'도형', tab:null,         stage:2, tier:'비율',  label:'고무줄 보존',         requires:['ins.5th']},
+ {id:'col.FG',  topic:'색상', tab:'color',      stage:4, tier:'비율',  label:'단위화 가역',         requires:['shp.rub']},
+ {id:'col.100', topic:'색상', tab:'color',      stage:4, tier:'백분율', label:'100칸(%)',            requires:['col.FG']},
+ {id:'ins.75',  topic:'악기', tab:'instrument', stage:4, tier:'백분율', label:'75% 줄',              requires:['col.100']},
+ {id:'reflect', topic:'반성', tab:null,         stage:5, tier:'반성',  label:'전략 반성',           requires:['ins.75']},
+];
+const Quest={
+  done:new Set(),
+  key(){ let c='anon'; try{ c=(JSON.parse(localStorage.getItem(LOG_CFG.sessKey)||'{}').code)||'anon'; }catch(e){} return 'rs_quest_'+c; },
+  load(){ try{ this.done=new Set(JSON.parse(localStorage.getItem(this.key())||'[]')); }catch(e){ this.done=new Set(); } },
+  save(){ try{ localStorage.setItem(this.key(),JSON.stringify([...this.done])); }catch(e){} },
+  node(id){ return QUEST.find(n=>n.id===id); },
+  isUnlocked(id){ const n=this.node(id); return !!n&&n.requires.every(r=>this.done.has(r)); },
+  currentId(){ const n=QUEST.find(x=>!this.done.has(x.id)&&this.isUnlocked(x.id)); return n?n.id:null; },
+  complete(id){ if(!id||!this.isUnlocked(id))return; this.done.add(id); this.save(); try{Logger.event('quest.complete',{node:id});}catch(e){} this.render(); },
+  go(id){ const n=this.node(id); if(!n||(!this.done.has(id)&&!this.isUnlocked(id)))return; if(n.tab)switchTab(n.tab); this.render(n.id); },
+  render(activeId){
+    const el=document.getElementById('questMap'); if(!el)return;
+    const cur=activeId||this.currentId();
+    el.innerHTML=QUEST.map((n,i)=>{
+      const done=this.done.has(n.id), unlocked=this.isUnlocked(n.id), isCur=(n.id===cur);
+      const cls='q-node'+(done?' done':'')+(isCur?' current':'')+((!unlocked&&!done)?' locked':'');
+      const mark=done?'✓':((!unlocked)?'🔒':'●');
+      const sep=i<QUEST.length-1?'<span class="q-sep">›</span>':'';
+      return `<span class="${cls}" data-id="${n.id}" title="${n.topic} · ${n.stage}단계 · ${n.tier}">${mark} ${n.label}</span>${sep}`;
+    }).join('');
+    el.querySelectorAll('.q-node').forEach(s=>s.onclick=()=>this.go(s.dataset.id));
+  }
+};
+if(document.readyState!=='loading'){Quest.load();Quest.render();}
+else document.addEventListener('DOMContentLoaded',()=>{Quest.load();Quest.render();});
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
