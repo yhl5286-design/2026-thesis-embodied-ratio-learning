@@ -1237,6 +1237,32 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   </div>
 </div>
 
+<!-- WB-8 (v2): 색상 B — 어긋남 설명 (곱셈 관계 · 곱셈 게이트 트리거) -->
+<div class="lab v2-colorlab" id="lab-colorB">
+  <div class="ca-hint">🤔 두 색은 <b>둘 다 노랑이 파랑보다 1 많아요</b>. 그런데 색이 다르죠? 왜 그럴까요?</div>
+  <div class="ca-row" style="margin-bottom:8px">
+    <div><div class="ca-label">색 X (파랑1·노랑2)</div><div class="ca-swatch" id="cbX"></div><div class="ca-label" id="cbXmul"></div></div>
+    <div><div class="ca-label">색 Y (파랑2·노랑3)</div><div class="ca-swatch" id="cbY"></div><div class="ca-label" id="cbYmul"></div></div>
+  </div>
+  <div class="ca-hint" style="margin-top:4px">🎯 이제 <b>색 X와 같은 색</b>을 다른 양으로 만들어 보세요. 더하기로는 안 돼요!</div>
+  <div class="ca-row">
+    <div><div class="ca-label">목표(색 X)</div><div class="ca-swatch" id="cbTarget"></div></div>
+    <div><div class="ca-label">내 색 <span id="cbMatchTxt"></span></div><div class="ca-swatch" id="cbMix"></div></div>
+    <div class="ca-ctrl">
+      <div class="ca-slider"><span class="l">파랑</span><input type="range" id="cbBlue" min="0" max="12" step="1" value="2"><span id="cbBlueV">2</span></div>
+      <div class="ca-bar"><i id="cbBlueBar"></i></div>
+      <div class="ca-slider"><span class="l">노랑</span><input type="range" id="cbYel" min="0" max="12" step="1" value="3"><span id="cbYelV">3</span></div>
+      <div class="ca-bar"><i id="cbYelBar"></i></div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button id="cbCollect" disabled>이 조합 담기</button>
+        <span class="ca-label" id="cbFeedback" style="margin:0"></span>
+      </div>
+      <div class="ca-combos" id="cbCombos"></div>
+      <div class="ca-reveal" id="cbReveal"></div>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <div class="teacher-toggle">
@@ -2477,7 +2503,7 @@ const QUEST=[
  {id:'col.A',   topic:'색상', tab:'colorA',     stage:1, tier:'비',    label:'같은 색',             requires:[]},
  {id:'ins.oct', topic:'악기', tab:'instrument', stage:1, tier:'비',    label:'옥타브 2:1',          requires:['col.A']},
  {id:'shp.sim', topic:'도형', tab:null,         stage:1, tier:'비',    label:'닮은꼴',              requires:['ins.oct']},
- {id:'col.B',   topic:'색상', tab:'color',      stage:1, tier:'게이트', label:'어긋남(곱셈 게이트)', requires:['shp.sim']},
+ {id:'col.B',   topic:'색상', tab:'colorB',     stage:1, tier:'게이트', label:'어긋남(곱셈 게이트)', requires:['shp.sim']},
  {id:'col.Ap',  topic:'색상', tab:'colorAp',    stage:2, tier:'비율',  label:'동치비 협응',         requires:['col.B']},
  {id:'ins.5th', topic:'악기', tab:'instrument', stage:2, tier:'비율',  label:'완전5도 유지',        requires:['col.Ap']},
  {id:'shp.rub', topic:'도형', tab:null,         stage:2, tier:'비율',  label:'고무줄 보존',         requires:['ins.5th']},
@@ -2707,6 +2733,62 @@ const ColorAp=(function(){
 })();
 if(document.readyState!=='loading')ColorAp.init();
 else document.addEventListener('DOMContentLoaded',()=>ColorAp.init());
+
+/* ===== WB-8 (v2): 색상 B — 어긋남 설명 (곱셈 관계 · 곱셈 게이트 트리거) =====
+   차이 같음·비 다름(X 1:2 vs Y 2:3) 갈등. X와 같은 색을 '다른 양'으로 만들려면 ×배(곱셈)뿐 — 가법은 색이 어긋남(자기 반증).
+   ×배 동치비 2개 성공 → 곱셈 전략 실증 → Gate.pass('gate.mult') + Submit + Quest.complete('col.B'). */
+const ColorB=(function(){
+  const X={b:1,y:2}, Y={b:2,y:3}; const BCOL=[40,90,210],YCOL=[235,205,40],EMPTY=[40,40,48],MAX=12;
+  let st={blue:2,yellow:3,combos:[]};
+  const $=id=>document.getElementById(id);
+  function rgb(b,y){ const t=b+y; if(t<=0)return EMPTY.slice(); const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
+  function css(c){ return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
+  function judge(){ return RatioEngine.judge(X.b,X.y,st.blue,st.yellow); }
+  function matched(){ return (st.blue+st.yellow)>0 && RatioEngine.deltaE(rgb(X.b,X.y),rgb(st.blue,st.yellow))<=16; }
+  function isScaledMultiple(){ return matched() && (st.blue+st.yellow)>(X.b+X.y); } // X와 같은 색 + 더 큰 양 = 곱셈 증거
+  function render(){
+    if(!$('cbMix'))return;
+    $('cbX').style.background=css(rgb(X.b,X.y)); $('cbY').style.background=css(rgb(Y.b,Y.y));
+    $('cbXmul').textContent='노랑 = 파랑의 2배'; $('cbYmul').textContent='노랑 = 파랑의 1.5배';
+    $('cbTarget').style.background=css(rgb(X.b,X.y)); $('cbMix').style.background=css(rgb(st.blue,st.yellow));
+    $('cbBlue').value=st.blue; $('cbYel').value=st.yellow; $('cbBlueV').textContent=st.blue; $('cbYelV').textContent=st.yellow;
+    $('cbBlueBar').style.width=(st.blue/MAX*100)+'%'; $('cbBlueBar').style.background=css(BCOL);
+    $('cbYelBar').style.width=(st.yellow/MAX*100)+'%'; $('cbYelBar').style.background=css(YCOL);
+    const m=matched(), j=judge();
+    $('cbMix').classList.toggle('match',m); $('cbMatchTxt').textContent=m?'· 같은 색!':'';
+    $('cbCollect').disabled=!isScaledMultiple()||st.combos.some(c=>c.b===st.blue&&c.y===st.yellow);
+    const fb=$('cbFeedback');
+    if(isScaledMultiple()){ fb.textContent='✓ X와 같은 색 — 곱셈으로 맞췄어요!'; fb.style.color='#9fe6b4'; }
+    else if(j.additive){ fb.textContent='차이는 같은데 색이 X와 달라요 — 더하기로는 안 돼요'; fb.style.color='#e6b86a'; }
+    else if(m){ fb.textContent='색 X 그대로예요. 더 큰 양으로 만들어 보세요'; fb.style.color='#9fb3d6'; }
+    else { fb.textContent=''; }
+    $('cbCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>파랑 '+c.b+' · 노랑 '+c.y+'</span>').join('');
+  }
+  function setBlue(v){ st.blue=+v; render(); }
+  function setYel(v){ st.yellow=+v; render(); }
+  function collect(){
+    if(!isScaledMultiple()||st.combos.some(c=>c.b===st.blue&&c.y===st.yellow))return;
+    st.combos.push({b:st.blue,y:st.yellow});
+    Submit.task('col.B',{values:{blue:st.blue,yellow:st.yellow},verdict:judge(),meta:{combos:st.combos.length,strategy:'multiplicative'}});
+    if(typeof Gate==='object')Gate.pass('gate.mult');   // 곱셈 전략 실증 → 게이트 통과
+    if(st.combos.length>=2)done();
+    render();
+  }
+  function done(){
+    const el=$('cbReveal'); if(el){ el.innerHTML='✨ 발견! 양쪽에 <b>같은 수를 곱하면</b> 같은 색이에요. 더한 것(차이)이 아니라 <b>몇 배(비)</b>가 색을 정해요.'; el.classList.add('show'); }
+    if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('col.B')&&!Quest.done.has('col.B'))Quest.complete('col.B');
+  }
+  function init(){
+    if(!$('cbBlue')||$('lab-colorB').dataset.init)return; $('lab-colorB').dataset.init='1';
+    $('cbBlue').oninput=e=>setBlue(e.target.value);
+    $('cbYel').oninput=e=>setYel(e.target.value);
+    $('cbCollect').onclick=collect;
+    render();
+  }
+  return {init,render,_st:()=>st,_matched:matched,_scaled:isScaledMultiple};
+})();
+if(document.readyState!=='loading')ColorB.init();
+else document.addEventListener('DOMContentLoaded',()=>ColorB.init());
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
