@@ -2758,7 +2758,7 @@ const ColorA=(function(){
     $('caBlueBar').style.width=(st.blue/MAX*100)+'%'; $('caBlueBar').style.background=css(BCOL);
     $('caYelBar').style.width=(st.yellow/MAX*100)+'%'; $('caYelBar').style.background=css(YCOL);
     const m=matched();
-    $('caMix').classList.toggle('match',m); $('caMatchTxt').textContent=m?'· 같은 색!':'';
+    $('caMix').classList.toggle('match',m); $('caMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgb(TARGET.b,TARGET.y),rgb(st.blue,st.yellow)));
     $('caCollect').disabled=!m;
     $('caLock').checked=st.lock; $('caDisc').checked=st.disc;
     $('caCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>파랑 '+c.b+' · 노랑 '+c.y+'</span>').join('');
@@ -2826,7 +2826,7 @@ const ColorAp=(function(){
     $('apBlueBar').style.width=(st.blue/MAX*100)+'%'; $('apBlueBar').style.background=css(BCOL);
     $('apYelBar').style.width=(st.yellow/MAX*100)+'%'; $('apYelBar').style.background=css(YCOL);
     const m=matched();
-    $('apMix').classList.toggle('match',m); $('apMatchTxt').textContent=m?'· 유지 중!':'';
+    $('apMix').classList.toggle('match',m); $('apMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgb(TARGET.b,TARGET.y),rgb(st.blue,st.yellow)));
     const sEl=$('apStatus'); sEl.textContent=m?'✓ 색 유지 중':'⚠ 색이 달라졌어요 — 다른 쪽도 함께 움직이세요'; sEl.style.color=m?'#39d98a':'#e6b86a';
     $('apCapture').disabled=!canCapture();
     $('apCps').innerHTML=st.cps.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>파랑 '+c.b+' · 노랑 '+c.y+'</span>').join('');
@@ -2880,7 +2880,7 @@ const ColorB=(function(){
     $('cbBlueBar').style.width=(st.blue/MAX*100)+'%'; $('cbBlueBar').style.background=css(BCOL);
     $('cbYelBar').style.width=(st.yellow/MAX*100)+'%'; $('cbYelBar').style.background=css(YCOL);
     const m=matched(), j=judge();
-    $('cbMix').classList.toggle('match',m); $('cbMatchTxt').textContent=m?'· 같은 색!':'';
+    $('cbMix').classList.toggle('match',m); $('cbMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgb(X.b,X.y),rgb(st.blue,st.yellow)));
     $('cbCollect').disabled=!isScaledMultiple()||st.combos.some(c=>c.b===st.blue&&c.y===st.yellow);
     const fb=$('cbFeedback');
     if(isScaledMultiple()){ fb.textContent='✓ X와 같은 색 — 곱셈으로 맞췄어요!'; fb.style.color='#9fe6b4'; }
@@ -2987,7 +2987,7 @@ const ColorP=(function(){
     $('pcN').value=st.n; $('pcNV').textContent=st.n;
     $('pcGrid').innerHTML=Array.from({length:100}).map((_,i)=>'<i style="background:'+(i<st.n?css(BCOL):css(YCOL))+'"></i>').join('');
     const m=matched();
-    $('pcMix').classList.toggle('match',m); $('pcMatchTxt').textContent=m?'· 같은 진하기!':'';
+    $('pcMix').classList.toggle('match',m); $('pcMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgbN(targetPct),rgbN(st.n)));
     if(m||st.done){ const s=Ratio.simplify(TARGET.b,TARGET.y);
       $('pcBridge').innerHTML='<span class="fg-br" style="padding:4px 9px;border-radius:9px;background:#15203a;border:1px solid #2a3a5c">백분율 '+targetPct+'%</span>'+
         '<span class="fg-br" style="padding:4px 9px;border-radius:9px;background:#15203a;border:1px solid #2a3a5c">비 '+s[0]+':'+s[1]+'</span>'+
@@ -3007,6 +3007,8 @@ const ColorP=(function(){
 if(document.readyState!=='loading')ColorP.init();
 else document.addEventListener('DOMContentLoaded',()=>ColorP.init());
 
+/* WB-P1: 접근성 — 색에만 의존하지 않는 일치 단서(아이콘+근접도%). 색차(ΔE)→비색채 텍스트. */
+function accCue(de){ const close=Math.max(0,Math.round(100-Math.min(100,de/3))); return (de<=16?'✓ 같음':de<=45?'○ 거의':'✗ 다름')+' ('+close+'%)'; }
 function playTones(f1,f2){ try{ const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return; const ac=new AC(),t0=ac.currentTime;
   [f1,f2].forEach(f=>{ const o=ac.createOscillator(),g=ac.createGain(); o.type='triangle'; o.frequency.value=f;
     g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.14,t0+0.04); g.gain.exponentialRampToValueAtTime(0.0001,t0+1.2);
