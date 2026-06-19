@@ -633,10 +633,14 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #questMap .q-node.current{background:#1f3a66;border-color:#4d8df0;color:#cfe3ff;font-weight:700}
 #questMap .q-node.locked{opacity:.45;cursor:not-allowed}
 #questMap .q-sep{color:#3a4a6a;margin:0 1px}
-#questDevDone{margin-left:auto;font-size:11px;padding:4px 8px;border-radius:8px;border:1px dashed #b0608a;background:#2a1020;color:#f7a;cursor:pointer}
+#questDevDone{font-size:11px;padding:4px 8px;border-radius:8px;border:1px dashed #b0608a;background:#2a1020;color:#f7a;cursor:pointer}
+#questDevGate{margin-left:auto;font-size:11px;padding:4px 8px;border-radius:8px;border:1px dashed #6a4a2a;background:#2a2010;color:#e6b86a;cursor:pointer}
+#questMap .q-gate{display:inline-flex;align-items:center;padding:2px 6px;border-radius:10px;font-size:11px;border:1px solid #6a4a2a;background:#2a2010;color:#e6b86a}
+#questMap .q-gate.open{border-color:#2e7d46;background:#16361f;color:#9fe6b4}
 </style>
 <div id="questWrap">
   <div id="questMap"></div>
+  <button id="questDevGate" title="게이트 증거 충족 시뮬레이션(개발용)" onclick="devOpenGate()">⚡ 게이트 통과(개발용)</button>
   <button id="questDevDone" title="실제 제출 연동(차기 WB) 전 임시 진행 버튼" onclick="Quest.complete(Quest.currentId())">▶ 현재 과제 완료(개발용)</button>
 </div>
 
@@ -2351,6 +2355,7 @@ function applyUser(code, name) {
   Logger.setUser({ code, name });
   $('userChipName').textContent = name + ' (' + code + ')';
   $('userChip').style.display = 'flex';
+  if (typeof Gate === 'object') Gate.load();                       // WB-4
   if (typeof Quest === 'object') { Quest.load(); Quest.render(); } // WB-2: 사용자별 퀘스트 진척 로드
 }
 function doLogin() {
@@ -2410,9 +2415,12 @@ const Quest={
   load(){ try{ this.done=new Set(JSON.parse(localStorage.getItem(this.key())||'[]')); }catch(e){ this.done=new Set(); } },
   save(){ try{ localStorage.setItem(this.key(),JSON.stringify([...this.done])); }catch(e){} },
   node(id){ return QUEST.find(n=>n.id===id); },
-  isUnlocked(id){ const n=this.node(id); return !!n&&n.requires.every(r=>this.done.has(r)); },
+  isUnlocked(id){ const n=this.node(id); if(!n||!n.requires.every(r=>this.done.has(r)))return false;
+    const g=Object.keys(GATES).find(k=>GATES[k].guards===id); if(g&&!Gate.isOpen(g))return false; return true; }, // WB-4: 게이트 검사
   currentId(){ const n=QUEST.find(x=>!this.done.has(x.id)&&this.isUnlocked(x.id)); return n?n.id:null; },
-  complete(id){ if(!id||!this.isUnlocked(id))return; this.done.add(id); this.save(); try{Logger.event('quest.complete',{node:id});}catch(e){} this.render(); },
+  complete(id){ if(!id||!this.isUnlocked(id))return; this.done.add(id); this.save(); try{Logger.event('quest.complete',{node:id});}catch(e){}
+    Object.keys(GATES).forEach(g=>{ const gn=this.node(GATES[g].guards); if(gn&&gn.requires.every(r=>this.done.has(r)))Gate.arm(g); }); // WB-4: 게이트 폴백 무장
+    this.render(); },
   go(id){ const n=this.node(id); if(!n||(!this.done.has(id)&&!this.isUnlocked(id)))return; if(n.tab)switchTab(n.tab); this.render(n.id); },
   render(activeId){
     const el=document.getElementById('questMap'); if(!el)return;
@@ -2422,13 +2430,36 @@ const Quest={
       const cls='q-node'+(done?' done':'')+(isCur?' current':'')+((!unlocked&&!done)?' locked':'');
       const mark=done?'✓':((!unlocked)?'🔒':'●');
       const sep=i<QUEST.length-1?'<span class="q-sep">›</span>':'';
-      return `<span class="${cls}" data-id="${n.id}" title="${n.topic} · ${n.stage}단계 · ${n.tier}">${mark} ${n.label}</span>${sep}`;
+      const g=Object.keys(GATES).find(k=>GATES[k].guards===n.id); // WB-4: 게이트 칩
+      const gateChip=g?`<span class="q-gate ${Gate.isOpen(g)?'open':''}" title="${GATES[g].label} 게이트">⚡${Gate.isOpen(g)?'개방':'잠금'}</span><span class="q-sep">›</span>`:'';
+      return `${gateChip}<span class="${cls}" data-id="${n.id}" title="${n.topic} · ${n.stage}단계 · ${n.tier}">${mark} ${n.label}</span>${sep}`;
     }).join('');
     el.querySelectorAll('.q-node').forEach(s=>s.onclick=()=>this.go(s.dataset.id));
   }
 };
-if(document.readyState!=='loading'){Quest.load();Quest.render();}
-else document.addEventListener('DOMContentLoaded',()=>{Quest.load();Quest.render();});
+/* ===== WB-4 (v2): 진행 게이트 + 자동 해제 폴백 =====
+   곱셈 전략 게이트(col.Ap 진입 가드)·비율→백분율 게이트(col.100 가드). 비→비율은 requires 체인, 상징 게이트는 WB-3.
+   증거 충족 시 태스크가 Gate.pass()를, 막힐 때를 대비해 시도/시간 폴백으로 자동 해제(앱 비정지). */
+const GATES={
+  'gate.mult':{label:'곱셈 전략',   guards:'col.Ap',  fallbackAttempts:6, fallbackMs:120000},
+  'gate.pct': {label:'비율→백분율', guards:'col.100', fallbackAttempts:6, fallbackMs:120000},
+};
+const Gate={
+  state:{},
+  key(){ let c='anon'; try{ c=(JSON.parse(localStorage.getItem(LOG_CFG.sessKey)||'{}').code)||'anon'; }catch(e){} return 'rs_gates_'+c; },
+  load(){ try{ this.state=JSON.parse(localStorage.getItem(this.key())||'{}')||{}; }catch(e){ this.state={}; } },
+  save(){ try{ localStorage.setItem(this.key(),JSON.stringify(this.state)); }catch(e){} },
+  ensure(id){ if(!this.state[id])this.state[id]={open:false,attempts:0,reason:null}; return this.state[id]; },
+  isOpen(id){ return !GATES[id]||this.ensure(id).open; },
+  open(id,reason){ const s=this.ensure(id); if(s.open)return; s.open=true; s.reason=reason; this.save(); try{Logger.event('gate.open',{gate:id,reason});}catch(e){} if(typeof Quest==='object')Quest.render(); },
+  pass(id){ this.open(id,'evidence'); },                 // 태스크가 증거 충족 시 호출(차기 WB)
+  bumpAttempt(id){ const s=this.ensure(id); if(s.open)return; s.attempts++; this.save(); const lim=(GATES[id]&&GATES[id].fallbackAttempts)||999; if(s.attempts>=lim)this.open(id,'fallback-attempts'); },
+  arm(id){ const s=this.ensure(id); if(s.open||s._armed)return; s._armed=true; const ms=(GATES[id]&&GATES[id].fallbackMs)||0; if(ms)setTimeout(()=>{ if(!this.ensure(id).open)this.open(id,'fallback-time'); },ms); },
+};
+function devOpenGate(){ const g=Object.keys(GATES).find(k=>{ const gn=Quest.node(GATES[k].guards); return gn&&gn.requires.every(r=>Quest.done.has(r))&&!Gate.isOpen(k); }); if(g)Gate.pass(g); }
+function _v2QuestInit(){ Gate.load(); Quest.load(); Quest.render(); }
+if(document.readyState!=='loading')_v2QuestInit();
+else document.addEventListener('DOMContentLoaded',_v2QuestInit);
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
