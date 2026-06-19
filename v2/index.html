@@ -1296,6 +1296,25 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   </div>
 </div>
 
+<!-- WB-10 (v2): 색상 100칸 — 백분율 (③ 백분율 · 4단계) -->
+<style>
+#lab-color100 .pc-grid{display:grid;grid-template-columns:repeat(10,15px);gap:2px;margin:10px 0}
+#lab-color100 .pc-grid i{width:15px;height:15px;border-radius:3px;display:block}
+</style>
+<div class="lab v2-colorlab" id="lab-color100">
+  <div class="ca-hint">💯 전체 <b>100칸</b> 중 파랑이 얼마나 차지하나요? 견본과 같은 <b>진하기</b>를 만들어 보세요.</div>
+  <div class="ca-row">
+    <div><div class="ca-label">견본</div><div class="ca-swatch" id="pcTarget"></div></div>
+    <div><div class="ca-label">내 색 <span id="pcMatchTxt"></span></div><div class="ca-swatch" id="pcMix"></div></div>
+    <div class="ca-ctrl">
+      <div class="ca-slider"><span class="l">파랑 칸</span><input type="range" id="pcN" min="0" max="100" step="1" value="50"><span id="pcNV">50</span></div>
+      <div class="pc-grid" id="pcGrid"></div>
+      <div id="pcBridge" style="display:flex;gap:10px;flex-wrap:wrap;font-size:13px"></div>
+      <div class="ca-reveal" id="pcReveal"></div>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <div class="teacher-toggle">
@@ -2541,7 +2560,7 @@ const QUEST=[
  {id:'ins.5th', topic:'악기', tab:'instrument', stage:2, tier:'비율',  label:'완전5도 유지',        requires:['col.Ap']},
  {id:'shp.rub', topic:'도형', tab:null,         stage:2, tier:'비율',  label:'고무줄 보존',         requires:['ins.5th']},
  {id:'col.FG',  topic:'색상', tab:'colorFG',    stage:4, tier:'비율',  label:'단위화 가역',         requires:['shp.rub']},
- {id:'col.100', topic:'색상', tab:'color',      stage:4, tier:'백분율', label:'100칸(%)',            requires:['col.FG']},
+ {id:'col.100', topic:'색상', tab:'color100',   stage:4, tier:'백분율', label:'100칸(%)',            requires:['col.FG']},
  {id:'ins.75',  topic:'악기', tab:'instrument', stage:4, tier:'백분율', label:'75% 줄',              requires:['col.100']},
  {id:'reflect', topic:'반성', tab:null,         stage:5, tier:'반성',  label:'전략 반성',           requires:['ins.75']},
 ];
@@ -2862,6 +2881,7 @@ const ColorFG=(function(){
   function done(){
     Submit.task('col.FG',{values:{builtCounts:[...st.built],unit:UNIT,decomposed:{b:UNIT.b,y:UNIT.y}},verdict:RatioEngine.judge(UNIT.b,UNIT.y,UNIT.b*st.k,UNIT.y*st.k),meta:{reversible:true}});
     const el=$('fgReveal'); if(el){ el.innerHTML='✨ 묶음을 키워도(곱), 다시 한 묶음으로 풀어도(나눗셈) <b>비 2:3</b>은 그대로예요. 이것이 단위화의 가역성!'; el.classList.add('show'); }
+    if(typeof Gate==='object')Gate.pass('gate.pct');   // 단위화(곱셈적 재계산) 실증 → 비율→백분율 게이트 통과
     if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('col.FG')&&!Quest.done.has('col.FG'))Quest.complete('col.FG');
   }
   function init(){
@@ -2875,6 +2895,44 @@ const ColorFG=(function(){
 })();
 if(document.readyState!=='loading')ColorFG.init();
 else document.addEventListener('DOMContentLoaded',()=>ColorFG.init());
+
+/* ===== WB-10 (v2): 색상 100칸 — 백분율 (③ 백분율 · 4단계) =====
+   전체 100칸 중 파랑 칸 = 파랑 %. 견본(파랑 40% = 비 2:3)과 같은 진하기를 만들면 발견(비↔분수↔% 연결).
+   비율→백분율 게이트(gate.pct) 통과 후 진입. 일치 → Submit + Quest.complete('col.100'). */
+const ColorP=(function(){
+  const TARGET={b:2,y:3}, BCOL=[40,90,210],YCOL=[235,205,40];
+  const targetPct=Math.round(TARGET.b/(TARGET.b+TARGET.y)*100); // 40
+  let st={n:50,done:false};
+  const $=id=>document.getElementById(id);
+  function rgbN(n){ const p=(100-n)/100; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); } // p=노랑 비율
+  function css(c){ return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
+  function matched(){ return Math.abs(st.n-targetPct)<=2; }
+  function render(){
+    if(!$('pcGrid'))return;
+    $('pcTarget').style.background=css(rgbN(targetPct));
+    $('pcMix').style.background=css(rgbN(st.n));
+    $('pcN').value=st.n; $('pcNV').textContent=st.n;
+    $('pcGrid').innerHTML=Array.from({length:100}).map((_,i)=>'<i style="background:'+(i<st.n?css(BCOL):css(YCOL))+'"></i>').join('');
+    const m=matched();
+    $('pcMix').classList.toggle('match',m); $('pcMatchTxt').textContent=m?'· 같은 진하기!':'';
+    if(m||st.done){ const s=Ratio.simplify(TARGET.b,TARGET.y);
+      $('pcBridge').innerHTML='<span class="fg-br" style="padding:4px 9px;border-radius:9px;background:#15203a;border:1px solid #2a3a5c">백분율 '+targetPct+'%</span>'+
+        '<span class="fg-br" style="padding:4px 9px;border-radius:9px;background:#15203a;border:1px solid #2a3a5c">비 '+s[0]+':'+s[1]+'</span>'+
+        '<span class="fg-br" style="padding:4px 9px;border-radius:9px;background:#15203a;border:1px solid #2a3a5c">분수 '+TARGET.b+'/'+(TARGET.b+TARGET.y)+'</span>'; }
+    else $('pcBridge').innerHTML='';
+    if(m&&!st.done)done();
+  }
+  function setN(v){ st.n=+v; render(); }
+  function done(){ st.done=true;
+    Submit.task('col.100',{values:{blueCells:st.n,pct:st.n},verdict:RatioEngine.judge(TARGET.b,TARGET.y,st.n,100-st.n),meta:{targetPct:targetPct}});
+    const el=$('pcReveal'); if(el){ el.innerHTML='✨ 파랑 '+targetPct+'칸 = <b>'+targetPct+'%</b> = 비 2:3 = 분수 2/5. 비 2:3, 4:6 … 모두 같은 '+targetPct+'%예요!'; el.classList.add('show'); }
+    if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('col.100')&&!Quest.done.has('col.100'))Quest.complete('col.100');
+  }
+  function init(){ if(!$('pcN')||$('lab-color100').dataset.init)return; $('lab-color100').dataset.init='1'; $('pcN').oninput=e=>setN(e.target.value); render(); }
+  return {init,render,_st:()=>st,_matched:matched,_targetPct:()=>targetPct};
+})();
+if(document.readyState!=='loading')ColorP.init();
+else document.addEventListener('DOMContentLoaded',()=>ColorP.init());
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
