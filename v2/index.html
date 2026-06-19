@@ -1263,6 +1263,39 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   </div>
 </div>
 
+<!-- WB-9 (v2): 색상 F·G — 단위화 가역쌍 (② 비율 심화 · 4단계 기호 도입) -->
+<style>
+#lab-colorFG .fg-tile{width:34px;height:44px;border-radius:6px;border:1px solid #2a3a5c;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;text-shadow:0 1px 2px #000}
+#lab-colorFG table td{border:1px solid #2a3a5c;padding:3px 9px}
+#lab-colorFG .fg-br{padding:4px 9px;border-radius:9px;background:#15203a;border:1px solid #2a3a5c}
+#lab-colorFG input[type=number]{background:#0f1830;border:1px solid #3a4a6a;color:#cfe0ff;border-radius:6px;padding:3px}
+</style>
+<div class="lab v2-colorlab" id="lab-colorFG">
+  <div class="ca-hint">📦 <b>한 묶음 = 파랑 2 · 노랑 3</b>. 묶음을 통째로 늘려도 색은 그대로! 키운 다음 다시 <b>한 묶음</b>으로 풀어 보세요.</div>
+  <div class="ca-row">
+    <div><div class="ca-label">묶음 색(항상 같음)</div><div class="ca-swatch" id="fgSwatch"></div></div>
+    <div class="ca-ctrl">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span class="ca-label" style="margin:0">묶음 수</span>
+        <button id="fgMinus">−</button><b id="fgK" style="min-width:20px;text-align:center;display:inline-block">1</b><button id="fgPlus">+</button>
+        <span id="fgTotal" class="ca-label" style="margin:0"></span>
+      </div>
+      <div id="fgBlocks" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+      <div id="fgBridge" style="display:flex;gap:10px;flex-wrap:wrap;font-size:13px;margin-bottom:10px"></div>
+      <table id="fgTable"></table>
+      <div id="fgDecomp" style="margin-top:14px;display:none">
+        <div class="ca-hint" id="fgDecompQ" style="margin-bottom:6px"></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          한 묶음 = 파랑 <input id="fgDb" type="number" min="0" max="9" style="width:48px"> · 노랑 <input id="fgDy" type="number" min="0" max="9" style="width:48px">
+          <button id="fgCheck">확인</button>
+          <span class="ca-label" id="fgDecompFb" style="margin:0"></span>
+        </div>
+      </div>
+      <div class="ca-reveal" id="fgReveal"></div>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <div class="teacher-toggle">
@@ -2507,7 +2540,7 @@ const QUEST=[
  {id:'col.Ap',  topic:'색상', tab:'colorAp',    stage:2, tier:'비율',  label:'동치비 협응',         requires:['col.B']},
  {id:'ins.5th', topic:'악기', tab:'instrument', stage:2, tier:'비율',  label:'완전5도 유지',        requires:['col.Ap']},
  {id:'shp.rub', topic:'도형', tab:null,         stage:2, tier:'비율',  label:'고무줄 보존',         requires:['ins.5th']},
- {id:'col.FG',  topic:'색상', tab:'color',      stage:4, tier:'비율',  label:'단위화 가역',         requires:['shp.rub']},
+ {id:'col.FG',  topic:'색상', tab:'colorFG',    stage:4, tier:'비율',  label:'단위화 가역',         requires:['shp.rub']},
  {id:'col.100', topic:'색상', tab:'color',      stage:4, tier:'백분율', label:'100칸(%)',            requires:['col.FG']},
  {id:'ins.75',  topic:'악기', tab:'instrument', stage:4, tier:'백분율', label:'75% 줄',              requires:['col.100']},
  {id:'reflect', topic:'반성', tab:null,         stage:5, tier:'반성',  label:'전략 반성',           requires:['ins.75']},
@@ -2789,6 +2822,59 @@ const ColorB=(function(){
 })();
 if(document.readyState!=='loading')ColorB.init();
 else document.addEventListener('DOMContentLoaded',()=>ColorB.init());
+
+/* ===== WB-9 (v2): 색상 F·G — 단위화 가역쌍 (② 비율 심화 · 4단계 기호 도입) =====
+   한 묶음(파랑2·노랑3)을 통째로 복제해 위로(F·곱), 다시 한 묶음으로 분해(G·나눗셈) — 비 보존(원리7).
+   표현 교량(비·비례식·분수·%) 동시 제시(원리6). 묶음 2종 이상 + 분해 정답 → Submit + Quest.complete('col.FG'). */
+const ColorFG=(function(){
+  const UNIT={b:2,y:3}; const BCOL=[40,90,210],YCOL=[235,205,40],MAXK=6;
+  let st={k:1,built:new Set([1]),decompOk:false};
+  const $=id=>document.getElementById(id);
+  function rgb(b,y){ const t=b+y; if(t<=0)return [40,40,48]; const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
+  function css(c){ return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
+  function render(){
+    if(!$('fgSwatch'))return;
+    const k=st.k, B=UNIT.b*k, Y=UNIT.y*k, tot=B+Y;
+    $('fgSwatch').style.background=css(rgb(UNIT.b,UNIT.y));
+    $('fgK').textContent=k; $('fgTotal').textContent='→ 파랑 '+B+' · 노랑 '+Y;
+    $('fgBlocks').innerHTML=Array.from({length:k}).map(()=>'<div class="fg-tile" style="background:'+css(rgb(UNIT.b,UNIT.y))+'">2:3</div>').join('');
+    const s=Ratio.simplify(B,Y);
+    $('fgBridge').innerHTML=[
+      '<span class="fg-br">비 '+B+' : '+Y+' (= '+s[0]+':'+s[1]+')</span>',
+      '<span class="fg-br">비례식 2:3 = '+B+':'+Y+'</span>',
+      '<span class="fg-br">분수(파랑/전체) '+B+'/'+tot+' = '+UNIT.b+'/'+(UNIT.b+UNIT.y)+'</span>',
+      '<span class="fg-br">백분율 '+Math.round(B/tot*100)+'%</span>'
+    ].join('');
+    const rows=[...st.built].sort((a,b)=>a-b).map(n=>'<tr><td>'+n+'묶음</td><td>파랑 '+(UNIT.b*n)+'</td><td>노랑 '+(UNIT.y*n)+'</td></tr>').join('');
+    $('fgTable').innerHTML='<tr><td>묶음</td><td>파랑</td><td>노랑</td></tr>'+rows;
+    const showD=st.built.size>=2;
+    $('fgDecomp').style.display=showD?'block':'none';
+    if(showD)$('fgDecompQ').innerHTML='지금 <b>'+B+' : '+Y+'</b> ('+k+'묶음)이에요. <b>한 묶음</b> 안에는 파랑 몇, 노랑 몇일까요?';
+  }
+  function setK(k){ st.k=Math.max(1,Math.min(MAXK,k)); st.built.add(st.k); render(); }
+  function check(){
+    const b=+$('fgDb').value, y=+$('fgDy').value, fb=$('fgDecompFb');
+    if(b===UNIT.b&&y===UNIT.y){ st.decompOk=true; fb.textContent='✓ 맞아요! 한 묶음은 2:3'; fb.style.color='#9fe6b4'; maybeDone(); }
+    else { fb.textContent='다시 — 전체를 묶음 수로 똑같이 나눠 보세요'; fb.style.color='#e6b86a'; }
+    render();
+  }
+  function maybeDone(){ if(st.built.size>=2&&st.decompOk)done(); }
+  function done(){
+    Submit.task('col.FG',{values:{builtCounts:[...st.built],unit:UNIT,decomposed:{b:UNIT.b,y:UNIT.y}},verdict:RatioEngine.judge(UNIT.b,UNIT.y,UNIT.b*st.k,UNIT.y*st.k),meta:{reversible:true}});
+    const el=$('fgReveal'); if(el){ el.innerHTML='✨ 묶음을 키워도(곱), 다시 한 묶음으로 풀어도(나눗셈) <b>비 2:3</b>은 그대로예요. 이것이 단위화의 가역성!'; el.classList.add('show'); }
+    if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('col.FG')&&!Quest.done.has('col.FG'))Quest.complete('col.FG');
+  }
+  function init(){
+    if(!$('fgK')||$('lab-colorFG').dataset.init)return; $('lab-colorFG').dataset.init='1';
+    $('fgPlus').onclick=()=>setK(st.k+1);
+    $('fgMinus').onclick=()=>setK(st.k-1);
+    $('fgCheck').onclick=check;
+    render();
+  }
+  return {init,render,_st:()=>st};
+})();
+if(document.readyState!=='loading')ColorFG.init();
+else document.addEventListener('DOMContentLoaded',()=>ColorFG.init());
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
