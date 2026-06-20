@@ -1425,12 +1425,16 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 <script>
 /* ===== RatioSense Logger (microgenetic trial logging) ===== */
 const LOG_CFG = {
-  endpoint: 'https://script.google.com/macros/s/AKfycbzDv0GRvEPIevLXOYmikqToHUQnn1O9TXQOPCOCAe6-9PKyHFho59fa7X8vyK32VFaR/exec',
-  token: 'ratiosense-2026',
-  appVersion: '2026-05-20',
+  // v2 파일럿 — 운영(루트 앱)과 분리. endpoint에 'v2 전용' Apps Script 배포 URL을 넣으세요.
+  // 빈 값이면 전송하지 않음(운영 시트 오염 방지). ?logendpoint=URL 또는 localStorage rs_endpoint_override 로 임시 override(더미 테스트용).
+  endpoint: '',                 // TODO: v2 전용 Apps Script /exec URL 붙여넣기
+  token: 'ratiosense-v2-2026',
+  appVersion: '2026-06-v2',
+  appVariant: 'v2',             // 모든 레코드에 태깅 → 백엔드/시트에서 v2 데이터 구분·필터
   batchSize: 10, batchMs: 5000, debounceMs: 400,
-  maxQueue: 500, lsKey: 'rs_logq', sessKey: 'rs_sess'
+  maxQueue: 500, lsKey: 'rs_logq_v2', sessKey: 'rs_sess'
 };
+(function(){ try{ const e=new URLSearchParams(location.search).get('logendpoint')||localStorage.getItem('rs_endpoint_override'); if(e)LOG_CFG.endpoint=e; }catch(_){} })();
 const Logger = (function () {
   //__LOGGER_PURE_START__
   function decideBatch(queueLen, msSinceLast, cfg) {
@@ -1465,6 +1469,7 @@ const Logger = (function () {
   function enqueue(rec) {
     safe(() => {
       rec.schemaVersion = '1';
+      rec.appVariant = LOG_CFG.appVariant;
       rec.sessionId = sessionId;
       rec.userCode = user.code;
       rec.userName = user.name;
