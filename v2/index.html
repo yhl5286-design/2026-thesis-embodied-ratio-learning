@@ -593,8 +593,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     <h2>RatioSense 입장</h2>
     <div class="login-sub">선생님이 알려준 코드와 이름을 적어 주세요.</div>
     <div class="login-field">
-      <label for="loginCode">코드 (예: 6-3-12)</label>
-      <input id="loginCode" inputmode="numeric" autocomplete="off" placeholder="학년-반-번호">
+      <label for="loginCode">번호 (예: 601)</label>
+      <input id="loginCode" inputmode="numeric" autocomplete="off" placeholder="번호 (예: 601)">
     </div>
     <div class="login-field">
       <label for="loginName">이름</label>
@@ -2595,7 +2595,7 @@ function boom(msg,clr){
   for(let i=0;i<14;i++){const s=document.createElement('div');s.className='sparkle';s.style.background=['var(--red)','var(--yellow)','var(--blue)','var(--teal)','var(--purple)','var(--gold)'][i%6];s.style.setProperty('--tx',(Math.random()-.5)*300+'px');s.style.setProperty('--ty',(Math.random()-.5)*300+'px');s.style.left='50%';s.style.top='50%';o.appendChild(s)}
   setTimeout(()=>o.innerHTML='',1200);
 }
-const CODE_RE = /^\d{1,2}-\d{1,2}-\d{1,2}$/;   // 학년-반-번호
+const CODE_RE = /^\d{2,4}$/;   // 단순 번호 (예: 601, 602, 603) — 아이들이 쉽게 입력
 function showLogin() { $('loginOverlay').style.display = 'flex'; $('loginCode').focus(); }
 function hideLogin() { $('loginOverlay').style.display = 'none'; }
 function applyUser(code, name) {
@@ -2607,7 +2607,7 @@ function applyUser(code, name) {
 }
 function doLogin() {
   const code = $('loginCode').value.trim(), name = $('loginName').value.trim();
-  if (!CODE_RE.test(code)) { $('loginErr').textContent = '코드 형식이 달라요. 예: 6-3-12'; return; }
+  if (!CODE_RE.test(code)) { $('loginErr').textContent = '번호를 숫자로 적어 주세요. 예: 601'; return; }
   if (name.length < 1) { $('loginErr').textContent = '이름을 적어 주세요.'; return; }
   $('loginErr').textContent = '';
   try { localStorage.setItem(LOG_CFG.sessKey, JSON.stringify({ code, name, ts: Date.now() })); } catch (e) {}
