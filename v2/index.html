@@ -1216,9 +1216,18 @@ main{padding-bottom:78px}
 .v2-colorlab .ca-vslider .vnum{font-size:1.7rem;font-weight:800;color:#cfe3ff;line-height:1}
 .v2-colorlab .ca-vslider .vlab{font-size:1.02rem;font-weight:800}
 .v2-colorlab .ca-bar{display:none}
+/* 이산량 스테퍼 — 구슬을 한 개씩 쌓아 정확히 같은 색 만들기(동치비) */
+.v2-colorlab .ca-stepper{display:flex;flex-direction:column;align-items:center;gap:8px}
+.v2-colorlab .ca-stepbtn{font-size:1.7rem;width:54px;height:54px;border-radius:14px;background:#1f3a66;border:2px solid #4d8df0;color:#fff;cursor:pointer;line-height:1;touch-action:manipulation}
+.v2-colorlab .ca-stepbtn:active{background:#2a4a7a}
+.v2-colorlab .ca-stepbtn:disabled{opacity:.35}
+.v2-colorlab .ca-beads{display:flex;flex-direction:column-reverse;gap:3px;min-height:132px;padding:6px;background:#0f1830;border-radius:10px;border:1px solid #2a3a5c}
+.v2-colorlab .ca-bead{width:34px;height:13px;border-radius:3px}
+.v2-colorlab .vnum{font-size:1.7rem;font-weight:800;color:#cfe3ff;line-height:1}
+.v2-colorlab .vlab{font-size:1.02rem;font-weight:800}
 </style>
 <div class="lab v2-colorlab" id="lab-colorA">
-  <div class="ca-hint">🎨 견본과 <b>똑같은 색</b>을 만들어 보세요! 슬라이더를 <b>위아래로</b> 올리고 내려 빨강·노랑 양을 정합니다. 양이 달라도 같은 색이 되는 조합을 <b>2개 이상</b> 모으면 비밀이 풀려요.</div>
+  <div class="ca-hint">🎨 견본과 <b>똑같은 색</b>을 만들어 보세요! <b>＋ / －</b> 단추로 빨강·노랑 <b>구슬 개수</b>를 맞춥니다. 양이 달라도 같은 색이 되는 조합을 <b>2개 이상</b> 모으면 비밀이 풀려요.</div>
   <div class="ca-row" style="justify-content:center;gap:36px">
     <div style="text-align:center">
       <div class="ca-label" style="font-size:14px;font-weight:700">🎯 견본 (이 색을 만드세요)</div>
@@ -1235,8 +1244,8 @@ main{padding-bottom:78px}
       <label><input type="checkbox" id="caDisc"> 구슬로 보기</label>
     </div>
     <div class="ca-vrow">
-      <div class="ca-vslider vred"><span class="vnum" id="caBlueV">3</span><input type="range" id="caBlue" min="0" max="12" step="1" value="3"><span class="vlab" style="color:#e0795a">🔴 빨강</span></div>
-      <div class="ca-vslider vyel"><span class="vnum" id="caYelV">3</span><input type="range" id="caYel" min="0" max="12" step="1" value="3"><span class="vlab" style="color:#e6c84a">🟡 노랑</span></div>
+      <div class="ca-stepper"><span class="vlab" style="color:#e0795a">🔴 빨강</span><button class="ca-stepbtn" id="caBluePlus">＋</button><div class="ca-beads" id="caBlueBeads"></div><span class="vnum" id="caBlueV">3</span><button class="ca-stepbtn" id="caBlueMinus">－</button><input type="range" id="caBlue" min="0" max="12" step="1" value="3" style="display:none"></div>
+      <div class="ca-stepper"><span class="vlab" style="color:#e6c84a">🟡 노랑</span><button class="ca-stepbtn" id="caYelPlus">＋</button><div class="ca-beads" id="caYelBeads"></div><span class="vnum" id="caYelV">3</span><button class="ca-stepbtn" id="caYelMinus">－</button><input type="range" id="caYel" min="0" max="12" step="1" value="3" style="display:none"></div>
     </div>
     <div class="ca-bar"><i id="caBlueBar"></i></div>
     <div class="ca-bar"><i id="caYelBar"></i></div>
@@ -1259,8 +1268,8 @@ main{padding-bottom:78px}
   <div class="ca-ctrl" style="max-width:520px;margin:14px auto 0">
     <div id="apStatus" style="font-size:14px;font-weight:700;margin-bottom:6px;text-align:center"></div>
     <div class="ca-vrow">
-      <div class="ca-vslider vred"><span class="vnum" id="apBlueV">2</span><input type="range" id="apBlue" min="0" max="12" step="1" value="2"><span class="vlab" style="color:#e0795a">🔴 빨강</span></div>
-      <div class="ca-vslider vyel"><span class="vnum" id="apYelV">3</span><input type="range" id="apYel" min="0" max="12" step="1" value="3"><span class="vlab" style="color:#e6c84a">🟡 노랑</span></div>
+      <div class="ca-stepper"><span class="vlab" style="color:#e0795a">🔴 빨강</span><button class="ca-stepbtn" id="apBluePlus">＋</button><div class="ca-beads" id="apBlueBeads"></div><span class="vnum" id="apBlueV">2</span><button class="ca-stepbtn" id="apBlueMinus">－</button><input type="range" id="apBlue" min="0" max="12" step="1" value="2" style="display:none"></div>
+      <div class="ca-stepper"><span class="vlab" style="color:#e6c84a">🟡 노랑</span><button class="ca-stepbtn" id="apYelPlus">＋</button><div class="ca-beads" id="apYelBeads"></div><span class="vnum" id="apYelV">3</span><button class="ca-stepbtn" id="apYelMinus">－</button><input type="range" id="apYel" min="0" max="12" step="1" value="3" style="display:none"></div>
     </div>
     <div class="ca-bar"><i id="apBlueBar"></i></div>
     <div class="ca-bar"><i id="apYelBar"></i></div>
@@ -1281,15 +1290,15 @@ main{padding-bottom:78px}
     <div><div class="ca-label">색 X (빨강1·노랑2)</div><div class="ca-swatch" id="cbX"></div><div class="ca-label" id="cbXmul"></div></div>
     <div><div class="ca-label">색 Y (빨강2·노랑3)</div><div class="ca-swatch" id="cbY"></div><div class="ca-label" id="cbYmul"></div></div>
   </div>
-  <div class="ca-hint" style="margin-top:4px">🎯 이제 <b>색 X와 같은 색</b>을 다른 양으로 <b>2개 이상</b> 만들어 보세요. 슬라이더를 <b>위아래로</b>! 더하기로는 안 돼요.</div>
+  <div class="ca-hint" style="margin-top:4px">🎯 이제 <b>색 X와 같은 색</b>을 다른 양으로 <b>2개 이상</b> 만들어 보세요. <b>＋ / －</b>로 구슬 개수를 맞춰요! 더하기로는 안 돼요.</div>
   <div class="ca-row" style="justify-content:center;gap:36px">
     <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">🎯 목표 (색 X)</div><div class="ca-swatch big" id="cbTarget"></div></div>
     <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">내 색 <span id="cbMatchTxt"></span></div><div class="ca-swatch big" id="cbMix"></div></div>
   </div>
   <div class="ca-ctrl" style="max-width:520px;margin:14px auto 0">
     <div class="ca-vrow">
-      <div class="ca-vslider vred"><span class="vnum" id="cbBlueV">2</span><input type="range" id="cbBlue" min="0" max="12" step="1" value="2"><span class="vlab" style="color:#e0795a">🔴 빨강</span></div>
-      <div class="ca-vslider vyel"><span class="vnum" id="cbYelV">3</span><input type="range" id="cbYel" min="0" max="12" step="1" value="3"><span class="vlab" style="color:#e6c84a">🟡 노랑</span></div>
+      <div class="ca-stepper"><span class="vlab" style="color:#e0795a">🔴 빨강</span><button class="ca-stepbtn" id="cbBluePlus">＋</button><div class="ca-beads" id="cbBlueBeads"></div><span class="vnum" id="cbBlueV">2</span><button class="ca-stepbtn" id="cbBlueMinus">－</button><input type="range" id="cbBlue" min="0" max="12" step="1" value="2" style="display:none"></div>
+      <div class="ca-stepper"><span class="vlab" style="color:#e6c84a">🟡 노랑</span><button class="ca-stepbtn" id="cbYelPlus">＋</button><div class="ca-beads" id="cbYelBeads"></div><span class="vnum" id="cbYelV">3</span><button class="ca-stepbtn" id="cbYelMinus">－</button><input type="range" id="cbYel" min="0" max="12" step="1" value="3" style="display:none"></div>
     </div>
     <div class="ca-bar"><i id="cbBlueBar"></i></div>
     <div class="ca-bar"><i id="cbYelBar"></i></div>
@@ -2917,6 +2926,7 @@ const ColorA=(function(){
     $('caBlue').value=st.blue; $('caYel').value=st.yellow; $('caBlueV').textContent=st.blue; $('caYelV').textContent=st.yellow;
     $('caBlueBar').style.width=(st.blue/MAX*100)+'%'; $('caBlueBar').style.background=css(BCOL);
     $('caYelBar').style.width=(st.yellow/MAX*100)+'%'; $('caYelBar').style.background=css(YCOL);
+    if($('caBlueBeads')){ $('caBlueBeads').innerHTML=Array.from({length:st.blue}).map(()=>'<i class="ca-bead" style="background:'+css(BCOL)+'"></i>').join(''); $('caYelBeads').innerHTML=Array.from({length:st.yellow}).map(()=>'<i class="ca-bead" style="background:'+css(YCOL)+'"></i>').join(''); $('caBluePlus').disabled=st.blue>=MAX; $('caBlueMinus').disabled=st.blue<=0; $('caYelPlus').disabled=st.yellow>=MAX; $('caYelMinus').disabled=st.yellow<=0; }
     const m=matched();
     $('caMix').classList.toggle('match',m); $('caMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgb(TARGET.b,TARGET.y),rgb(st.blue,st.yellow)));
     $('caCollect').disabled=!m;
@@ -2945,6 +2955,8 @@ const ColorA=(function(){
     if(!$('caBlue')||$('lab-colorA').dataset.init)return; $('lab-colorA').dataset.init='1';
     $('caBlue').oninput=e=>setBlue(e.target.value);
     $('caYel').oninput=e=>setYel(e.target.value);
+    $('caBluePlus').onclick=()=>setBlue(Math.min(MAX,st.blue+1)); $('caBlueMinus').onclick=()=>setBlue(Math.max(0,st.blue-1));
+    $('caYelPlus').onclick=()=>setYel(Math.min(MAX,st.yellow+1)); $('caYelMinus').onclick=()=>setYel(Math.max(0,st.yellow-1));
     $('caLock').onchange=e=>toggleLock(e.target.checked);
     $('caDisc').onchange=e=>{ st.disc=e.target.checked; render(); };
     $('caCollect').onclick=collect;
@@ -2984,6 +2996,7 @@ const ColorAp=(function(){
     $('apMix').style.background=css(rgb(st.blue,st.yellow));
     $('apBlue').value=st.blue; $('apYel').value=st.yellow; $('apBlueV').textContent=st.blue; $('apYelV').textContent=st.yellow;
     $('apBlueBar').style.width=(st.blue/MAX*100)+'%'; $('apBlueBar').style.background=css(BCOL);
+    if($('apBlueBeads')){ $('apBlueBeads').innerHTML=Array.from({length:st.blue}).map(()=>'<i class="ca-bead" style="background:'+css(BCOL)+'"></i>').join(''); $('apYelBeads').innerHTML=Array.from({length:st.yellow}).map(()=>'<i class="ca-bead" style="background:'+css(YCOL)+'"></i>').join(''); $('apBluePlus').disabled=st.blue>=MAX; $('apBlueMinus').disabled=st.blue<=0; $('apYelPlus').disabled=st.yellow>=MAX; $('apYelMinus').disabled=st.yellow<=0; }
     $('apYelBar').style.width=(st.yellow/MAX*100)+'%'; $('apYelBar').style.background=css(YCOL);
     const m=matched();
     $('apMix').classList.toggle('match',m); $('apMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgb(TARGET.b,TARGET.y),rgb(st.blue,st.yellow)));
@@ -3009,6 +3022,8 @@ const ColorAp=(function(){
   function init(){
     if(!$('apBlue')||$('lab-colorAp').dataset.init)return; $('lab-colorAp').dataset.init='1';
     $('apBlue').oninput=e=>setBlue(e.target.value);
+    $('apBluePlus').onclick=()=>setBlue(Math.min(MAX,st.blue+1)); $('apBlueMinus').onclick=()=>setBlue(Math.max(0,st.blue-1));
+    $('apYelPlus').onclick=()=>setYel(Math.min(MAX,st.yellow+1)); $('apYelMinus').onclick=()=>setYel(Math.max(0,st.yellow-1));
     $('apYel').oninput=e=>setYel(e.target.value);
     $('apCapture').onclick=capture;
     $('apSound').onclick=()=>playRatioChord(TARGET.b,TARGET.y);
@@ -3038,6 +3053,7 @@ const ColorB=(function(){
     $('cbTarget').style.background=css(rgb(X.b,X.y)); $('cbMix').style.background=css(rgb(st.blue,st.yellow));
     $('cbBlue').value=st.blue; $('cbYel').value=st.yellow; $('cbBlueV').textContent=st.blue; $('cbYelV').textContent=st.yellow;
     $('cbBlueBar').style.width=(st.blue/MAX*100)+'%'; $('cbBlueBar').style.background=css(BCOL);
+    if($('cbBlueBeads')){ $('cbBlueBeads').innerHTML=Array.from({length:st.blue}).map(()=>'<i class="ca-bead" style="background:'+css(BCOL)+'"></i>').join(''); $('cbYelBeads').innerHTML=Array.from({length:st.yellow}).map(()=>'<i class="ca-bead" style="background:'+css(YCOL)+'"></i>').join(''); $('cbBluePlus').disabled=st.blue>=MAX; $('cbBlueMinus').disabled=st.blue<=0; $('cbYelPlus').disabled=st.yellow>=MAX; $('cbYelMinus').disabled=st.yellow<=0; }
     $('cbYelBar').style.width=(st.yellow/MAX*100)+'%'; $('cbYelBar').style.background=css(YCOL);
     const m=matched(), j=judge();
     $('cbMix').classList.toggle('match',m); $('cbMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgb(X.b,X.y),rgb(st.blue,st.yellow)));
@@ -3066,6 +3082,8 @@ const ColorB=(function(){
   function init(){
     if(!$('cbBlue')||$('lab-colorB').dataset.init)return; $('lab-colorB').dataset.init='1';
     $('cbBlue').oninput=e=>setBlue(e.target.value);
+    $('cbBluePlus').onclick=()=>setBlue(Math.min(MAX,st.blue+1)); $('cbBlueMinus').onclick=()=>setBlue(Math.max(0,st.blue-1));
+    $('cbYelPlus').onclick=()=>setYel(Math.min(MAX,st.yellow+1)); $('cbYelMinus').onclick=()=>setYel(Math.max(0,st.yellow-1));
     $('cbYel').oninput=e=>setYel(e.target.value);
     $('cbCollect').onclick=collect;
     render();
