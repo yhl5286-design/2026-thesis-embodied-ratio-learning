@@ -646,6 +646,21 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   <button id="questDevGate" title="게이트 증거 충족 시뮬레이션(개발용)" onclick="devOpenGate()">⚡ 게이트 통과(개발용)</button>
   <button id="questDevDone" title="실제 제출 연동(차기 WB) 전 임시 진행 버튼" onclick="Quest.complete(Quest.currentId())">▶ 현재 과제 완료(개발용)</button>
 </div>
+<!-- 하단 고정 내비: 현재 단계 위치 + '다음 과제 ▶' (단계 진행 직관화, 모바일 큰 버튼) -->
+<style>
+#questNav{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:rgba(11,18,33,.97);border-top:1px solid #2a3a5c;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#questNavPos{font-size:13.5px;font-weight:700;color:#cfe3ff;white-space:nowrap}
+#questNavPos b{color:#9fe6b4}
+#questNavBtn{font-size:1.08rem;font-weight:800;padding:13px 26px;border-radius:14px;border:none;background:#2e7d46;color:#fff;cursor:pointer;touch-action:manipulation;transition:transform .1s;white-space:nowrap}
+#questNavBtn:disabled{background:#1c2942;color:#5e7090;cursor:default}
+#questNavBtn.ready{animation:navpulse 1.3s ease-in-out infinite}
+@keyframes navpulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(57,217,138,.45)}50%{transform:scale(1.04);box-shadow:0 0 0 9px rgba(57,217,138,0)}}
+main{padding-bottom:78px}
+</style>
+<div id="questNav">
+  <span id="questNavPos">전체 <b>12</b>단계 중 <b>1</b>단계</span>
+  <button id="questNavBtn" disabled>이 과제를 끝내면 열려요</button>
+</div>
 
 <main>
 
@@ -1397,10 +1412,13 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #lab-shapeNorm .sn-stepbtn:active{background:#2a4a7a}
 #lab-shapeNorm .sn-ans{font-size:1.15rem;font-weight:800;padding:13px 24px;margin:0 6px;border-radius:14px;background:#15203a;border:2px solid #3a4a6a;color:#dbe9ff;cursor:pointer;touch-action:manipulation}
 #lab-shapeNorm .sn-ans:active{background:#1f3a66}
+#lab-shapeNorm .sn-stepnum{display:inline-block;font-size:.8rem;font-weight:800;color:#9fe6b4;background:#16361f;border:1px solid #2e7d46;border-radius:20px;padding:3px 13px;margin-bottom:9px}
+#lab-shapeNorm .sn-backbtn{font-size:.92rem;font-weight:700;padding:9px 17px;border-radius:12px;background:#15203a;border:1px solid #3a4a6a;color:#9fb3d6;cursor:pointer;margin-top:10px;touch-action:manipulation}
 </style>
 <div class="lab v2-colorlab" id="lab-shapeNorm">
   <!-- Step 1: 원본을 1로 → 닮음비 -->
   <div class="sn-step active" id="snStep1">
+    <div class="sn-stepnum">단계 1 / 2 · 닮음비</div>
     <div class="ca-hint">📐 <b>원본</b>과 <b>확대본</b>은 닮은꼴이에요. 단추로 확대본을 키우면, <b>원본을 1로 봤을 때</b> 확대본이 곧 <b>닮음비</b>예요.</div>
     <div class="ca-row" style="align-items:flex-end">
       <div><div class="ca-label">원본 (2:3)</div><div class="snrect" id="snBase"></div></div>
@@ -1413,12 +1431,13 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
           <button class="sn-stepbtn" id="snPlus">+</button>
         </div>
         <div id="snPer1"></div>
-        <button id="snNext" class="login-btn" style="margin-top:10px">다음 ▶</button>
+        <button id="snNext" class="login-btn" style="margin-top:10px">다음 단계 ▶ (넓이 알아보기)</button>
       </div>
     </div>
   </div>
   <!-- Step 2: 넓이비 = 닮음비² -->
   <div class="sn-step" id="snStep2">
+    <div class="sn-stepnum">단계 2 / 2 · 넓이비</div>
     <div class="ca-hint">🟦 변을 <b id="snK2">2</b>배 키웠어요. 그러면 <b>넓이</b>는 몇 배일까요? 칸을 직접 세어 보세요.</div>
     <div class="ca-row" style="align-items:flex-end">
       <div><div class="ca-label">원본 넓이 = 1칸</div><div class="sn-area" id="snAreaBase"></div></div>
@@ -1428,6 +1447,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     <div class="ca-label" id="snAnsFb" style="margin-top:8px"></div>
     <div id="snPer2" style="margin-top:10px"></div>
     <div class="ca-reveal" id="snReveal"></div>
+    <button id="snBack" class="sn-backbtn">◀ 이전 단계</button>
   </div>
 </div>
 
@@ -2705,6 +2725,7 @@ const QUEST=[
 ];
 const Quest={
   done:new Set(),
+  viewing:null,
   key(){ let c='anon'; try{ c=(JSON.parse(localStorage.getItem(LOG_CFG.sessKey)||'{}').code)||'anon'; }catch(e){} return 'rs_quest_'+c; },
   load(){ try{ this.done=new Set(JSON.parse(localStorage.getItem(this.key())||'[]')); }catch(e){ this.done=new Set(); } },
   save(){ try{ localStorage.setItem(this.key(),JSON.stringify([...this.done])); }catch(e){} },
@@ -2715,10 +2736,10 @@ const Quest={
   complete(id){ if(!id||!this.isUnlocked(id))return; this.done.add(id); this.save(); try{Logger.event('quest.complete',{node:id});}catch(e){}
     Object.keys(GATES).forEach(g=>{ const gn=this.node(GATES[g].guards); if(gn&&gn.requires.every(r=>this.done.has(r)))Gate.arm(g); }); // WB-4: 게이트 폴백 무장
     this.render(); },
-  go(id){ const n=this.node(id); if(!n||(!this.done.has(id)&&!this.isUnlocked(id)))return; if(n.tab)switchTab(n.tab); this.render(n.id); },
+  go(id){ const n=this.node(id); if(!n||(!this.done.has(id)&&!this.isUnlocked(id)))return; this.viewing=id; if(n.tab)switchTab(n.tab); this.render(n.id); },
   render(activeId){
     const el=document.getElementById('questMap'); if(!el)return;
-    const cur=activeId||this.currentId();
+    const cur=activeId||this.viewing||this.currentId();
     el.innerHTML=QUEST.map((n,i)=>{
       const done=this.done.has(n.id), unlocked=this.isUnlocked(n.id), isCur=(n.id===cur);
       const cls='q-node'+(done?' done':'')+(isCur?' current':'')+((!unlocked&&!done)?' locked':'');
@@ -2730,6 +2751,17 @@ const Quest={
     }).join('');
     el.querySelectorAll('.q-node').forEach(s=>s.onclick=()=>this.go(s.dataset.id));
     const pe=document.getElementById('questProg'); if(pe)pe.textContent=this.done.size+' / '+QUEST.length+' 완료'; // WB-P2: 진행률
+    // 하단 내비: 현재 위치 "전체 N단계 중 M단계" + 큰 '다음 과제 ▶' 버튼 (모바일 단계 진행 직관화)
+    const navPos=document.getElementById('questNavPos'), navBtn=document.getElementById('questNavBtn');
+    if(navPos&&navBtn){
+      const vidx=QUEST.findIndex(n=>n.id===cur);
+      navPos.innerHTML='전체 <b>'+QUEST.length+'</b>단계 중 <b>'+(vidx>=0?vidx+1:1)+'</b>단계';
+      const next=this.currentId();
+      navBtn.onclick=()=>{ const nx=Quest.currentId(); if(nx)Quest.go(nx); };
+      if(!next){ navBtn.textContent='🎉 모두 완료!'; navBtn.disabled=true; navBtn.classList.remove('ready'); }
+      else if(this.done.has(cur)){ navBtn.textContent='다음 과제 ▶'; navBtn.disabled=false; navBtn.classList.add('ready'); }
+      else { navBtn.textContent='이 과제를 끝내면 열려요'; navBtn.disabled=true; navBtn.classList.remove('ready'); }
+    }
   }
 };
 /* ===== WB-4 (v2): 진행 게이트 + 자동 해제 폴백 =====
@@ -3205,6 +3237,7 @@ const ShapeNorm=(function(){
   }
   function setK(k){ st.k=Math.max(2,Math.min(4,k)); st.answered=false; $('snAnsFb').textContent=''; $('snPer2').innerHTML=''; render(); }
   function next(){ st.step=2; render(); }
+  function prev(){ st.step=1; render(); }
   function answer(x){
     const ok=(x==='sq');
     $('snAnsFb').textContent=ok?('✓ 맞아요! 가로 '+st.k+'배 × 세로 '+st.k+'배 = 넓이 '+(st.k*st.k)+'배'):('아니에요 — 가로도 '+st.k+'배, 세로도 '+st.k+'배라서 넓이는 '+st.k+'×'+st.k+'배예요. 칸을 세어 보세요.');
@@ -3218,7 +3251,7 @@ const ShapeNorm=(function(){
     if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('shp.norm')&&!Quest.done.has('shp.norm'))Quest.complete('shp.norm');
   }
   function init(){ if(!$('snPlus')||$('lab-shapeNorm').dataset.init)return; $('lab-shapeNorm').dataset.init='1';
-    $('snPlus').onclick=()=>setK(st.k+1); $('snMinus').onclick=()=>setK(st.k-1); $('snNext').onclick=next; render(); }
+    $('snPlus').onclick=()=>setK(st.k+1); $('snMinus').onclick=()=>setK(st.k-1); $('snNext').onclick=next; $('snBack').onclick=prev; render(); }
   return {init,render,_st:()=>st};
 })();
 if(document.readyState!=='loading')ShapeNorm.init();
