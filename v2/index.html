@@ -741,7 +741,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
           </div>
           <div class="paint-count" style="color:#C29200" id="cntY">0 mL</div>
         </div>
-        <!-- 파랑 -->
+        <!-- 빨강 -->
         <div class="paint-group">
           <div class="paint-color-label" style="color:var(--blue)">🔵 파랑</div>
           <div class="paint-jars-row">
@@ -1209,7 +1209,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
         <label><input type="checkbox" id="caLock"> 비율 유지(자동연동)</label>
         <label><input type="checkbox" id="caDisc"> 구슬로 보기</label>
       </div>
-      <div class="ca-slider"><span class="l">파랑</span><input type="range" id="caBlue" min="0" max="12" step="1" value="3"><span id="caBlueV">3</span></div>
+      <div class="ca-slider"><span class="l">빨강</span><input type="range" id="caBlue" min="0" max="12" step="1" value="3"><span id="caBlueV">3</span></div>
       <div class="ca-bar"><i id="caBlueBar"></i></div>
       <div class="ca-slider"><span class="l">노랑</span><input type="range" id="caYel" min="0" max="12" step="1" value="3"><span id="caYelV">3</span></div>
       <div class="ca-bar"><i id="caYelBar"></i></div>
@@ -1225,13 +1225,13 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 
 <!-- WB-7b (v2): 색상 A+ — 색 유지하며 움직이기 (② 비율 · 2단계 역동적 보존) -->
 <div class="lab v2-colorlab" id="lab-colorAp">
-  <div class="ca-hint">🤝 <b>같은 색을 유지</b>하며 양을 키워 보세요. 파랑을 늘리면 노랑도 함께 — 비를 지키면 색이 그대로예요. 서로 다른 크기로 <b>3번</b> 기록하면 완성!</div>
+  <div class="ca-hint">🤝 <b>같은 색을 유지</b>하며 양을 키워 보세요. 빨강을 늘리면 노랑도 함께 — 비를 지키면 색이 그대로예요. 서로 다른 크기로 <b>3번</b> 기록하면 완성!</div>
   <div class="ca-row">
     <div><div class="ca-label">유지할 색</div><div class="ca-swatch" id="apTarget"></div></div>
     <div><div class="ca-label">내 색 <span id="apMatchTxt"></span></div><div class="ca-swatch" id="apMix"></div></div>
     <div class="ca-ctrl">
       <div id="apStatus" style="font-size:13px;font-weight:700;margin-bottom:6px"></div>
-      <div class="ca-slider"><span class="l">파랑</span><input type="range" id="apBlue" min="0" max="12" step="1" value="2"><span id="apBlueV">2</span></div>
+      <div class="ca-slider"><span class="l">빨강</span><input type="range" id="apBlue" min="0" max="12" step="1" value="2"><span id="apBlueV">2</span></div>
       <div class="ca-bar"><i id="apBlueBar"></i></div>
       <div class="ca-slider"><span class="l">노랑</span><input type="range" id="apYel" min="0" max="12" step="1" value="3"><span id="apYelV">3</span></div>
       <div class="ca-bar"><i id="apYelBar"></i></div>
@@ -1248,17 +1248,17 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 
 <!-- WB-8 (v2): 색상 B — 어긋남 설명 (곱셈 관계 · 곱셈 게이트 트리거) -->
 <div class="lab v2-colorlab" id="lab-colorB">
-  <div class="ca-hint">🤔 두 색은 <b>둘 다 노랑이 파랑보다 1 많아요</b>. 그런데 색이 다르죠? 왜 그럴까요?</div>
+  <div class="ca-hint">🤔 두 색은 <b>둘 다 노랑이 빨강보다 1 많아요</b>. 그런데 색이 다르죠? 왜 그럴까요?</div>
   <div class="ca-row" style="margin-bottom:8px">
-    <div><div class="ca-label">색 X (파랑1·노랑2)</div><div class="ca-swatch" id="cbX"></div><div class="ca-label" id="cbXmul"></div></div>
-    <div><div class="ca-label">색 Y (파랑2·노랑3)</div><div class="ca-swatch" id="cbY"></div><div class="ca-label" id="cbYmul"></div></div>
+    <div><div class="ca-label">색 X (빨강1·노랑2)</div><div class="ca-swatch" id="cbX"></div><div class="ca-label" id="cbXmul"></div></div>
+    <div><div class="ca-label">색 Y (빨강2·노랑3)</div><div class="ca-swatch" id="cbY"></div><div class="ca-label" id="cbYmul"></div></div>
   </div>
   <div class="ca-hint" style="margin-top:4px">🎯 이제 <b>색 X와 같은 색</b>을 다른 양으로 만들어 보세요. 더하기로는 안 돼요!</div>
   <div class="ca-row">
     <div><div class="ca-label">목표(색 X)</div><div class="ca-swatch" id="cbTarget"></div></div>
     <div><div class="ca-label">내 색 <span id="cbMatchTxt"></span></div><div class="ca-swatch" id="cbMix"></div></div>
     <div class="ca-ctrl">
-      <div class="ca-slider"><span class="l">파랑</span><input type="range" id="cbBlue" min="0" max="12" step="1" value="2"><span id="cbBlueV">2</span></div>
+      <div class="ca-slider"><span class="l">빨강</span><input type="range" id="cbBlue" min="0" max="12" step="1" value="2"><span id="cbBlueV">2</span></div>
       <div class="ca-bar"><i id="cbBlueBar"></i></div>
       <div class="ca-slider"><span class="l">노랑</span><input type="range" id="cbYel" min="0" max="12" step="1" value="3"><span id="cbYelV">3</span></div>
       <div class="ca-bar"><i id="cbYelBar"></i></div>
@@ -1284,7 +1284,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 .per-line b{color:#7fc4ff}
 </style>
 <div class="lab v2-colorlab" id="lab-colorFG">
-  <div class="ca-hint">📦 <b>한 묶음 = 파랑 2 · 노랑 3</b>. 묶음을 통째로 늘려도 색은 그대로! 키운 다음 다시 <b>한 묶음</b>으로 풀어 보세요.</div>
+  <div class="ca-hint">📦 <b>한 묶음 = 빨강 2 · 노랑 3</b>. 묶음을 통째로 늘려도 색은 그대로! 키운 다음 다시 <b>한 묶음</b>으로 풀어 보세요.</div>
   <div class="ca-row">
     <div><div class="ca-label">묶음 색(항상 같음)</div><div class="ca-swatch" id="fgSwatch"></div></div>
     <div class="ca-ctrl">
@@ -1300,7 +1300,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
       <div id="fgDecomp" style="margin-top:14px;display:none">
         <div class="ca-hint" id="fgDecompQ" style="margin-bottom:6px"></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          한 묶음 = 파랑 <input id="fgDb" type="number" min="0" max="9" style="width:48px"> · 노랑 <input id="fgDy" type="number" min="0" max="9" style="width:48px">
+          한 묶음 = 빨강 <input id="fgDb" type="number" min="0" max="9" style="width:48px"> · 노랑 <input id="fgDy" type="number" min="0" max="9" style="width:48px">
           <button id="fgCheck">확인</button>
           <span class="ca-label" id="fgDecompFb" style="margin:0"></span>
         </div>
@@ -1316,12 +1316,12 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #lab-color100 .pc-grid i{width:15px;height:15px;border-radius:3px;display:block}
 </style>
 <div class="lab v2-colorlab" id="lab-color100">
-  <div class="ca-hint">💯 전체 <b>100칸</b> 중 파랑이 얼마나 차지하나요? 견본과 같은 <b>진하기</b>를 만들어 보세요.</div>
+  <div class="ca-hint">💯 전체 <b>100칸</b> 중 빨강이 얼마나 차지하나요? 견본과 같은 <b>진하기</b>를 만들어 보세요.</div>
   <div class="ca-row">
     <div><div class="ca-label">견본</div><div class="ca-swatch" id="pcTarget"></div></div>
     <div><div class="ca-label">내 색 <span id="pcMatchTxt"></span></div><div class="ca-swatch" id="pcMix"></div></div>
     <div class="ca-ctrl">
-      <div class="ca-slider"><span class="l">파랑 칸</span><input type="range" id="pcN" min="0" max="100" step="1" value="50"><span id="pcNV">50</span></div>
+      <div class="ca-slider"><span class="l">빨강 칸</span><input type="range" id="pcN" min="0" max="100" step="1" value="50"><span id="pcNV">50</span></div>
       <div class="pc-grid" id="pcGrid"></div>
       <div id="pcPer"></div>
       <div id="pcBridge" style="display:flex;gap:10px;flex-wrap:wrap;font-size:13px"></div>
@@ -2807,11 +2807,11 @@ const Submit={
 };
 
 /* ===== WB-7a (v2): 색상 A — 같은 색 찾기 (① 비 · 1단계 탐색) =====
-   2색(파랑:노랑) 연속량. 같은 비 = 같은 색. ΔE 감각 증거(정오 문구 없음). 비율 유지 자동연동으로 동치비 수집.
+   2색(빨강:노랑) 연속량. 같은 비 = 같은 색. ΔE 감각 증거(정오 문구 없음). 비율 유지 자동연동으로 동치비 수집.
    같은 색 조합 2개 이상 모으면 발견(비 기호 명명) → Submit + Quest.complete('col.A'). */
 const ColorA=(function(){
   const TARGET={b:1,y:2};                 // 숨긴 목표비
-  const BCOL=[40,90,210], YCOL=[235,205,40], EMPTY=[40,40,48], MAX=12;
+  const BCOL=[222,78,55], YCOL=[235,205,40], EMPTY=[40,40,48], MAX=12;
   let st={blue:3,yellow:3,lock:false,lockRatio:1,disc:false,combos:[]};
   const $=id=>document.getElementById(id);
   function rgb(b,y){ const t=b+y; if(t<=0)return EMPTY.slice(); const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
@@ -2828,7 +2828,7 @@ const ColorA=(function(){
     $('caMix').classList.toggle('match',m); $('caMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgb(TARGET.b,TARGET.y),rgb(st.blue,st.yellow)));
     $('caCollect').disabled=!m;
     $('caLock').checked=st.lock; $('caDisc').checked=st.disc;
-    $('caCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>파랑 '+c.b+' · 노랑 '+c.y+'</span>').join('');
+    $('caCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>빨강 '+c.b+' · 노랑 '+c.y+'</span>').join('');
     $('caCollectHint').textContent=st.combos.length?('담은 조합 '+st.combos.length+'개'):'같은 색을 만들면 담을 수 있어요';
     $('lab-colorA').classList.toggle('ca-discrete',st.disc);
   }
@@ -2845,7 +2845,7 @@ const ColorA=(function(){
   }
   function reveal(){
     const s=Ratio.simplify(TARGET.b,TARGET.y);
-    const el=$('caReveal'); if(el){ el.innerHTML='✨ 발견! 양이 달라도 <b>파랑 : 노랑 = '+s[0]+' : '+s[1]+'</b> 이면 같은 색이에요.'; el.classList.add('show'); }
+    const el=$('caReveal'); if(el){ el.innerHTML='✨ 발견! 양이 달라도 <b>빨강 : 노랑 = '+s[0]+' : '+s[1]+'</b> 이면 같은 색이에요.'; el.classList.add('show'); }
     if(typeof Quest==='object'&&!Quest.done.has('col.A'))Quest.complete('col.A');
   }
   function init(){
@@ -2878,7 +2878,7 @@ function playRatioChord(b,y){
    유지할 비(2:3)를 두 슬라이더로 ‘유지하며’ 양을 바꾸는 협응(자동연동 없음). 실시간 유지/벗어남 피드백.
    서로 다른 크기의 보존 체크포인트 3개 → 색→화음 미니 확인 + Submit + Quest.complete('col.Ap'). */
 const ColorAp=(function(){
-  const TARGET={b:2,y:3}; const BCOL=[40,90,210],YCOL=[235,205,40],EMPTY=[40,40,48],MAX=12;
+  const TARGET={b:2,y:3}; const BCOL=[222,78,55],YCOL=[235,205,40],EMPTY=[40,40,48],MAX=12;
   let st={blue:2,yellow:3,cps:[]};
   const $=id=>document.getElementById(id);
   function rgb(b,y){ const t=b+y; if(t<=0)return EMPTY.slice(); const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
@@ -2896,7 +2896,7 @@ const ColorAp=(function(){
     $('apMix').classList.toggle('match',m); $('apMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgb(TARGET.b,TARGET.y),rgb(st.blue,st.yellow)));
     const sEl=$('apStatus'); sEl.textContent=m?'✓ 색 유지 중':'⚠ 색이 달라졌어요 — 다른 쪽도 함께 움직이세요'; sEl.style.color=m?'#39d98a':'#e6b86a';
     $('apCapture').disabled=!canCapture();
-    $('apCps').innerHTML=st.cps.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>파랑 '+c.b+' · 노랑 '+c.y+'</span>').join('');
+    $('apCps').innerHTML=st.cps.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>빨강 '+c.b+' · 노랑 '+c.y+'</span>').join('');
     $('apCpHint').textContent=st.cps.length?('기록한 크기 '+st.cps.length+'/3'):'유지한 채 다른 크기로 기록하세요';
     $('apSound').disabled=st.cps.length<3;
   }
@@ -2910,7 +2910,7 @@ const ColorAp=(function(){
   }
   function done(){
     const s=Ratio.simplify(TARGET.b,TARGET.y);
-    const el=$('apReveal'); if(el){ el.innerHTML='✨ 여러 크기에서 <b>파랑 : 노랑 = '+s[0]+' : '+s[1]+'</b> 를 유지했어요. 비를 지키면 색이 보존돼요!'+perBox(perUnit('파랑','노랑',TARGET.b,TARGET.y),'기준(파랑) 1당 노랑 — 이 <b>비율</b>은 어떤 크기에서도 그대로'); el.classList.add('show'); }
+    const el=$('apReveal'); if(el){ el.innerHTML='✨ 여러 크기에서 <b>빨강 : 노랑 = '+s[0]+' : '+s[1]+'</b> 를 유지했어요. 비를 지키면 색이 보존돼요!'+perBox(perUnit('빨강','노랑',TARGET.b,TARGET.y),'기준(빨강) 1당 노랑 — 이 <b>비율</b>은 어떤 크기에서도 그대로'); el.classList.add('show'); }
     if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('col.Ap')&&!Quest.done.has('col.Ap'))Quest.complete('col.Ap');
   }
   function init(){
@@ -2930,7 +2930,7 @@ else document.addEventListener('DOMContentLoaded',()=>ColorAp.init());
    차이 같음·비 다름(X 1:2 vs Y 2:3) 갈등. X와 같은 색을 '다른 양'으로 만들려면 ×배(곱셈)뿐 — 가법은 색이 어긋남(자기 반증).
    ×배 동치비 2개 성공 → 곱셈 전략 실증 → Gate.pass('gate.mult') + Submit + Quest.complete('col.B'). */
 const ColorB=(function(){
-  const X={b:1,y:2}, Y={b:2,y:3}; const BCOL=[40,90,210],YCOL=[235,205,40],EMPTY=[40,40,48],MAX=12;
+  const X={b:1,y:2}, Y={b:2,y:3}; const BCOL=[222,78,55],YCOL=[235,205,40],EMPTY=[40,40,48],MAX=12;
   let st={blue:2,yellow:3,combos:[]};
   const $=id=>document.getElementById(id);
   function rgb(b,y){ const t=b+y; if(t<=0)return EMPTY.slice(); const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
@@ -2941,7 +2941,7 @@ const ColorB=(function(){
   function render(){
     if(!$('cbMix'))return;
     $('cbX').style.background=css(rgb(X.b,X.y)); $('cbY').style.background=css(rgb(Y.b,Y.y));
-    $('cbXmul').textContent='노랑 = 파랑의 2배'; $('cbYmul').textContent='노랑 = 파랑의 1.5배';
+    $('cbXmul').textContent='노랑 = 빨강의 2배'; $('cbYmul').textContent='노랑 = 빨강의 1.5배';
     $('cbTarget').style.background=css(rgb(X.b,X.y)); $('cbMix').style.background=css(rgb(st.blue,st.yellow));
     $('cbBlue').value=st.blue; $('cbYel').value=st.yellow; $('cbBlueV').textContent=st.blue; $('cbYelV').textContent=st.yellow;
     $('cbBlueBar').style.width=(st.blue/MAX*100)+'%'; $('cbBlueBar').style.background=css(BCOL);
@@ -2954,7 +2954,7 @@ const ColorB=(function(){
     else if(j.additive){ fb.textContent='차이는 같은데 색이 X와 달라요 — 더하기로는 안 돼요'; fb.style.color='#e6b86a'; }
     else if(m){ fb.textContent='색 X 그대로예요. 더 큰 양으로 만들어 보세요'; fb.style.color='#9fb3d6'; }
     else { fb.textContent=''; }
-    $('cbCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>파랑 '+c.b+' · 노랑 '+c.y+'</span>').join('');
+    $('cbCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>빨강 '+c.b+' · 노랑 '+c.y+'</span>').join('');
   }
   function setBlue(v){ st.blue=+v; render(); }
   function setYel(v){ st.yellow=+v; render(); }
@@ -2983,10 +2983,10 @@ if(document.readyState!=='loading')ColorB.init();
 else document.addEventListener('DOMContentLoaded',()=>ColorB.init());
 
 /* ===== WB-9 (v2): 색상 F·G — 단위화 가역쌍 (② 비율 심화 · 4단계 기호 도입) =====
-   한 묶음(파랑2·노랑3)을 통째로 복제해 위로(F·곱), 다시 한 묶음으로 분해(G·나눗셈) — 비 보존(원리7).
+   한 묶음(빨강2·노랑3)을 통째로 복제해 위로(F·곱), 다시 한 묶음으로 분해(G·나눗셈) — 비 보존(원리7).
    표현 교량(비·비례식·분수·%) 동시 제시(원리6). 묶음 2종 이상 + 분해 정답 → Submit + Quest.complete('col.FG'). */
 const ColorFG=(function(){
-  const UNIT={b:2,y:3}; const BCOL=[40,90,210],YCOL=[235,205,40],MAXK=6;
+  const UNIT={b:2,y:3}; const BCOL=[222,78,55],YCOL=[235,205,40],MAXK=6;
   let st={k:1,built:new Set([1]),decompOk:false};
   const $=id=>document.getElementById(id);
   function rgb(b,y){ const t=b+y; if(t<=0)return [40,40,48]; const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
@@ -2995,21 +2995,21 @@ const ColorFG=(function(){
     if(!$('fgSwatch'))return;
     const k=st.k, B=UNIT.b*k, Y=UNIT.y*k, tot=B+Y;
     $('fgSwatch').style.background=css(rgb(UNIT.b,UNIT.y));
-    $('fgK').textContent=k; $('fgTotal').textContent='→ 파랑 '+B+' · 노랑 '+Y;
+    $('fgK').textContent=k; $('fgTotal').textContent='→ 빨강 '+B+' · 노랑 '+Y;
     $('fgBlocks').innerHTML=Array.from({length:k}).map(()=>'<div class="fg-tile" style="background:'+css(rgb(UNIT.b,UNIT.y))+'">2:3</div>').join('');
     const s=Ratio.simplify(B,Y);
     $('fgBridge').innerHTML=[
       '<span class="fg-br">비 '+B+' : '+Y+' (= '+s[0]+':'+s[1]+')</span>',
       '<span class="fg-br">비례식 2:3 = '+B+':'+Y+'</span>',
-      '<span class="fg-br">분수(파랑/전체) '+B+'/'+tot+' = '+UNIT.b+'/'+(UNIT.b+UNIT.y)+'</span>',
+      '<span class="fg-br">분수(빨강/전체) '+B+'/'+tot+' = '+UNIT.b+'/'+(UNIT.b+UNIT.y)+'</span>',
       '<span class="fg-br">백분율 '+Math.round(B/tot*100)+'%</span>'
     ].join('');
-    if($('fgPer'))$('fgPer').innerHTML=perBox(perUnit('파랑','노랑',UNIT.b,UNIT.y),'기준(파랑)을 <b>1</b>로 맞추면 비교량(노랑)이 곧 <b>비율</b> — 묶음을 키워도 그대로!');
-    const rows=[...st.built].sort((a,b)=>a-b).map(n=>'<tr><td>'+n+'묶음</td><td>파랑 '+(UNIT.b*n)+'</td><td>노랑 '+(UNIT.y*n)+'</td></tr>').join('');
-    $('fgTable').innerHTML='<tr><td>묶음</td><td>파랑</td><td>노랑</td></tr>'+rows;
+    if($('fgPer'))$('fgPer').innerHTML=perBox(perUnit('빨강','노랑',UNIT.b,UNIT.y),'기준(빨강)을 <b>1</b>로 맞추면 비교량(노랑)이 곧 <b>비율</b> — 묶음을 키워도 그대로!');
+    const rows=[...st.built].sort((a,b)=>a-b).map(n=>'<tr><td>'+n+'묶음</td><td>빨강 '+(UNIT.b*n)+'</td><td>노랑 '+(UNIT.y*n)+'</td></tr>').join('');
+    $('fgTable').innerHTML='<tr><td>묶음</td><td>빨강</td><td>노랑</td></tr>'+rows;
     const showD=st.built.size>=2;
     $('fgDecomp').style.display=showD?'block':'none';
-    if(showD)$('fgDecompQ').innerHTML='지금 <b>'+B+' : '+Y+'</b> ('+k+'묶음)이에요. <b>한 묶음</b> 안에는 파랑 몇, 노랑 몇일까요?';
+    if(showD)$('fgDecompQ').innerHTML='지금 <b>'+B+' : '+Y+'</b> ('+k+'묶음)이에요. <b>한 묶음</b> 안에는 빨강 몇, 노랑 몇일까요?';
   }
   function setK(k){ st.k=Math.max(1,Math.min(MAXK,k)); st.built.add(st.k); render(); }
   function check(){
@@ -3038,10 +3038,10 @@ if(document.readyState!=='loading')ColorFG.init();
 else document.addEventListener('DOMContentLoaded',()=>ColorFG.init());
 
 /* ===== WB-10 (v2): 색상 100칸 — 백분율 (③ 백분율 · 4단계) =====
-   전체 100칸 중 파랑 칸 = 파랑 %. 견본(파랑 40% = 비 2:3)과 같은 진하기를 만들면 발견(비↔분수↔% 연결).
+   전체 100칸 중 빨강 칸 = 빨강 %. 견본(빨강 40% = 비 2:3)과 같은 진하기를 만들면 발견(비↔분수↔% 연결).
    비율→백분율 게이트(gate.pct) 통과 후 진입. 일치 → Submit + Quest.complete('col.100'). */
 const ColorP=(function(){
-  const TARGET={b:2,y:3}, BCOL=[40,90,210],YCOL=[235,205,40];
+  const TARGET={b:2,y:3}, BCOL=[222,78,55],YCOL=[235,205,40];
   const targetPct=Math.round(TARGET.b/(TARGET.b+TARGET.y)*100); // 40
   let st={n:50,done:false};
   const $=id=>document.getElementById(id);
@@ -3054,7 +3054,7 @@ const ColorP=(function(){
     $('pcMix').style.background=css(rgbN(st.n));
     $('pcN').value=st.n; $('pcNV').textContent=st.n;
     $('pcGrid').innerHTML=Array.from({length:100}).map((_,i)=>'<i style="background:'+(i<st.n?css(BCOL):css(YCOL))+'"></i>').join('');
-    if($('pcPer'))$('pcPer').innerHTML=perBox(perPct('파랑',st.n),'전체 100칸 중 파랑이 차지한 칸 수 = <b>백분율</b>');
+    if($('pcPer'))$('pcPer').innerHTML=perBox(perPct('빨강',st.n),'전체 100칸 중 빨강이 차지한 칸 수 = <b>백분율</b>');
     const m=matched();
     $('pcMix').classList.toggle('match',m); $('pcMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgbN(targetPct),rgbN(st.n)));
     if(m||st.done){ const s=Ratio.simplify(TARGET.b,TARGET.y);
@@ -3067,7 +3067,7 @@ const ColorP=(function(){
   function setN(v){ st.n=+v; render(); }
   function done(){ st.done=true;
     Submit.task('col.100',{values:{blueCells:st.n,pct:st.n},verdict:RatioEngine.judge(TARGET.b,TARGET.y,st.n,100-st.n),meta:{targetPct:targetPct}});
-    const el=$('pcReveal'); if(el){ el.innerHTML='✨ 파랑 '+targetPct+'칸 = <b>'+targetPct+'%</b> = 비 2:3 = 분수 2/5. 비 2:3, 4:6 … 모두 같은 '+targetPct+'%예요!'; el.classList.add('show'); }
+    const el=$('pcReveal'); if(el){ el.innerHTML='✨ 빨강 '+targetPct+'칸 = <b>'+targetPct+'%</b> = 비 2:3 = 분수 2/5. 비 2:3, 4:6 … 모두 같은 '+targetPct+'%예요!'; el.classList.add('show'); }
     if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('col.100')&&!Quest.done.has('col.100'))Quest.complete('col.100');
   }
   function init(){ if(!$('pcN')||$('lab-color100').dataset.init)return; $('lab-color100').dataset.init='1'; $('pcN').oninput=e=>setN(e.target.value); render(); }
