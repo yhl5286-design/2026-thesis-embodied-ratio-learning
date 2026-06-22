@@ -1451,6 +1451,51 @@ main{padding-bottom:78px}
   </div>
 </div>
 
+<!-- C (Task K): 기울기 전이 — 가로 1칸 고정→세로=기울기. 드래그 없이 스테퍼·단계별·canvas 좌표평면 -->
+<style>
+#lab-slope .sl-step{display:none}
+#lab-slope .sl-step.active{display:block}
+#lab-slope canvas{background:#0f1830;border:1px solid #2a3a5c;border-radius:10px;touch-action:manipulation;max-width:100%;height:auto}
+#lab-slope .sl-stepnum{display:inline-block;font-size:.8rem;font-weight:800;color:#9fe6b4;background:#16361f;border:1px solid #2e7d46;border-radius:20px;padding:3px 13px;margin-bottom:9px}
+#lab-slope .sl-stepbtn{font-size:1.7rem;width:54px;height:54px;border-radius:14px;background:#1f3a66;border:2px solid #4d8df0;color:#fff;cursor:pointer;line-height:1;touch-action:manipulation}
+#lab-slope .sl-stepbtn:active{background:#2a4a7a}
+#lab-slope .sl-big{font-size:1.5rem;font-weight:800;color:#cfe3ff;min-width:34px;text-align:center;display:inline-block}
+#lab-slope .sn-ans{font-size:1.08rem;font-weight:800;padding:13px 20px;margin:0 6px 6px 0;border-radius:14px;background:#15203a;border:2px solid #3a4a6a;color:#dbe9ff;cursor:pointer;touch-action:manipulation}
+#lab-slope .sn-ans:active{background:#1f3a66}
+#lab-slope .sl-backbtn{font-size:.92rem;font-weight:700;padding:9px 17px;border-radius:12px;background:#15203a;border:1px solid #3a4a6a;color:#9fb3d6;cursor:pointer;margin-top:10px;touch-action:manipulation}
+</style>
+<div class="lab v2-colorlab" id="lab-slope">
+  <!-- Step 1: 직선과 기울기 -->
+  <div class="sl-step active" id="slStep1">
+    <div class="sl-stepnum">단계 1 / 2 · 직선과 기울기</div>
+    <div class="ca-hint">📈 <b>가로</b>로 간 만큼 <b>세로</b>로 올라가는 직선이에요. 단추로 칸 수를 바꾸면 직선이 기울어져요. 직선 위 어디서 봐도 <b>가로당 세로</b>는 똑같아요.</div>
+    <div class="ca-row" style="align-items:flex-start">
+      <canvas id="slCanvas" width="300" height="300"></canvas>
+      <div class="ca-ctrl">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span class="ca-label" style="margin:0;min-width:56px">가로 →</span><button class="sl-stepbtn" id="slRunMinus">−</button><b class="sl-big" id="slRun">2</b><button class="sl-stepbtn" id="slRunPlus">+</button></div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><span class="ca-label" style="margin:0;min-width:56px">세로 ↑</span><button class="sl-stepbtn" id="slRiseMinus">−</button><b class="sl-big" id="slRise">3</b><button class="sl-stepbtn" id="slRisePlus">+</button></div>
+        <div id="slPer1"></div>
+        <button id="slNext" class="login-btn" style="margin-top:10px">다음 단계 ▶ (가로를 1로)</button>
+      </div>
+    </div>
+  </div>
+  <!-- Step 2: 가로를 1로 → 기울기 -->
+  <div class="sl-step" id="slStep2">
+    <div class="sl-stepnum">단계 2 / 2 · 기울기 = 가로 1당 세로</div>
+    <div class="ca-hint">🎯 <b>가로를 1칸</b>으로 맞추면 그때 <b>세로 칸 수</b>가 곧 <b>기울기</b>예요. 초록 삼각형을 보세요.</div>
+    <div class="ca-row" style="align-items:flex-start">
+      <canvas id="slCanvas2" width="300" height="300"></canvas>
+      <div class="ca-ctrl">
+        <div id="slPer2"></div>
+        <div id="slAnsWrap" style="margin-top:12px;font-size:1.02rem"></div>
+        <div class="ca-label" id="slAnsFb" style="margin-top:8px"></div>
+        <div class="ca-reveal" id="slReveal"></div>
+        <button id="slBack" class="sl-backbtn">◀ 이전 단계</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- WB-13 (v2): 반성 — 전략 관계 반성 (5단계, 전 과제 통합) -->
 <div class="lab v2-colorlab" id="lab-reflect">
   <div class="ca-hint">🧠 지금까지 발견한 것을 모아 봅시다. <b>같은 비</b>가 색·음·모양에서 거듭 나타났어요!</div>
@@ -2721,7 +2766,8 @@ const QUEST=[
  {id:'col.100', topic:'색상', tab:'color100',   stage:4, tier:'백분율', label:'100칸(%)',            requires:['col.FG']},
  {id:'ins.75',  topic:'악기', tab:'instV2',     stage:4, tier:'백분율', label:'75% 줄',              requires:['col.100']},
  {id:'shp.norm',topic:'도형', tab:'shapeNorm',  stage:5, tier:'전이',  label:'닮음비·넓이',         requires:['ins.75']},
- {id:'reflect', topic:'반성', tab:'reflect',    stage:5, tier:'반성',  label:'전략 반성',           requires:['shp.norm']},
+ {id:'slope',   topic:'그래프', tab:'slope',      stage:5, tier:'전이',  label:'기울기',              requires:['shp.norm']},
+ {id:'reflect', topic:'반성', tab:'reflect',    stage:5, tier:'반성',  label:'전략 반성',           requires:['slope']},
 ];
 const Quest={
   done:new Set(),
@@ -3257,10 +3303,87 @@ const ShapeNorm=(function(){
 if(document.readyState!=='loading')ShapeNorm.init();
 else document.addEventListener('DOMContentLoaded',()=>ShapeNorm.init());
 
+/* ===== C (Task K): 기울기 전이 — 가로 1칸 고정→세로=기울기 (⑤ 전이) =====
+   드래그 없이 큰 +/− 스테퍼로 가로(run)·세로(rise) 조절. canvas 좌표평면에 직선·계단삼각형·단위삼각형.
+   2스텝: ①직선/보존 ②가로를 1로 정규화→기울기. 세로칸수만 읽는 오개념 차단(가로로 나눠야 기울기). */
+const Slope=(function(){
+  const GW=10, cell=24, pad=26, SZ=300;
+  let st={run:2,rise:3,step:1,answered:false};
+  const $=id=>document.getElementById(id);
+  function slope(){ return st.rise/st.run; }
+  function sstr(v){ return Number.isInteger(v)?(''+v):(''+(Math.round(v*100)/100)); }
+  function toX(gx){ return pad+gx*cell; }
+  function toY(gy){ return SZ-pad-gy*cell; }
+  function grid(ctx){
+    ctx.clearRect(0,0,SZ,SZ);
+    ctx.strokeStyle='#1e2c48'; ctx.lineWidth=1;
+    for(let i=0;i<=GW;i++){ ctx.beginPath(); ctx.moveTo(toX(i),toY(0)); ctx.lineTo(toX(i),toY(GW)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(toX(0),toY(i)); ctx.lineTo(toX(GW),toY(i)); ctx.stroke(); }
+    ctx.strokeStyle='#4a5a7a'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(0)); ctx.lineTo(toX(GW),toY(0)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(0)); ctx.lineTo(toX(0),toY(GW)); ctx.stroke();
+  }
+  function line(ctx){
+    const m=slope(); let ex=GW, ey=m*GW; if(ey>GW){ ey=GW; ex=GW/m; }
+    ctx.strokeStyle='#7fc4ff'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(0)); ctx.lineTo(toX(ex),toY(ey)); ctx.stroke();
+  }
+  function dot(ctx,gx,gy,c){ ctx.fillStyle=c; ctx.beginPath(); ctx.arc(toX(gx),toY(gy),5,0,7); ctx.fill(); }
+  function render1(){
+    const c=$('slCanvas'); if(!c)return; const ctx=c.getContext('2d'); grid(ctx); line(ctx);
+    ctx.strokeStyle='#e6b86a'; ctx.lineWidth=2; ctx.setLineDash([5,4]);
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(0)); ctx.lineTo(toX(st.run),toY(0)); ctx.lineTo(toX(st.run),toY(st.rise)); ctx.stroke(); ctx.setLineDash([]);
+    dot(ctx,st.run,st.rise,'#7fc4ff');
+    ctx.fillStyle='#e6b86a'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('가로 '+st.run, toX(st.run/2), toY(0)+16);
+    ctx.textAlign='left'; ctx.fillText('세로 '+st.rise, toX(st.run)+6, toY(st.rise/2));
+    $('slRun').textContent=st.run; $('slRise').textContent=st.rise;
+    $('slPer1').innerHTML=perBox('가로 <b>'+st.run+'</b> 갈 때 세로 <b>'+st.rise+'</b>','직선 위 어디서 봐도 가로당 세로는 같아요');
+  }
+  function render2(){
+    const c=$('slCanvas2'); if(!c)return; const ctx=c.getContext('2d'); grid(ctx); line(ctx);
+    const m=slope();
+    ctx.fillStyle='rgba(57,217,138,.18)'; ctx.beginPath(); ctx.moveTo(toX(0),toY(0)); ctx.lineTo(toX(1),toY(0)); ctx.lineTo(toX(1),toY(m)); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#39d98a'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(toX(0),toY(0)); ctx.lineTo(toX(1),toY(0)); ctx.lineTo(toX(1),toY(m)); ctx.stroke();
+    dot(ctx,1,m,'#39d98a');
+    ctx.fillStyle='#39d98a'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center'; ctx.fillText('1', toX(0.5), toY(0)+16);
+    ctx.textAlign='left'; ctx.fillText('세로 '+sstr(m), toX(1)+6, toY(m/2));
+    $('slPer2').innerHTML=perBox('가로 <b>1</b>당 세로 <b>'+sstr(m)+'</b> &nbsp;→&nbsp; 기울기 = <b>'+sstr(m)+'</b>','가로를 1로 맞췄을 때 세로 칸수가 기울기 — 비율과 똑같죠!');
+    $('slAnsWrap').innerHTML='이 직선의 <b>기울기</b>(가로 1당 세로)는? '+
+      '<button class="sn-ans" data-x="rise">'+st.rise+' (세로 칸수)</button>'+
+      '<button class="sn-ans" data-x="slope">'+sstr(m)+' (세로÷가로)</button>';
+    $('slAnsWrap').querySelectorAll('.sn-ans').forEach(b=>b.onclick=()=>answer(b.dataset.x));
+  }
+  function render(){ $('slStep1').classList.toggle('active',st.step===1); $('slStep2').classList.toggle('active',st.step===2); if(st.step===1)render1(); else render2(); }
+  function setRun(v){ st.run=Math.max(2,Math.min(5,v)); st.answered=false; if($('slAnsFb'))$('slAnsFb').textContent=''; render(); }
+  function setRise(v){ st.rise=Math.max(1,Math.min(9,v)); st.answered=false; if($('slAnsFb'))$('slAnsFb').textContent=''; render(); }
+  function next(){ st.step=2; render(); }
+  function prev(){ st.step=1; render(); }
+  function answer(x){
+    const ok=(x==='slope');
+    $('slAnsFb').textContent=ok?('✓ 맞아요! 가로 '+st.run+', 세로 '+st.rise+' → 가로 1당 세로 '+sstr(slope())+' = 기울기'):('아니에요 — 세로 칸수만 보면 안 돼요. 가로('+st.run+')로 나눠 "가로 1당"으로 맞춰야 기울기예요.');
+    $('slAnsFb').style.color=ok?'#9fe6b4':'#e6b86a';
+    if(ok&&!st.answered){ st.answered=true; done(); }
+  }
+  function done(){
+    const r=$('slReveal'); if(r){ r.innerHTML='✨ 발견! <b>가로를 1로 맞추면 세로 = 기울기</b>. 속도(시간당 거리)·단가(개당 값)도 그래프에서는 모두 <b>기울기</b>예요!'; r.classList.add('show'); }
+    Submit.task('slope',{values:{run:st.run,rise:st.rise,slope:slope()},verdict:{match:true},meta:{transfer:'slope'}});
+    if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('slope')&&!Quest.done.has('slope'))Quest.complete('slope');
+  }
+  function init(){ if(!$('slRunPlus')||$('lab-slope').dataset.init)return; $('lab-slope').dataset.init='1';
+    $('slRunPlus').onclick=()=>setRun(st.run+1); $('slRunMinus').onclick=()=>setRun(st.run-1);
+    $('slRisePlus').onclick=()=>setRise(st.rise+1); $('slRiseMinus').onclick=()=>setRise(st.rise-1);
+    $('slNext').onclick=next; $('slBack').onclick=prev; render(); }
+  return {init,render,_st:()=>st};
+})();
+if(document.readyState!=='loading')Slope.init();
+else document.addEventListener('DOMContentLoaded',()=>Slope.init());
+
 /* ===== WB-13 (v2): 반성 — 전략 관계 반성 (5단계, 전 과제 통합) =====
    산출 카드(여러 곳의 같은 비) + 성찰 발화(질적 데이터) + 음성화 안내. 제출 → Quest.complete('reflect'). */
 const Reflect=(function(){
-  const CARDS=[{t:'같은 색',v:'1:2'},{t:'동치비 색',v:'2:3'},{t:'색 백분율',v:'40% = 2:3 = 2/5'},{t:'옥타브',v:'1:2'},{t:'완전5도',v:'2:3'},{t:'닮은꼴',v:'2:3'}];
+  const CARDS=[{t:'같은 색',v:'1:2'},{t:'동치비 색',v:'2:3'},{t:'색 백분율',v:'40% = 2:3 = 2/5'},{t:'옥타브',v:'1:2'},{t:'완전5도',v:'2:3'},{t:'닮은꼴',v:'2:3'},{t:'닮음비',v:'k:1 · 넓이 k²'},{t:'기울기',v:'가로 1당 세로'}];
   const CHOICES=[{t:'비(몇 배)가 달라지기 때문',ok:true},{t:'양이 많아지기 때문',ok:false},{t:'원래 그런 색이라서',ok:false}];
   let pick=null;
   const $=id=>document.getElementById(id);
