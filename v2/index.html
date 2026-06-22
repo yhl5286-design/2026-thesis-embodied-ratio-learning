@@ -1207,57 +1207,70 @@ main{padding-bottom:78px}
 .v2-colorlab button:disabled{opacity:.4;cursor:not-allowed}
 .v2-colorlab .ca-reveal{margin-top:14px;padding:11px 14px;border-radius:12px;background:#15203a;border:1px solid #4d8df0;color:#cfe3ff;display:none}
 .v2-colorlab .ca-reveal.show{display:block}
+/* 세로(위아래) 슬라이더 + 큰 견본 — 색 만들기 직관화 */
+.v2-colorlab .ca-swatch.big{width:160px;height:160px;border-width:4px;border-radius:18px}
+.v2-colorlab .ca-vrow{display:flex;gap:28px;align-items:flex-end;justify-content:center;margin:8px 0 4px}
+.v2-colorlab .ca-vslider{display:flex;flex-direction:column;align-items:center;gap:9px}
+.v2-colorlab .ca-vslider input[type=range]{-webkit-appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:48px;height:184px;touch-action:none;accent-color:#e0795a;cursor:pointer}
+.v2-colorlab .ca-vslider.vyel input[type=range]{accent-color:#e6c84a}
+.v2-colorlab .ca-vslider .vnum{font-size:1.7rem;font-weight:800;color:#cfe3ff;line-height:1}
+.v2-colorlab .ca-vslider .vlab{font-size:1.02rem;font-weight:800}
+.v2-colorlab .ca-bar{display:none}
 </style>
 <div class="lab v2-colorlab" id="lab-colorA">
-  <div class="ca-hint">🎨 견본과 <b>같은 색</b>을 만들어 보세요. 양이 달라도 같은 색이 되는 조합을 모으면 비밀이 드러나요.</div>
-  <div class="ca-row">
-    <div>
-      <div class="ca-label">견본</div>
-      <div class="ca-swatch" id="caTarget"></div>
+  <div class="ca-hint">🎨 견본과 <b>똑같은 색</b>을 만들어 보세요! 슬라이더를 <b>위아래로</b> 올리고 내려 빨강·노랑 양을 정합니다. 양이 달라도 같은 색이 되는 조합을 <b>2개 이상</b> 모으면 비밀이 풀려요.</div>
+  <div class="ca-row" style="justify-content:center;gap:36px">
+    <div style="text-align:center">
+      <div class="ca-label" style="font-size:14px;font-weight:700">🎯 견본 (이 색을 만드세요)</div>
+      <div class="ca-swatch big" id="caTarget"></div>
     </div>
-    <div>
-      <div class="ca-label">내 색 <span id="caMatchTxt"></span></div>
-      <div class="ca-swatch" id="caMix"></div>
+    <div style="text-align:center">
+      <div class="ca-label" style="font-size:14px;font-weight:700">내 색 <span id="caMatchTxt"></span></div>
+      <div class="ca-swatch big" id="caMix"></div>
     </div>
-    <div class="ca-ctrl">
-      <div class="ca-toggles">
-        <label><input type="checkbox" id="caLock"> 비율 유지(자동연동)</label>
-        <label><input type="checkbox" id="caDisc"> 구슬로 보기</label>
-      </div>
-      <div class="ca-slider"><span class="l">빨강</span><input type="range" id="caBlue" min="0" max="12" step="1" value="3"><span id="caBlueV">3</span></div>
-      <div class="ca-bar"><i id="caBlueBar"></i></div>
-      <div class="ca-slider"><span class="l">노랑</span><input type="range" id="caYel" min="0" max="12" step="1" value="3"><span id="caYelV">3</span></div>
-      <div class="ca-bar"><i id="caYelBar"></i></div>
-      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
-        <button id="caCollect" disabled>이 조합 담기</button>
-        <span class="ca-label" id="caCollectHint" style="margin:0"></span>
-      </div>
-      <div class="ca-combos" id="caCombos"></div>
-      <div class="ca-reveal" id="caReveal"></div>
+  </div>
+  <div class="ca-ctrl" style="max-width:520px;margin:14px auto 0">
+    <div class="ca-toggles" style="justify-content:center">
+      <label><input type="checkbox" id="caLock"> 비율 유지(자동연동)</label>
+      <label><input type="checkbox" id="caDisc"> 구슬로 보기</label>
     </div>
+    <div class="ca-vrow">
+      <div class="ca-vslider vred"><span class="vnum" id="caBlueV">3</span><input type="range" id="caBlue" min="0" max="12" step="1" value="3"><span class="vlab" style="color:#e0795a">🔴 빨강</span></div>
+      <div class="ca-vslider vyel"><span class="vnum" id="caYelV">3</span><input type="range" id="caYel" min="0" max="12" step="1" value="3"><span class="vlab" style="color:#e6c84a">🟡 노랑</span></div>
+    </div>
+    <div class="ca-bar"><i id="caBlueBar"></i></div>
+    <div class="ca-bar"><i id="caYelBar"></i></div>
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap">
+      <button id="caCollect" disabled>이 조합 담기</button>
+      <span class="ca-label" id="caCollectHint" style="margin:0"></span>
+    </div>
+    <div class="ca-combos" id="caCombos" style="justify-content:center"></div>
+    <div class="ca-reveal" id="caReveal"></div>
   </div>
 </div>
 
 <!-- WB-7b (v2): 색상 A+ — 색 유지하며 움직이기 (② 비율 · 2단계 역동적 보존) -->
 <div class="lab v2-colorlab" id="lab-colorAp">
   <div class="ca-hint">🤝 <b>같은 색을 유지</b>하며 양을 키워 보세요. 빨강을 늘리면 노랑도 함께 — 비를 지키면 색이 그대로예요. 서로 다른 크기로 <b>3번</b> 기록하면 완성!</div>
-  <div class="ca-row">
-    <div><div class="ca-label">유지할 색</div><div class="ca-swatch" id="apTarget"></div></div>
-    <div><div class="ca-label">내 색 <span id="apMatchTxt"></span></div><div class="ca-swatch" id="apMix"></div></div>
-    <div class="ca-ctrl">
-      <div id="apStatus" style="font-size:13px;font-weight:700;margin-bottom:6px"></div>
-      <div class="ca-slider"><span class="l">빨강</span><input type="range" id="apBlue" min="0" max="12" step="1" value="2"><span id="apBlueV">2</span></div>
-      <div class="ca-bar"><i id="apBlueBar"></i></div>
-      <div class="ca-slider"><span class="l">노랑</span><input type="range" id="apYel" min="0" max="12" step="1" value="3"><span id="apYelV">3</span></div>
-      <div class="ca-bar"><i id="apYelBar"></i></div>
-      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button id="apCapture" disabled>이 지점 기록</button>
-        <button id="apSound" disabled>🔊 이 비를 소리로</button>
-        <span class="ca-label" id="apCpHint" style="margin:0"></span>
-      </div>
-      <div class="ca-combos" id="apCps"></div>
-      <div class="ca-reveal" id="apReveal"></div>
+  <div class="ca-row" style="justify-content:center;gap:36px">
+    <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">🎯 유지할 색</div><div class="ca-swatch big" id="apTarget"></div></div>
+    <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">내 색 <span id="apMatchTxt"></span></div><div class="ca-swatch big" id="apMix"></div></div>
+  </div>
+  <div class="ca-ctrl" style="max-width:520px;margin:14px auto 0">
+    <div id="apStatus" style="font-size:14px;font-weight:700;margin-bottom:6px;text-align:center"></div>
+    <div class="ca-vrow">
+      <div class="ca-vslider vred"><span class="vnum" id="apBlueV">2</span><input type="range" id="apBlue" min="0" max="12" step="1" value="2"><span class="vlab" style="color:#e0795a">🔴 빨강</span></div>
+      <div class="ca-vslider vyel"><span class="vnum" id="apYelV">3</span><input type="range" id="apYel" min="0" max="12" step="1" value="3"><span class="vlab" style="color:#e6c84a">🟡 노랑</span></div>
     </div>
+    <div class="ca-bar"><i id="apBlueBar"></i></div>
+    <div class="ca-bar"><i id="apYelBar"></i></div>
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap">
+      <button id="apCapture" disabled>이 지점 기록</button>
+      <button id="apSound" disabled>🔊 이 비를 소리로</button>
+      <span class="ca-label" id="apCpHint" style="margin:0"></span>
+    </div>
+    <div class="ca-combos" id="apCps" style="justify-content:center"></div>
+    <div class="ca-reveal" id="apReveal"></div>
   </div>
 </div>
 
@@ -1268,22 +1281,24 @@ main{padding-bottom:78px}
     <div><div class="ca-label">색 X (빨강1·노랑2)</div><div class="ca-swatch" id="cbX"></div><div class="ca-label" id="cbXmul"></div></div>
     <div><div class="ca-label">색 Y (빨강2·노랑3)</div><div class="ca-swatch" id="cbY"></div><div class="ca-label" id="cbYmul"></div></div>
   </div>
-  <div class="ca-hint" style="margin-top:4px">🎯 이제 <b>색 X와 같은 색</b>을 다른 양으로 만들어 보세요. 더하기로는 안 돼요!</div>
-  <div class="ca-row">
-    <div><div class="ca-label">목표(색 X)</div><div class="ca-swatch" id="cbTarget"></div></div>
-    <div><div class="ca-label">내 색 <span id="cbMatchTxt"></span></div><div class="ca-swatch" id="cbMix"></div></div>
-    <div class="ca-ctrl">
-      <div class="ca-slider"><span class="l">빨강</span><input type="range" id="cbBlue" min="0" max="12" step="1" value="2"><span id="cbBlueV">2</span></div>
-      <div class="ca-bar"><i id="cbBlueBar"></i></div>
-      <div class="ca-slider"><span class="l">노랑</span><input type="range" id="cbYel" min="0" max="12" step="1" value="3"><span id="cbYelV">3</span></div>
-      <div class="ca-bar"><i id="cbYelBar"></i></div>
-      <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <button id="cbCollect" disabled>이 조합 담기</button>
-        <span class="ca-label" id="cbFeedback" style="margin:0"></span>
-      </div>
-      <div class="ca-combos" id="cbCombos"></div>
-      <div class="ca-reveal" id="cbReveal"></div>
+  <div class="ca-hint" style="margin-top:4px">🎯 이제 <b>색 X와 같은 색</b>을 다른 양으로 <b>2개 이상</b> 만들어 보세요. 슬라이더를 <b>위아래로</b>! 더하기로는 안 돼요.</div>
+  <div class="ca-row" style="justify-content:center;gap:36px">
+    <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">🎯 목표 (색 X)</div><div class="ca-swatch big" id="cbTarget"></div></div>
+    <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">내 색 <span id="cbMatchTxt"></span></div><div class="ca-swatch big" id="cbMix"></div></div>
+  </div>
+  <div class="ca-ctrl" style="max-width:520px;margin:14px auto 0">
+    <div class="ca-vrow">
+      <div class="ca-vslider vred"><span class="vnum" id="cbBlueV">2</span><input type="range" id="cbBlue" min="0" max="12" step="1" value="2"><span class="vlab" style="color:#e0795a">🔴 빨강</span></div>
+      <div class="ca-vslider vyel"><span class="vnum" id="cbYelV">3</span><input type="range" id="cbYel" min="0" max="12" step="1" value="3"><span class="vlab" style="color:#e6c84a">🟡 노랑</span></div>
     </div>
+    <div class="ca-bar"><i id="cbBlueBar"></i></div>
+    <div class="ca-bar"><i id="cbYelBar"></i></div>
+    <div style="margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap">
+      <button id="cbCollect" disabled>이 조합 담기</button>
+      <span class="ca-label" id="cbFeedback" style="margin:0"></span>
+    </div>
+    <div class="ca-combos" id="cbCombos" style="justify-content:center"></div>
+    <div class="ca-reveal" id="cbReveal"></div>
   </div>
 </div>
 
@@ -2907,7 +2922,7 @@ const ColorA=(function(){
     $('caCollect').disabled=!m;
     $('caLock').checked=st.lock; $('caDisc').checked=st.disc;
     $('caCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>빨강 '+c.b+' · 노랑 '+c.y+'</span>').join('');
-    $('caCollectHint').textContent=st.combos.length?('담은 조합 '+st.combos.length+'개'):'같은 색을 만들면 담을 수 있어요';
+    $('caCollectHint').textContent=st.combos.length?('담은 조합 '+st.combos.length+'개 · 2개 이상 모으세요'):'같은 색을 만들어 2개 이상 담으세요';
     $('lab-colorA').classList.toggle('ca-discrete',st.disc);
   }
   function setBlue(v){ st.blue=+v; if(st.lock&&st.lockRatio>0)st.yellow=Math.max(0,Math.min(MAX,Math.round(st.blue*st.lockRatio))); render(); }
