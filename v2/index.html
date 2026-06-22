@@ -1427,7 +1427,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 const LOG_CFG = {
   // v2 파일럿 — 운영(루트 앱)과 분리. endpoint에 'v2 전용' Apps Script 배포 URL을 넣으세요.
   // 빈 값이면 전송하지 않음(운영 시트 오염 방지). ?logendpoint=URL 또는 localStorage rs_endpoint_override 로 임시 override(더미 테스트용).
-  endpoint: '',                 // TODO: v2 전용 Apps Script /exec URL 붙여넣기
+  endpoint: 'https://script.google.com/macros/s/AKfycbynLby0ofkcKuB0H0cSSF_O4II-TLjVlSzyPvWRNWDz3l2ZBBfsE9NZkN3q_5ypV3Qh/exec', // v2 전용 배포(운영과 분리)
   token: 'ratiosense-v2-2026',
   appVersion: '2026-06-v2',
   appVariant: 'v2',             // 모든 레코드에 태깅 → 백엔드/시트에서 v2 데이터 구분·필터
