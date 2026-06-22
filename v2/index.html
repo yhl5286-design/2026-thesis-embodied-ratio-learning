@@ -1385,6 +1385,52 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   </div>
 </div>
 
+<!-- B (Task J): 닮음비 전이 — 원본=1 정규화 + 넓이비²(=닮음비²) 오개념 교정. 단계별 2스텝·큰 터치 스테퍼 -->
+<style>
+#lab-shapeNorm .snrect{background:#2a4a7a;border:2px solid #4d8df0;border-radius:4px;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.13) 0 1px,transparent 1px 18px),repeating-linear-gradient(90deg,rgba(255,255,255,.13) 0 1px,transparent 1px 18px);transition:width .14s,height .14s}
+#lab-shapeNorm .sn-step{display:none}
+#lab-shapeNorm .sn-step.active{display:block}
+#lab-shapeNorm .sn-big{font-size:1.6rem;font-weight:800;color:#cfe3ff}
+#lab-shapeNorm .sn-area{display:inline-grid;gap:2px;vertical-align:bottom}
+#lab-shapeNorm .sn-area i{display:block;border-radius:2px}
+#lab-shapeNorm .sn-stepbtn{font-size:1.7rem;width:54px;height:54px;border-radius:14px;background:#1f3a66;border:2px solid #4d8df0;color:#fff;cursor:pointer;line-height:1;touch-action:manipulation}
+#lab-shapeNorm .sn-stepbtn:active{background:#2a4a7a}
+#lab-shapeNorm .sn-ans{font-size:1.15rem;font-weight:800;padding:13px 24px;margin:0 6px;border-radius:14px;background:#15203a;border:2px solid #3a4a6a;color:#dbe9ff;cursor:pointer;touch-action:manipulation}
+#lab-shapeNorm .sn-ans:active{background:#1f3a66}
+</style>
+<div class="lab v2-colorlab" id="lab-shapeNorm">
+  <!-- Step 1: 원본을 1로 → 닮음비 -->
+  <div class="sn-step active" id="snStep1">
+    <div class="ca-hint">📐 <b>원본</b>과 <b>확대본</b>은 닮은꼴이에요. 단추로 확대본을 키우면, <b>원본을 1로 봤을 때</b> 확대본이 곧 <b>닮음비</b>예요.</div>
+    <div class="ca-row" style="align-items:flex-end">
+      <div><div class="ca-label">원본 (2:3)</div><div class="snrect" id="snBase"></div></div>
+      <div><div class="ca-label">확대본</div><div class="snrect" id="snBig"></div></div>
+      <div class="ca-ctrl">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+          <span class="ca-label" style="margin:0">확대 배수</span>
+          <button class="sn-stepbtn" id="snMinus">−</button>
+          <b class="sn-big" id="snK" style="min-width:38px;text-align:center;display:inline-block">2</b>
+          <button class="sn-stepbtn" id="snPlus">+</button>
+        </div>
+        <div id="snPer1"></div>
+        <button id="snNext" class="login-btn" style="margin-top:10px">다음 ▶</button>
+      </div>
+    </div>
+  </div>
+  <!-- Step 2: 넓이비 = 닮음비² -->
+  <div class="sn-step" id="snStep2">
+    <div class="ca-hint">🟦 변을 <b id="snK2">2</b>배 키웠어요. 그러면 <b>넓이</b>는 몇 배일까요? 칸을 직접 세어 보세요.</div>
+    <div class="ca-row" style="align-items:flex-end">
+      <div><div class="ca-label">원본 넓이 = 1칸</div><div class="sn-area" id="snAreaBase"></div></div>
+      <div><div class="ca-label">확대본 넓이 <span id="snAreaLbl"></span></div><div class="sn-area" id="snAreaBig"></div></div>
+    </div>
+    <div id="snAnsWrap" style="margin-top:14px;font-size:1.05rem"></div>
+    <div class="ca-label" id="snAnsFb" style="margin-top:8px"></div>
+    <div id="snPer2" style="margin-top:10px"></div>
+    <div class="ca-reveal" id="snReveal"></div>
+  </div>
+</div>
+
 <!-- WB-13 (v2): 반성 — 전략 관계 반성 (5단계, 전 과제 통합) -->
 <div class="lab v2-colorlab" id="lab-reflect">
   <div class="ca-hint">🧠 지금까지 발견한 것을 모아 봅시다. <b>같은 비</b>가 색·음·모양에서 거듭 나타났어요!</div>
@@ -2654,7 +2700,8 @@ const QUEST=[
  {id:'col.FG',  topic:'색상', tab:'colorFG',    stage:4, tier:'비율',  label:'단위화 가역',         requires:['shp.rub']},
  {id:'col.100', topic:'색상', tab:'color100',   stage:4, tier:'백분율', label:'100칸(%)',            requires:['col.FG']},
  {id:'ins.75',  topic:'악기', tab:'instV2',     stage:4, tier:'백분율', label:'75% 줄',              requires:['col.100']},
- {id:'reflect', topic:'반성', tab:'reflect',    stage:5, tier:'반성',  label:'전략 반성',           requires:['ins.75']},
+ {id:'shp.norm',topic:'도형', tab:'shapeNorm',  stage:5, tier:'전이',  label:'닮음비·넓이',         requires:['ins.75']},
+ {id:'reflect', topic:'반성', tab:'reflect',    stage:5, tier:'반성',  label:'전략 반성',           requires:['shp.norm']},
 ];
 const Quest={
   done:new Set(),
@@ -3131,6 +3178,51 @@ const ShapeRub=(function(){
 })();
 if(document.readyState!=='loading')ShapeRub.init();
 else document.addEventListener('DOMContentLoaded',()=>ShapeRub.init());
+
+/* ===== B (Task J): 닮음비 전이 — 원본=1 정규화→닮음비, 넓이비=닮음비² (⑤ 전이) =====
+   드래그 없이 큰 +/− 스테퍼로 확대 배수 조절. 2스텝 단계 진행. 넓이비² 오개념을 격자로 교정. */
+const ShapeNorm=(function(){
+  const UNIT={w:2,h:3}, CELL=15, AC=16;
+  let st={k:2,step:1,answered:false};
+  const $=id=>document.getElementById(id);
+  function setRect(el,w,h){ if(el){ el.style.width=(w*CELL)+'px'; el.style.height=(h*CELL)+'px'; } }
+  function areaCells(n,color){ return Array.from({length:n}).map(()=>'<i style="width:'+AC+'px;height:'+AC+'px;background:'+color+'"></i>').join(''); }
+  function render(){
+    if(!$('snBase'))return;
+    setRect($('snBase'),UNIT.w,UNIT.h); setRect($('snBig'),UNIT.w*st.k,UNIT.h*st.k);
+    $('snK').textContent=st.k; $('snK2').textContent=st.k;
+    $('snPer1').innerHTML=perBox('원본 <b>1</b>당 확대본 <b>'+st.k+'</b> &nbsp;→&nbsp; 닮음비 <b>'+st.k+' : 1</b>','대응변끼리 모두 '+st.k+'배라서 닮은꼴');
+    // 넓이 격자
+    $('snAreaBase').style.gridTemplateColumns='repeat(1,'+AC+'px)'; $('snAreaBase').innerHTML=areaCells(1,'#4d8df0');
+    $('snAreaBig').style.gridTemplateColumns='repeat('+st.k+','+AC+'px)'; $('snAreaBig').innerHTML=areaCells(st.k*st.k,'#39d98a');
+    $('snAreaLbl').textContent='= '+(st.k*st.k)+'칸';
+    // 정답 단추(닮음비 vs 넓이비)
+    $('snAnsWrap').innerHTML='닮음비가 <b>'+st.k+'</b>면 넓이는 몇 배? '+
+      '<button class="sn-ans" data-x="lin">'+st.k+'배</button>'+
+      '<button class="sn-ans" data-x="sq">'+(st.k*st.k)+'배</button>';
+    $('snAnsWrap').querySelectorAll('.sn-ans').forEach(b=>b.onclick=()=>answer(b.dataset.x));
+    $('snStep1').classList.toggle('active',st.step===1); $('snStep2').classList.toggle('active',st.step===2);
+  }
+  function setK(k){ st.k=Math.max(2,Math.min(4,k)); st.answered=false; $('snAnsFb').textContent=''; $('snPer2').innerHTML=''; render(); }
+  function next(){ st.step=2; render(); }
+  function answer(x){
+    const ok=(x==='sq');
+    $('snAnsFb').textContent=ok?('✓ 맞아요! 가로 '+st.k+'배 × 세로 '+st.k+'배 = 넓이 '+(st.k*st.k)+'배'):('아니에요 — 가로도 '+st.k+'배, 세로도 '+st.k+'배라서 넓이는 '+st.k+'×'+st.k+'배예요. 칸을 세어 보세요.');
+    $('snAnsFb').style.color=ok?'#9fe6b4':'#e6b86a';
+    if(ok&&!st.answered){ st.answered=true; done(); }
+  }
+  function done(){
+    $('snPer2').innerHTML=perBox('변의 비 <b>'+st.k+' : 1</b> &nbsp;≠&nbsp; 넓이의 비 <b>'+(st.k*st.k)+' : 1</b>','넓이비 = 닮음비² — 변과 넓이를 똑같이 보면 안 돼요!');
+    const r=$('snReveal'); if(r){ r.innerHTML='✨ 발견! <b>원본을 1로 맞추면 확대본이 곧 닮음비</b>. 그리고 <b>넓이비 = 닮음비²</b>!'; r.classList.add('show'); }
+    Submit.task('shp.norm',{values:{k:st.k,similarRatio:st.k+':1',areaRatio:(st.k*st.k)+':1'},verdict:{match:true},meta:{transfer:'similar'}});
+    if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('shp.norm')&&!Quest.done.has('shp.norm'))Quest.complete('shp.norm');
+  }
+  function init(){ if(!$('snPlus')||$('lab-shapeNorm').dataset.init)return; $('lab-shapeNorm').dataset.init='1';
+    $('snPlus').onclick=()=>setK(st.k+1); $('snMinus').onclick=()=>setK(st.k-1); $('snNext').onclick=next; render(); }
+  return {init,render,_st:()=>st};
+})();
+if(document.readyState!=='loading')ShapeNorm.init();
+else document.addEventListener('DOMContentLoaded',()=>ShapeNorm.init());
 
 /* ===== WB-13 (v2): 반성 — 전략 관계 반성 (5단계, 전 과제 통합) =====
    산출 카드(여러 곳의 같은 비) + 성찰 발화(질적 데이터) + 음성화 안내. 제출 → Quest.complete('reflect'). */
