@@ -1210,11 +1210,6 @@ main{padding-bottom:78px}
 /* 세로(위아래) 슬라이더 + 큰 견본 — 색 만들기 직관화 */
 .v2-colorlab .ca-swatch.big{width:160px;height:160px;border-width:4px;border-radius:18px}
 .v2-colorlab .ca-vrow{display:flex;gap:28px;align-items:flex-end;justify-content:center;margin:8px 0 4px}
-.v2-colorlab .ca-vslider{display:flex;flex-direction:column;align-items:center;gap:9px}
-.v2-colorlab .ca-vslider input[type=range]{-webkit-appearance:slider-vertical;writing-mode:vertical-lr;direction:rtl;width:48px;height:184px;touch-action:none;accent-color:#e0795a;cursor:pointer}
-.v2-colorlab .ca-vslider.vyel input[type=range]{accent-color:#e6c84a}
-.v2-colorlab .ca-vslider .vnum{font-size:1.7rem;font-weight:800;color:#cfe3ff;line-height:1}
-.v2-colorlab .ca-vslider .vlab{font-size:1.02rem;font-weight:800}
 .v2-colorlab .ca-bar{display:none}
 /* 이산량 스테퍼 — 구슬을 한 개씩 쌓아 정확히 같은 색 만들기(동치비) */
 .v2-colorlab .ca-stepper{display:flex;flex-direction:column;align-items:center;gap:8px}
@@ -1371,25 +1366,47 @@ main{padding-bottom:78px}
 
 <!-- WB-11 (v2): 악기 — 줄 길이→음정 (옥타브·완전5도·75%) -->
 <style>
-#lab-instV2 .iv-strings{display:flex;gap:34px;align-items:flex-end;height:160px;padding:8px 4px}
-#lab-instV2 .iv-bar{width:26px;background:linear-gradient(#d7b46a,#9c7628);border-radius:4px 4px 0 0;transition:height .12s,box-shadow .12s}
-#lab-instV2 .iv-bar.match{box-shadow:0 0 0 4px rgba(57,217,138,.35)}
+#lab-instV2 .uku-wrap{display:flex;justify-content:center;margin:8px 0}
+#lab-instV2 svg{max-width:100%;height:auto}
+#lab-instV2 .iv-stepbtn{font-size:1.7rem;width:54px;height:54px;border-radius:14px;background:#1f3a66;border:2px solid #4d8df0;color:#fff;cursor:pointer;line-height:1;touch-action:manipulation}
+#lab-instV2 .iv-stepbtn:active{background:#2a4a7a}
+#lab-instV2 .iv-stepbtn:disabled{opacity:.35}
+#lab-instV2 .iv-lennum{font-size:1.6rem;font-weight:800;color:#cfe3ff}
 </style>
 <div class="lab v2-colorlab" id="lab-instV2">
   <div class="ca-hint" id="ivHint"></div>
-  <div class="ca-row">
-    <div class="iv-strings">
-      <div><div class="ca-label">기준 줄</div><div class="iv-bar" id="ivBase"></div></div>
-      <div><div class="ca-label">내 줄 <span id="ivMatch"></span></div><div class="iv-bar" id="ivAdj"></div></div>
+  <div class="uku-wrap">
+    <svg id="ivSvg" viewBox="0 0 460 220" role="img" aria-label="우쿨렐레 줄 길이 조절">
+      <ellipse cx="368" cy="110" rx="82" ry="80" fill="#7a5226" stroke="#3a2a16" stroke-width="3"/>
+      <ellipse cx="362" cy="110" rx="28" ry="28" fill="#140d05"/>
+      <rect x="46" y="86" width="272" height="48" rx="7" fill="#4a3320" stroke="#2e2012" stroke-width="2"/>
+      <rect x="8" y="80" width="40" height="60" rx="8" fill="#2e2012"/>
+      <circle cx="20" cy="96" r="4" fill="#cdb88a"/><circle cx="20" cy="124" r="4" fill="#cdb88a"/>
+      <line x1="50" y1="86" x2="50" y2="134" stroke="#e8e0cf" stroke-width="4"/>
+      <line x1="410" y1="92" x2="410" y2="128" stroke="#2e2012" stroke-width="5"/>
+      <g id="ivFrets" stroke="#cdb88a" stroke-width="1.5" opacity=".45"></g>
+      <line x1="50" y1="104" x2="410" y2="104" stroke="#d7b46a" stroke-width="3"/>
+      <text x="54" y="100" fill="#cfe0ff" font-size="11" font-weight="bold">기준 줄 (12칸)</text>
+      <line id="ivMuted" x1="50" y1="128" x2="140" y2="128" stroke="#39435a" stroke-width="3"/>
+      <line id="ivVib" x1="140" y1="128" x2="410" y2="128" stroke="#d7b46a" stroke-width="5"/>
+      <circle id="ivFinger" cx="140" cy="128" r="9" fill="#4d8df0" stroke="#fff" stroke-width="2"/>
+      <text x="54" y="152" fill="#9fb3d6" font-size="11">내 줄 (퉁기는 부분 = 색칠된 길이)</text>
+    </svg>
+  </div>
+  <div class="ca-ctrl" style="max-width:520px;margin:0 auto;text-align:center">
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px">
+      <span class="ca-label" style="margin:0">내 줄 길이</span>
+      <button class="iv-stepbtn" id="ivMinus">－</button>
+      <span class="iv-lennum"><b id="ivLenV">9</b>칸</span>
+      <button class="iv-stepbtn" id="ivPlus">＋</button>
+      <input type="range" id="ivLen" min="1" max="12" step="1" value="9" style="display:none">
     </div>
-    <div class="ca-ctrl">
-      <div class="ca-slider"><span class="l">내 줄</span><input type="range" id="ivLen" min="1" max="12" step="1" value="9"><span id="ivLenV">9</span></div>
-      <div style="display:flex;gap:10px;margin:10px 0;flex-wrap:wrap;align-items:center">
-        <button id="ivPlay">🔊 두 줄 함께 듣기</button>
-        <span id="ivStatus" style="font-weight:700;font-size:13px"></span>
-      </div>
-      <div class="ca-reveal" id="ivReveal"></div>
+    <div id="ivRatio" class="ca-label" style="font-size:15px;font-weight:700;margin-bottom:8px"></div>
+    <div style="display:flex;gap:10px;margin:6px 0;flex-wrap:wrap;align-items:center;justify-content:center">
+      <button id="ivPlay">🔊 두 줄 함께 퉁기기</button>
+      <span id="ivStatus" style="font-weight:700;font-size:13px"></span>
     </div>
+    <div class="ca-reveal" id="ivReveal"></div>
   </div>
 </div>
 
@@ -3208,35 +3225,45 @@ function playTones(f1,f2){ try{ const AC=window.AudioContext||window.webkitAudio
 const InstV2=(function(){
   const BASE_LEN=12, BASE_FREQ=220, ORDER=['ins.oct','ins.5th','ins.75'];
   const CFG={
-    'ins.oct':{kind:'ratio',a:1,b:2,name:'옥타브',hint:'기준 줄의 <b>절반 길이(1:2)</b>로 만들면 한 옥타브 위 — 잘 어울려요.'},
-    'ins.5th':{kind:'ratio',a:2,b:3,name:'완전5도',hint:'줄 길이 <b>2:3</b>을 만들면 완전5도 — 색에서 본 2:3을 소리로 다시 만나요!'},
-    'ins.75':{kind:'pct',pct:75,name:'75% 줄',hint:'기준 줄의 <b>75%</b> 길이로 짚어 보세요. 길이도 비도 백분율로!'}
+    'ins.oct':{kind:'ratio',a:1,b:2,name:'옥타브',hint:'기준 줄의 <b>절반(6칸 = 1:2)</b>으로 짚으면 한 옥타브 위 — 잘 어울려요.'},
+    'ins.5th':{kind:'ratio',a:2,b:3,name:'완전5도',hint:'기준의 <b>2:3(8칸)</b> 길이로 — 색에서 본 2:3을 소리로 다시 만나요!'},
+    'ins.75':{kind:'pct',pct:75,name:'75% 줄',hint:'기준 줄의 <b>75%(9칸 = 3:4)</b> 길이로 짚어 보세요. 길이도 비도 백분율로!'}
   };
   let st={len:9};
   const $=id=>document.getElementById(id);
+  const NUTX=50, BRIDGEX=410, UNIT=(BRIDGEX-NUTX)/BASE_LEN; // 30px/칸
   function active(){ return ORDER.find(id=>(typeof Quest!=='object'||!Quest.done.has(id))) || ORDER[ORDER.length-1]; }
-  function targetFrac(){ const c=CFG[active()]; return c.kind==='pct'?c.pct/100:c.a/c.b; }
-  function matched(){ return Math.abs(st.len/BASE_LEN - targetFrac())<=0.05; }
-  function freq(L){ return BASE_FREQ*BASE_LEN/L; }
+  function targetLen(){ const c=CFG[active()]; return c.kind==='pct'?Math.round(BASE_LEN*c.pct/100):Math.round(BASE_LEN*c.a/c.b); }
+  function matched(){ return st.len===targetLen(); }  // 정확한 칸수(=정확한 비)
+  function freq(L){ return BASE_FREQ*BASE_LEN/L; }     // 짧을수록 높은 음
   function render(){
     if(!$('ivLen'))return; const c=CFG[active()];
-    $('ivHint').innerHTML='🎻 '+c.hint;
-    $('ivBase').style.height='150px'; $('ivAdj').style.height=(st.len/BASE_LEN*150)+'px';
+    $('ivHint').innerHTML='🎸 '+c.hint+' <b>＋ / －</b>로 내 줄 길이(칸)를 정하고 퉁겨 보세요.';
+    if($('ivFrets')&&!$('ivFrets').dataset.f){ let s=''; for(let i=1;i<BASE_LEN;i++){ const x=NUTX+i*UNIT; s+='<line x1="'+x+'" y1="88" x2="'+x+'" y2="132"/>'; } $('ivFrets').innerHTML=s; $('ivFrets').dataset.f='1'; }
+    const fingerX=BRIDGEX-st.len*UNIT;  // 퉁기는(색칠) 부분 = 손가락→브리지
+    $('ivMuted').setAttribute('x2',fingerX); $('ivVib').setAttribute('x1',fingerX); $('ivFinger').setAttribute('cx',fingerX);
+    const m=matched();
+    $('ivVib').setAttribute('stroke',m?'#39d98a':'#d7b46a'); $('ivFinger').setAttribute('fill',m?'#39d98a':'#4d8df0');
     $('ivLen').value=st.len; $('ivLenV').textContent=st.len;
-    const m=matched(); $('ivAdj').classList.toggle('match',m); $('ivMatch').textContent=m?'· 어울림!':'';
-    const s=$('ivStatus'); s.textContent=m?('✓ '+c.name+' — 들어 보세요'):'줄 길이를 맞춰 보세요'; s.style.color=m?'#39d98a':'#9fb3d6';
+    const sr=Ratio.simplify(st.len,BASE_LEN);
+    $('ivRatio').innerHTML='내 줄 : 기준 = <b>'+st.len+' : 12</b> = <b>'+sr[0]+' : '+sr[1]+'</b>';
+    const s=$('ivStatus'); s.textContent=m?('✓ '+c.name+' — 퉁겨서 들어 보세요!'):'줄 길이(칸)를 맞춰 보세요'; s.style.color=m?'#39d98a':'#9fb3d6';
+    $('ivPlus').disabled=st.len>=BASE_LEN; $('ivMinus').disabled=st.len<=1;
   }
-  function setLen(v){ st.len=+v; render(); }
+  function setLen(v){ st.len=Math.max(1,Math.min(BASE_LEN,+v)); render(); }
   function play(){ playTones(freq(BASE_LEN),freq(st.len)); if(matched())done(); }
   function done(){
     const id=active(), c=CFG[id];
     if(typeof Quest!=='object'||!Quest.isUnlocked||!Quest.isUnlocked(id)||Quest.done.has(id))return;
     Submit.task(id,{values:{adjLen:st.len,baseLen:BASE_LEN,ratio:st.len+':'+BASE_LEN},verdict:{name:c.name,matched:true},meta:{}});
-    const el=$('ivReveal'); if(el){ el.innerHTML='✨ '+c.name+'! '+(c.kind==='ratio'?('줄 길이 '+c.a+':'+c.b):('기준의 '+c.pct+'%'))+'.'; el.classList.add('show'); }
+    const el=$('ivReveal'); if(el){ el.innerHTML='✨ '+c.name+'! 줄 길이 <b>'+st.len+':12</b>'+(c.kind==='ratio'?(' = '+c.a+':'+c.b):(' = '+c.pct+'%'))+' — 잘 어울리는 소리!'; el.classList.add('show'); }
     Quest.complete(id);
-    st.len=9; setTimeout(()=>{ if($('ivReveal'))$('ivReveal').classList.remove('show'); render(); },1200);
+    st.len=9; setTimeout(()=>{ if($('ivReveal'))$('ivReveal').classList.remove('show'); render(); },1400);
   }
-  function init(){ if(!$('ivLen')||$('lab-instV2').dataset.init)return; $('lab-instV2').dataset.init='1'; $('ivLen').oninput=e=>setLen(e.target.value); $('ivPlay').onclick=play; render(); }
+  function init(){ if(!$('ivLen')||$('lab-instV2').dataset.init)return; $('lab-instV2').dataset.init='1';
+    $('ivLen').oninput=e=>setLen(e.target.value);
+    $('ivPlus').onclick=()=>setLen(st.len+1); $('ivMinus').onclick=()=>setLen(st.len-1);
+    $('ivPlay').onclick=play; render(); }
   return {init,render,play,_active:active,_matched:matched,_st:()=>st};
 })();
 if(document.readyState!=='loading')InstV2.init();
