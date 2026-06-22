@@ -1278,6 +1278,10 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
 #lab-colorFG table td{border:1px solid #2a3a5c;padding:3px 9px}
 #lab-colorFG .fg-br{padding:4px 9px;border-radius:9px;background:#15203a;border:1px solid #2a3a5c}
 #lab-colorFG input[type=number]{background:#0f1830;border:1px solid #3a4a6a;color:#cfe0ff;border-radius:6px;padding:3px}
+/* per(당) 언어 박스 — 비율=기준 1, 백분율=기준 100 (모바일 큰 글씨) */
+.per-line{margin:12px 0;padding:13px 15px;border-radius:14px;background:#10243f;border:2px solid #4d8df0;font-size:1.18rem;font-weight:800;color:#dbe9ff;text-align:center;line-height:1.55}
+.per-line .sub{display:block;font-size:.8rem;font-weight:600;color:#9fb3d6;margin-top:6px}
+.per-line b{color:#7fc4ff}
 </style>
 <div class="lab v2-colorlab" id="lab-colorFG">
   <div class="ca-hint">📦 <b>한 묶음 = 파랑 2 · 노랑 3</b>. 묶음을 통째로 늘려도 색은 그대로! 키운 다음 다시 <b>한 묶음</b>으로 풀어 보세요.</div>
@@ -1291,6 +1295,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
       </div>
       <div id="fgBlocks" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
       <div id="fgBridge" style="display:flex;gap:10px;flex-wrap:wrap;font-size:13px;margin-bottom:10px"></div>
+      <div id="fgPer"></div>
       <table id="fgTable"></table>
       <div id="fgDecomp" style="margin-top:14px;display:none">
         <div class="ca-hint" id="fgDecompQ" style="margin-bottom:6px"></div>
@@ -1318,6 +1323,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     <div class="ca-ctrl">
       <div class="ca-slider"><span class="l">파랑 칸</span><input type="range" id="pcN" min="0" max="100" step="1" value="50"><span id="pcNV">50</span></div>
       <div class="pc-grid" id="pcGrid"></div>
+      <div id="pcPer"></div>
       <div id="pcBridge" style="display:flex;gap:10px;flex-wrap:wrap;font-size:13px"></div>
       <div class="ca-reveal" id="pcReveal"></div>
     </div>
@@ -2857,7 +2863,7 @@ const ColorAp=(function(){
   }
   function done(){
     const s=Ratio.simplify(TARGET.b,TARGET.y);
-    const el=$('apReveal'); if(el){ el.innerHTML='✨ 여러 크기에서 <b>파랑 : 노랑 = '+s[0]+' : '+s[1]+'</b> 를 유지했어요. 비를 지키면 색이 보존돼요!'; el.classList.add('show'); }
+    const el=$('apReveal'); if(el){ el.innerHTML='✨ 여러 크기에서 <b>파랑 : 노랑 = '+s[0]+' : '+s[1]+'</b> 를 유지했어요. 비를 지키면 색이 보존돼요!'+perBox(perUnit('파랑','노랑',TARGET.b,TARGET.y),'기준(파랑) 1당 노랑 — 이 <b>비율</b>은 어떤 크기에서도 그대로'); el.classList.add('show'); }
     if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('col.Ap')&&!Quest.done.has('col.Ap'))Quest.complete('col.Ap');
   }
   function init(){
@@ -2951,6 +2957,7 @@ const ColorFG=(function(){
       '<span class="fg-br">분수(파랑/전체) '+B+'/'+tot+' = '+UNIT.b+'/'+(UNIT.b+UNIT.y)+'</span>',
       '<span class="fg-br">백분율 '+Math.round(B/tot*100)+'%</span>'
     ].join('');
+    if($('fgPer'))$('fgPer').innerHTML=perBox(perUnit('파랑','노랑',UNIT.b,UNIT.y),'기준(파랑)을 <b>1</b>로 맞추면 비교량(노랑)이 곧 <b>비율</b> — 묶음을 키워도 그대로!');
     const rows=[...st.built].sort((a,b)=>a-b).map(n=>'<tr><td>'+n+'묶음</td><td>파랑 '+(UNIT.b*n)+'</td><td>노랑 '+(UNIT.y*n)+'</td></tr>').join('');
     $('fgTable').innerHTML='<tr><td>묶음</td><td>파랑</td><td>노랑</td></tr>'+rows;
     const showD=st.built.size>=2;
@@ -3000,6 +3007,7 @@ const ColorP=(function(){
     $('pcMix').style.background=css(rgbN(st.n));
     $('pcN').value=st.n; $('pcNV').textContent=st.n;
     $('pcGrid').innerHTML=Array.from({length:100}).map((_,i)=>'<i style="background:'+(i<st.n?css(BCOL):css(YCOL))+'"></i>').join('');
+    if($('pcPer'))$('pcPer').innerHTML=perBox(perPct('파랑',st.n),'전체 100칸 중 파랑이 차지한 칸 수 = <b>백분율</b>');
     const m=matched();
     $('pcMix').classList.toggle('match',m); $('pcMatchTxt').textContent='· '+accCue(RatioEngine.deltaE(rgbN(targetPct),rgbN(st.n)));
     if(m||st.done){ const s=Ratio.simplify(TARGET.b,TARGET.y);
@@ -3023,6 +3031,11 @@ else document.addEventListener('DOMContentLoaded',()=>ColorP.init());
 
 /* WB-P1: 접근성 — 색에만 의존하지 않는 일치 단서(아이콘+근접도%). 색차(ΔE)→비색채 텍스트. */
 function accCue(de){ const close=Math.max(0,Math.round(100-Math.min(100,de/3))); return (de<=16?'✓ 같음':de<=45?'○ 거의':'✗ 다름')+' ('+close+'%)'; }
+/* A(per 언어 감각화): 안정화 시점 자동 문장 — 비율=기준 1당 비교량, 백분율=기준 100일 때 비교량. (per-doc 3-4)
+   함수 선언형으로 hoisting → 모듈 init이 정의보다 먼저 실행돼도 안전. */
+function perUnit(baseLabel,compLabel,base,comp){ const v=base?Math.round(comp/base*100)/100:0; return baseLabel+' <b>1</b>당 '+compLabel+' <b>'+v+'</b>'; }
+function perPct(partLabel,pct){ return '기준 <b>100</b>일 때 '+partLabel+' <b>'+pct+'%</b>'; }
+function perBox(main,sub){ return '<div class="per-line">'+main+(sub?'<span class="sub">'+sub+'</span>':'')+'</div>'; }
 function playTones(f1,f2){ try{ const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return; const ac=new AC(),t0=ac.currentTime;
   [f1,f2].forEach(f=>{ const o=ac.createOscillator(),g=ac.createGain(); o.type='triangle'; o.frequency.value=f;
     g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.14,t0+0.04); g.gain.exponentialRampToValueAtTime(0.0001,t0+1.2);
@@ -3135,7 +3148,7 @@ const Reflect=(function(){
   function submit(){
     const txt=($('rfText').value||'').trim();
     Submit.task('reflect',{values:{statement:txt,choice:pick,choiceCorrect:pick!=null&&CHOICES[pick].ok},verdict:null,meta:{}});
-    const r=$('rfReveal'); r.innerHTML='✨ 다 해냈어요! 핵심: <b>비(몇 배)를 지키면</b> 색·음·모양·%가 모두 보존돼요. 더하기(차이)가 아니라 곱하기(비)!'; r.classList.add('show');
+    const r=$('rfReveal'); r.innerHTML='✨ 다 해냈어요! 핵심: <b>비(몇 배)를 지키면</b> 색·음·모양·%가 모두 보존돼요. 더하기(차이)가 아니라 곱하기(비)!'+perBox('비율 = 기준을 <b>1</b>로 맞췄을 때 비교량 &nbsp;·&nbsp; 백분율 = 기준을 <b>100</b>으로 맞췄을 때','같은 비를 1로 보면 비율, 100으로 보면 백분율 — 하나의 <b>per(당) 관계</b>!'); r.classList.add('show');
     if(typeof Quest==='object'&&Quest.isUnlocked&&Quest.isUnlocked('reflect')&&!Quest.done.has('reflect'))Quest.complete('reflect');
   }
   function init(){ if(!$('rfSubmit')||$('lab-reflect').dataset.init)return; $('lab-reflect').dataset.init='1'; $('rfSubmit').onclick=submit; render(); }
