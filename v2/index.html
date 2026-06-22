@@ -1222,7 +1222,7 @@ main{padding-bottom:78px}
 .v2-colorlab .vlab{font-size:1.02rem;font-weight:800}
 </style>
 <div class="lab v2-colorlab" id="lab-colorA">
-  <div class="ca-hint">🎨 견본과 <b>똑같은 색</b>을 만들어 보세요! <b>＋ / －</b> 단추로 빨강·노랑 <b>구슬 개수</b>를 맞춥니다. 양이 달라도 같은 색이 되는 조합을 <b>2개 이상</b> 모으면 비밀이 풀려요.</div>
+  <div class="ca-hint">🎨 견본과 <b>똑같은 색</b>을 만들어 보세요! <b>＋ / －</b> 단추로 빨강·노랑 <b>구슬 개수</b>를 맞춥니다. 양이 달라도 같은 색이 되는 조합을 <b>2개 이상</b> 모으고, 이어서 <b>다른 비</b>도 탐험해요!</div>
   <div class="ca-row" style="justify-content:center;gap:36px">
     <div style="text-align:center">
       <div class="ca-label" style="font-size:14px;font-weight:700">🎯 견본 (이 색을 만드세요)</div>
@@ -2929,27 +2929,29 @@ const Submit={
    2색(빨강:노랑) 연속량. 같은 비 = 같은 색. ΔE 감각 증거(정오 문구 없음). 비율 유지 자동연동으로 동치비 수집.
    같은 색 조합 2개 이상 모으면 발견(비 기호 명명) → Submit + Quest.complete('col.A'). */
 const ColorA=(function(){
-  const TARGET={b:1,y:2};                 // 숨긴 목표비
+  const TARGETS=[{b:1,y:2},{b:3,y:4}], NEED=2;  // 서로 다른 비 구조를 차례로 탐색(각 2개 이상 동치 조합)
   const BCOL=[222,78,55], YCOL=[235,205,40], EMPTY=[40,40,48], MAX=12;
-  let st={blue:3,yellow:3,lock:false,lockRatio:1,disc:false,combos:[]};
+  let st={blue:3,yellow:3,lock:false,lockRatio:1,disc:false,tIdx:0,combos:[]};
   const $=id=>document.getElementById(id);
+  function T(){ return TARGETS[st.tIdx]; }
   function rgb(b,y){ const t=b+y; if(t<=0)return EMPTY.slice(); const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
   function css(c){ return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
-  function matched(){ return st.blue>0 && st.yellow>0 && Ratio.equal(TARGET.b,TARGET.y,st.blue,st.yellow); } // 정확한 동치비(교차곱) — 색차 허용오차 X
+  function matched(){ const t=T(); return st.blue>0 && st.yellow>0 && Ratio.equal(t.b,t.y,st.blue,st.yellow); } // 정확한 동치비(교차곱)
   function render(){
-    if(!$('caMix'))return;
-    $('caTarget').style.background=css(rgb(TARGET.b,TARGET.y));
+    if(!$('caMix'))return; const t=T();
+    $('caTarget').style.background=css(rgb(t.b,t.y));
     $('caMix').style.background=css(rgb(st.blue,st.yellow));
     $('caBlue').value=st.blue; $('caYel').value=st.yellow; $('caBlueV').textContent=st.blue; $('caYelV').textContent=st.yellow;
     $('caBlueBar').style.width=(st.blue/MAX*100)+'%'; $('caBlueBar').style.background=css(BCOL);
     $('caYelBar').style.width=(st.yellow/MAX*100)+'%'; $('caYelBar').style.background=css(YCOL);
     if($('caBlueBeads')){ $('caBlueBeads').innerHTML=Array.from({length:st.blue}).map(()=>'<i class="ca-bead" style="background:'+css(BCOL)+'"></i>').join(''); $('caYelBeads').innerHTML=Array.from({length:st.yellow}).map(()=>'<i class="ca-bead" style="background:'+css(YCOL)+'"></i>').join(''); $('caBluePlus').disabled=st.blue>=MAX; $('caBlueMinus').disabled=st.blue<=0; $('caYelPlus').disabled=st.yellow>=MAX; $('caYelMinus').disabled=st.yellow<=0; }
     const m=matched();
-    $('caMix').classList.toggle('match',m); $('caMatchTxt').textContent='· '+colorCue(m,RatioEngine.deltaE(rgb(TARGET.b,TARGET.y),rgb(st.blue,st.yellow)));
+    $('caMix').classList.toggle('match',m); $('caMatchTxt').textContent='· '+colorCue(m,RatioEngine.deltaE(rgb(t.b,t.y),rgb(st.blue,st.yellow)));
     $('caCollect').disabled=!m;
     $('caLock').checked=st.lock; $('caDisc').checked=st.disc;
     $('caCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>빨강 '+c.b+' · 노랑 '+c.y+'</span>').join('');
-    $('caCollectHint').textContent=st.combos.length?('담은 조합 '+st.combos.length+'개 · 2개 이상 모으세요'):'같은 색을 만들어 2개 이상 담으세요';
+    const sT=Ratio.simplify(t.b,t.y);
+    $('caCollectHint').textContent='지금 비 '+sT[0]+':'+sT[1]+' — 다른 양으로 같은 색 '+st.combos.length+'/'+NEED+' ('+(st.tIdx+1)+'/'+TARGETS.length+'번째 비)';
     $('lab-colorA').classList.toggle('ca-discrete',st.disc);
   }
   function setBlue(v){ st.blue=+v; if(st.lock&&st.lockRatio>0)st.yellow=Math.max(0,Math.min(MAX,Math.round(st.blue*st.lockRatio))); render(); }
@@ -2959,13 +2961,20 @@ const ColorA=(function(){
     if(!matched())return;
     if(st.combos.some(c=>c.b===st.blue&&c.y===st.yellow))return;     // 중복 방지
     st.combos.push({b:st.blue,y:st.yellow});
-    Submit.task('col.A',{values:{blue:st.blue,yellow:st.yellow},verdict:RatioEngine.judge(TARGET.b,TARGET.y,st.blue,st.yellow),meta:{combos:st.combos.length}});
-    if(st.combos.length>=2)reveal();
+    const t=T();
+    Submit.task('col.A',{values:{blue:st.blue,yellow:st.yellow,target:t.b+':'+t.y},verdict:RatioEngine.judge(t.b,t.y,st.blue,st.yellow),meta:{combos:st.combos.length,tIdx:st.tIdx}});
+    if(st.combos.length>=NEED){ if(st.tIdx<TARGETS.length-1)advance(); else reveal(); }
     render();
   }
+  function advance(){
+    const prev=Ratio.simplify(T().b,T().y);
+    st.tIdx++; st.combos=[]; st.blue=1; st.yellow=1; st.lock=false; st.lockRatio=1;  // 새 목표비로 초기화(자동일치 방지)
+    const nx=Ratio.simplify(T().b,T().y);
+    const el=$('caReveal'); if(el){ el.innerHTML='✨ <b>'+prev[0]+':'+prev[1]+'</b> 가족 발견! 이번엔 <b>다른 비 '+nx[0]+':'+nx[1]+'</b>도 같은 규칙인지 만들어 봐요.'; el.classList.add('show'); }
+  }
   function reveal(){
-    const s=Ratio.simplify(TARGET.b,TARGET.y);
-    const el=$('caReveal'); if(el){ el.innerHTML='✨ 발견! 양이 달라도 <b>빨강 : 노랑 = '+s[0]+' : '+s[1]+'</b> 이면 같은 색이에요.'; el.classList.add('show'); }
+    const a=Ratio.simplify(TARGETS[0].b,TARGETS[0].y), b=Ratio.simplify(TARGETS[1].b,TARGETS[1].y);
+    const el=$('caReveal'); if(el){ el.innerHTML='✨ 발견! <b>'+a[0]+':'+a[1]+'</b>도 <b>'+b[0]+':'+b[1]+'</b>도 — 비가 달라도 규칙은 같아요: <b>같은 비 = 같은 색</b>!'; el.classList.add('show'); }
     if(typeof Quest==='object'&&!Quest.done.has('col.A'))Quest.complete('col.A');
   }
   function init(){
