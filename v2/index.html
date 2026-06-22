@@ -1190,7 +1190,7 @@ main{padding-bottom:78px}
 .v2-colorlab .ca-row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
 .v2-colorlab .ca-swatch{width:116px;height:116px;border-radius:14px;border:3px solid #2a3a5c;transition:background .15s,border-color .15s,box-shadow .15s}
 .v2-colorlab .ca-swatch.match{border-color:#39d98a;box-shadow:0 0 0 5px rgba(57,217,138,.25)}
-.v2-colorlab .ca-label{font-size:12px;color:#9fb3d6;margin-bottom:6px}
+.v2-colorlab .ca-label{font-size:13.5px;color:#9fb3d6;margin-bottom:6px}
 .v2-colorlab .ca-ctrl{flex:1;min-width:280px}
 .v2-colorlab .ca-slider{display:flex;align-items:center;gap:10px;margin:9px 0 2px}
 .v2-colorlab .ca-slider>span.l{width:42px;font-size:13px;color:#cfe0ff}
@@ -1201,14 +1201,14 @@ main{padding-bottom:78px}
 .v2-colorlab .ca-combos{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .v2-colorlab .ca-card{padding:5px 10px;border-radius:10px;border:1px solid #2e7d46;background:#16361f;color:#9fe6b4;font-size:13px;display:flex;align-items:center;gap:6px}
 .v2-colorlab .ca-card i{display:inline-block;width:14px;height:14px;border-radius:4px}
-.v2-colorlab .ca-hint{font-size:13px;color:#cfe0ff;margin-bottom:12px}
+.v2-colorlab .ca-hint{font-size:16px;line-height:1.6;color:#cfe0ff;margin-bottom:14px}
 .v2-colorlab .ca-toggles{display:flex;gap:16px;margin:2px 0 6px;font-size:12.5px;color:#9fb3d6}
 .v2-colorlab button{padding:7px 12px;border-radius:9px;border:1px solid #3a4a6a;background:#1f2c4a;color:#cfe0ff;cursor:pointer}
 .v2-colorlab button:disabled{opacity:.4;cursor:not-allowed}
 .v2-colorlab .ca-reveal{margin-top:14px;padding:11px 14px;border-radius:12px;background:#15203a;border:1px solid #4d8df0;color:#cfe3ff;display:none}
 .v2-colorlab .ca-reveal.show{display:block}
 /* 세로(위아래) 슬라이더 + 큰 견본 — 색 만들기 직관화 */
-.v2-colorlab .ca-swatch.big{width:160px;height:160px;border-width:4px;border-radius:18px}
+.v2-colorlab .ca-swatch.big{width:184px;height:184px;border-width:5px;border-radius:20px}
 .v2-colorlab .ca-vrow{display:flex;gap:28px;align-items:flex-end;justify-content:center;margin:8px 0 4px}
 .v2-colorlab .ca-bar{display:none}
 /* 이산량 스테퍼 — 구슬을 한 개씩 쌓아 정확히 같은 색 만들기(동치비) */
@@ -1225,11 +1225,11 @@ main{padding-bottom:78px}
   <div class="ca-hint">🎨 견본과 <b>똑같은 색</b>을 만들어 보세요! <b>＋ / －</b> 단추로 빨강·노랑 <b>구슬 개수</b>를 맞춥니다. 양이 달라도 같은 색이 되는 조합을 <b>2개 이상</b> 모으고, 이어서 <b>다른 비</b>도 탐험해요!</div>
   <div class="ca-row" style="justify-content:center;gap:36px">
     <div style="text-align:center">
-      <div class="ca-label" style="font-size:14px;font-weight:700">🎯 견본 (이 색을 만드세요)</div>
+      <div class="ca-label" style="font-size:17px;font-weight:800;color:#e7eefc">🎯 견본 (이 색을 만드세요)</div>
       <div class="ca-swatch big" id="caTarget"></div>
     </div>
     <div style="text-align:center">
-      <div class="ca-label" style="font-size:14px;font-weight:700">내 색 <span id="caMatchTxt"></span></div>
+      <div class="ca-label" style="font-size:17px;font-weight:800;color:#e7eefc">내 색 <span id="caMatchTxt"></span></div>
       <div class="ca-swatch big" id="caMix"></div>
     </div>
   </div>
@@ -1257,8 +1257,8 @@ main{padding-bottom:78px}
 <div class="lab v2-colorlab" id="lab-colorAp">
   <div class="ca-hint">🤝 <b>같은 색을 유지</b>하며 양을 키워 보세요. 빨강을 늘리면 노랑도 함께 — 비를 지키면 색이 그대로예요. 서로 다른 크기로 <b>3번</b> 기록하면 완성!</div>
   <div class="ca-row" style="justify-content:center;gap:36px">
-    <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">🎯 유지할 색</div><div class="ca-swatch big" id="apTarget"></div></div>
-    <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">내 색 <span id="apMatchTxt"></span></div><div class="ca-swatch big" id="apMix"></div></div>
+    <div style="text-align:center"><div class="ca-label" style="font-size:17px;font-weight:800;color:#e7eefc">🎯 유지할 색</div><div class="ca-swatch big" id="apTarget"></div></div>
+    <div style="text-align:center"><div class="ca-label" style="font-size:17px;font-weight:800;color:#e7eefc">내 색 <span id="apMatchTxt"></span></div><div class="ca-swatch big" id="apMix"></div></div>
   </div>
   <div class="ca-ctrl" style="max-width:520px;margin:14px auto 0">
     <div id="apStatus" style="font-size:14px;font-weight:700;margin-bottom:6px;text-align:center"></div>
@@ -1287,8 +1287,8 @@ main{padding-bottom:78px}
   </div>
   <div class="ca-hint" style="margin-top:4px">🎯 이제 <b>색 X와 같은 색</b>을 다른 양으로 <b>2개 이상</b> 만들어 보세요. <b>＋ / －</b>로 구슬 개수를 맞춰요! 더하기로는 안 돼요.</div>
   <div class="ca-row" style="justify-content:center;gap:36px">
-    <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">🎯 목표 (색 X)</div><div class="ca-swatch big" id="cbTarget"></div></div>
-    <div style="text-align:center"><div class="ca-label" style="font-size:14px;font-weight:700">내 색 <span id="cbMatchTxt"></span></div><div class="ca-swatch big" id="cbMix"></div></div>
+    <div style="text-align:center"><div class="ca-label" style="font-size:17px;font-weight:800;color:#e7eefc">🎯 목표 (색 X)</div><div class="ca-swatch big" id="cbTarget"></div></div>
+    <div style="text-align:center"><div class="ca-label" style="font-size:17px;font-weight:800;color:#e7eefc">내 색 <span id="cbMatchTxt"></span></div><div class="ca-swatch big" id="cbMix"></div></div>
   </div>
   <div class="ca-ctrl" style="max-width:520px;margin:14px auto 0">
     <div class="ca-vrow">
@@ -2796,8 +2796,9 @@ else document.addEventListener('DOMContentLoaded',applyHiddenTabs);
    제출 연동(차기 WB)이 붙기 전까지 진행은 ‘개발용’ 버튼으로. 진척은 사용자코드별 localStorage 저장.
    각 노드는 requires(선행 노드)가 모두 완료돼야 잠금 해제 → 선형 퀘스트. */
 const QUEST=[
- {id:'col.A',   topic:'색상', tab:'colorA',     stage:1, tier:'비',    label:'같은 색',             requires:[]},
- {id:'ins.oct', topic:'악기', tab:'instV2',     stage:1, tier:'비',    label:'옥타브 2:1',          requires:['col.A']},
+ {id:'col.A',   topic:'색상', tab:'colorA',     stage:1, tier:'비',    label:'같은 색(1:2)',        requires:[]},
+ {id:'col.A2',  topic:'색상', tab:'colorA',     stage:1, tier:'비',    label:'다른 색(3:4)',        requires:['col.A']},
+ {id:'ins.oct', topic:'악기', tab:'instV2',     stage:1, tier:'비',    label:'옥타브 2:1',          requires:['col.A2']},
  {id:'shp.sim', topic:'도형', tab:'shapeSim',   stage:1, tier:'비',    label:'닮은꼴',              requires:['ins.oct']},
  {id:'col.B',   topic:'색상', tab:'colorB',     stage:1, tier:'게이트', label:'어긋남(곱셈 게이트)', requires:['shp.sim']},
  {id:'col.Ap',  topic:'색상', tab:'colorAp',    stage:2, tier:'비율',  label:'동치비 협응',         requires:['col.B']},
@@ -2929,16 +2930,19 @@ const Submit={
    2색(빨강:노랑) 연속량. 같은 비 = 같은 색. ΔE 감각 증거(정오 문구 없음). 비율 유지 자동연동으로 동치비 수집.
    같은 색 조합 2개 이상 모으면 발견(비 기호 명명) → Submit + Quest.complete('col.A'). */
 const ColorA=(function(){
-  const TARGETS=[{b:1,y:2},{b:3,y:4}], NEED=2;  // 서로 다른 비 구조를 차례로 탐색(각 2개 이상 동치 조합)
+  const ACFG={'col.A':{b:1,y:2},'col.A2':{b:3,y:4}}, ORDER=['col.A','col.A2'], NEED=2;  // 비마다 별도 '색 만들기' 과제
   const BCOL=[222,78,55], YCOL=[235,205,40], EMPTY=[40,40,48], MAX=12;
-  let st={blue:3,yellow:3,lock:false,lockRatio:1,disc:false,tIdx:0,combos:[]};
+  let st={blue:3,yellow:3,lock:false,lockRatio:1,disc:false,node:'col.A',combos:[]};
   const $=id=>document.getElementById(id);
-  function T(){ return TARGETS[st.tIdx]; }
+  function curNode(){ const v=(typeof Quest==='object')?Quest.viewing:null; return ACFG[v]?v:'col.A'; }
+  function T(){ return ACFG[curNode()]; }
   function rgb(b,y){ const t=b+y; if(t<=0)return EMPTY.slice(); const p=y/t; return [0,1,2].map(i=>Math.round(BCOL[i]+(YCOL[i]-BCOL[i])*p)); }
   function css(c){ return 'rgb('+c[0]+','+c[1]+','+c[2]+')'; }
   function matched(){ const t=T(); return st.blue>0 && st.yellow>0 && Ratio.equal(t.b,t.y,st.blue,st.yellow); } // 정확한 동치비(교차곱)
   function render(){
-    if(!$('caMix'))return; const t=T();
+    if(!$('caMix'))return;
+    const id=curNode(); if(id!==st.node){ st.node=id; st.combos=[]; st.blue=1; st.yellow=1; st.lock=false; st.lockRatio=1; }
+    const t=ACFG[id];
     $('caTarget').style.background=css(rgb(t.b,t.y));
     $('caMix').style.background=css(rgb(st.blue,st.yellow));
     $('caBlue').value=st.blue; $('caYel').value=st.yellow; $('caBlueV').textContent=st.blue; $('caYelV').textContent=st.yellow;
@@ -2951,7 +2955,7 @@ const ColorA=(function(){
     $('caLock').checked=st.lock; $('caDisc').checked=st.disc;
     $('caCombos').innerHTML=st.combos.map(c=>'<span class="ca-card"><i style="background:'+css(rgb(c.b,c.y))+'"></i>빨강 '+c.b+' · 노랑 '+c.y+'</span>').join('');
     const sT=Ratio.simplify(t.b,t.y);
-    $('caCollectHint').textContent='지금 비 '+sT[0]+':'+sT[1]+' — 다른 양으로 같은 색 '+st.combos.length+'/'+NEED+' ('+(st.tIdx+1)+'/'+TARGETS.length+'번째 비)';
+    $('caCollectHint').textContent='목표 비 '+sT[0]+':'+sT[1]+' — 다른 양으로 같은 색 '+st.combos.length+'/'+NEED;
     $('lab-colorA').classList.toggle('ca-discrete',st.disc);
   }
   function setBlue(v){ st.blue=+v; if(st.lock&&st.lockRatio>0)st.yellow=Math.max(0,Math.min(MAX,Math.round(st.blue*st.lockRatio))); render(); }
@@ -2961,21 +2965,19 @@ const ColorA=(function(){
     if(!matched())return;
     if(st.combos.some(c=>c.b===st.blue&&c.y===st.yellow))return;     // 중복 방지
     st.combos.push({b:st.blue,y:st.yellow});
-    const t=T();
-    Submit.task('col.A',{values:{blue:st.blue,yellow:st.yellow,target:t.b+':'+t.y},verdict:RatioEngine.judge(t.b,t.y,st.blue,st.yellow),meta:{combos:st.combos.length,tIdx:st.tIdx}});
-    if(st.combos.length>=NEED){ if(st.tIdx<TARGETS.length-1)advance(); else reveal(); }
+    const id=curNode(), t=ACFG[id];
+    Submit.task(id,{values:{blue:st.blue,yellow:st.yellow,target:t.b+':'+t.y},verdict:RatioEngine.judge(t.b,t.y,st.blue,st.yellow),meta:{combos:st.combos.length,node:id}});
+    if(st.combos.length>=NEED)done(id);
     render();
   }
-  function advance(){
-    const prev=Ratio.simplify(T().b,T().y);
-    st.tIdx++; st.combos=[]; st.blue=1; st.yellow=1; st.lock=false; st.lockRatio=1;  // 새 목표비로 초기화(자동일치 방지)
-    const nx=Ratio.simplify(T().b,T().y);
-    const el=$('caReveal'); if(el){ el.innerHTML='✨ <b>'+prev[0]+':'+prev[1]+'</b> 가족 발견! 이번엔 <b>다른 비 '+nx[0]+':'+nx[1]+'</b>도 같은 규칙인지 만들어 봐요.'; el.classList.add('show'); }
-  }
-  function reveal(){
-    const a=Ratio.simplify(TARGETS[0].b,TARGETS[0].y), b=Ratio.simplify(TARGETS[1].b,TARGETS[1].y);
-    const el=$('caReveal'); if(el){ el.innerHTML='✨ 발견! <b>'+a[0]+':'+a[1]+'</b>도 <b>'+b[0]+':'+b[1]+'</b>도 — 비가 달라도 규칙은 같아요: <b>같은 비 = 같은 색</b>!'; el.classList.add('show'); }
-    if(typeof Quest==='object'&&!Quest.done.has('col.A'))Quest.complete('col.A');
+  function done(id){
+    if(typeof Quest!=='object'||Quest.done.has(id))return;
+    const t=ACFG[id], s=Ratio.simplify(t.b,t.y), isLast=(ORDER.indexOf(id)===ORDER.length-1);
+    const el=$('caReveal'); if(el){ el.innerHTML=isLast
+      ? '✨ 발견! <b>1:2</b>도 <b>3:4</b>도 — 비가 달라도 규칙은 같아요: <b>같은 비 = 같은 색</b>! 아래 <b>다음 과제 ▶</b>로 이동해요.'
+      : '✨ <b>'+s[0]+':'+s[1]+'</b> 가족 발견! 아래 <b>다음 과제 ▶</b>를 누르면 <b>다른 비</b> 색 만들기예요.';
+      el.classList.add('show'); }
+    Quest.complete(id);
   }
   function init(){
     if(!$('caBlue')||$('lab-colorA').dataset.init)return; $('lab-colorA').dataset.init='1';
@@ -3497,6 +3499,7 @@ function switchTab(t){
   });
   document.querySelectorAll('.lab').forEach(l=>l.classList.remove('active'));
   $('lab-'+t).classList.add('active');
+  if(t==='colorA'&&typeof ColorA==='object'&&ColorA.render)ColorA.render();  // 다른 비(col.A2) 노드로 이동 시 견본 갱신
   if(snd.playing)stopSnd();
   if(t!=='sound'&&t!=='instrument')glStopAll();
   if(t!=='unit'&&t!=='beat'&&typeof Metronome==='object'&&Metronome&&typeof Metronome.stopAll==='function')Metronome.stopAll();
