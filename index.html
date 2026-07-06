@@ -602,7 +602,8 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
     </div>
     <div class="login-err" id="loginErr"></div>
     <button class="login-btn" onclick="doLogin()">시작하기</button>
-    <div class="login-consent">입력한 활동 기록은 학습 연구를 위해 저장됩니다. 이름 외 개인정보는 수집하지 않아요.</div>
+    <button class="login-btn" onclick="guestExplore()" style="margin-top:10px;background:#f3eefb;color:#4a3b7a;border:1px solid #cbb8ec">🔎 로그인 없이 둘러보기</button>
+    <div class="login-consent">코드가 없으면 '둘러보기'로 자유롭게 탐색할 수 있어요. 입력한 활동 기록은 학습 연구를 위해 저장됩니다. 이름 외 개인정보는 수집하지 않아요.</div>
   </div>
 </div>
 
@@ -2344,6 +2345,11 @@ function doLogin() {
   try { localStorage.setItem(LOG_CFG.sessKey, JSON.stringify({ code, name, ts: Date.now() })); } catch (e) {}
   applyUser(code, name);
   Logger.startSession();
+  hideLogin();
+}
+function guestExplore() {
+  applyUser('guest', '둘러보기');
+  try { Logger.startSession({ guest: true }); } catch (e) {}
   hideLogin();
 }
 function logoutUser() {
