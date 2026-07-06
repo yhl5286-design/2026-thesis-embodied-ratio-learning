@@ -620,9 +620,7 @@ main{max-width:1400px;margin:0 auto;padding:0 40px 60px}
   <button class="tab-btn" onclick="switchTab('unit')">&#x1F4D0; 단위화</button>
   <button class="tab-btn" onclick="switchTab('sound')">&#x1f3b5; 소리 탐험실</button>
   <button class="tab-btn" onclick="switchTab('instrument')">&#x1f3b9; 악기 제작실</button>
-  <button class="tab-btn" onclick="switchTab('beat')">&#x1F941; 박자</button>
   <button class="tab-btn" onclick="switchTab('harmony')">&#x1f3bc; 화음 감상실</button>
-  <button class="tab-btn" onclick="switchTab('shadow')">&#x1F31F; 그림자와 비율</button>
 </div>
 
 <main>
@@ -2365,7 +2363,7 @@ function bootAuth() {
   if (saved && CODE_RE.test(saved.code)) { applyUser(saved.code, saved.name); Logger.startSession({ resume: true }); }
   else showLogin();
 }
-const ALL_TABS=['color','unit','sound','instrument','beat','harmony','shadow'];
+const ALL_TABS=['color','unit','sound','instrument','harmony'];
 function switchTab(t){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',ALL_TABS[i]===t);
